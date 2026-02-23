@@ -10,13 +10,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { PlayerResult } from '../types';
+import { calcAllGames, GameExtras } from '../lib/gameEngines';
+import { BBBHoleState, GameMode, MultiGameResults, SnakeHoleState, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
-export let gameResults: PlayerResult[] | null = null;
+// Export multiGameResults for results screen
+export let multiGameResults: MultiGameResults | null = null;
 
 export function resetGameResults() {
-  gameResults = null;
+  multiGameResults = null;
 }
 
 const NAME_W = 76;
@@ -42,7 +44,7 @@ const DEMO_SETUP = {
     { id: 'p3', name: 'Dave', taxMan: 95 },
     { id: 'p4', name: 'Chris', taxMan: 92 },
   ],
-  taxAmount: 10,
+  games: [{ mode: 'taxman' as const, config: { taxAmount: 10 } }],
 };
 
 const DEMO_SCORES: Record<string, (number | null)[]> = {
@@ -52,11 +54,17 @@ const DEMO_SCORES: Record<string, (number | null)[]> = {
   p4: [4,3,4,5,4,3,5,4,4, 4,3,4,5,4,3,5,4,4],
 };
 
+// Helper to check if a game mode is active
+function hasGame(modes: GameMode[], mode: GameMode): boolean {
+  return modes.includes(mode);
+}
+
 export default function ScoresScreen() {
   const router = useRouter();
   const { preview } = useLocalSearchParams<{ preview?: string }>();
   const isPreview = preview === 'true' || !gameSetup;
   const setup = isPreview ? DEMO_SETUP : gameSetup!;
+  const activeGameModes = setup.games.map(g => g.mode);
 
   const [pars, setPars] = useState<number[]>([4,3,5,4,4,3,4,5,4, 4,4,3,5,4,4,3,4,5]);
   const [scores, setScores] = useState<Record<string, (number | null)[]>>(
@@ -69,8 +77,36 @@ export default function ScoresScreen() {
   const [target, setTarget] = useState<EditTarget | null>(null);
   const [inputVal, setInputVal] = useState('');
 
+  // ─── Game extras state ────────────────────────────────────────────────────
+  const [wolfHoles, setWolfHoles] = useState<(WolfHoleState | null)[]>(() => 
+    Array(18).fill(null).map((_, i) => ({
+      wolfPlayerId: setup.players[i % setup.players.length].id,
+      partnerId: null,
+    }))
+  );
+  
+  const [bbbHoles, setBbbHoles] = useState<(BBBHoleState | null)[]>(() =>
+    Array(18).fill(null).map(() => ({
+      bingoPlayerId: null,
+      bangoPlayerId: null,
+      bongoPlayerId: null,
+    }))
+  );
+  
+  const [snakeHoles, setSnakeHoles] = useState<(SnakeHoleState | null)[]>(() =>
+    Array(18).fill(null).map(() => ({
+      holderPlayerId: null,
+      threeputters: [],
+    }))
+  );
+
+  // Collapsible panel states
+  const [wolfExpanded, setWolfExpanded] = useState(false);
+  const [bbbExpanded, setBbbExpanded] = useState(false);
+  const [snakeExpanded, setSnakeExpanded] = useState(false);
+
   function openEdit(t: EditTarget) {
-    if (isPreview) return; // Locked in preview mode
+    if (isPreview) return;
     if (t.kind === 'par') {
       setInputVal(String(pars[t.hole]));
     } else {
@@ -119,12 +155,70 @@ export default function ScoresScreen() {
     return pars.slice(start, end).reduce((a, b) => a + b, 0);
   }
 
-  function handleCalculate() {
-    gameResults = setup!.players.map(player => {
-      const s = scores[player.id];
-      const total = s.reduce<number>((a, b) => a + (b ?? 0), 0);
-      return { player, score: total, beatTaxMan: total > 0 && total < player.taxMan };
+  // ─── Wolf helpers ─────────────────────────────────────────────────────────
+  function setWolfPartner(hole: number, partnerId: string | null) {
+    setWolfHoles(prev => {
+      const next = [...prev];
+      const current = next[hole];
+      if (current) {
+        next[hole] = { ...current, partnerId };
+      }
+      return next;
     });
+  }
+
+  // ─── BBB helpers ──────────────────────────────────────────────────────────
+  function cyclePlayer(hole: number, field: 'bingoPlayerId' | 'bangoPlayerId' | 'bongoPlayerId') {
+    setBbbHoles(prev => {
+      const next = [...prev];
+      const current = next[hole];
+      if (!current) return prev;
+      
+      const currentId = current[field];
+      const playerIds = setup.players.map(p => p.id);
+      const currentIndex = currentId ? playerIds.indexOf(currentId) : -1;
+      const nextIndex = (currentIndex + 1) % (playerIds.length + 1);
+      const nextId = nextIndex < playerIds.length ? playerIds[nextIndex] : null;
+      
+      next[hole] = { ...current, [field]: nextId };
+      return next;
+    });
+  }
+
+  // ─── Snake helpers ────────────────────────────────────────────────────────
+  function toggleThreePutt(hole: number, playerId: string) {
+    setSnakeHoles(prev => {
+      const next = [...prev];
+      const current = next[hole];
+      if (!current) return prev;
+      
+      const threeputters = current.threeputters.includes(playerId)
+        ? current.threeputters.filter(id => id !== playerId)
+        : [...current.threeputters, playerId];
+      
+      next[hole] = { ...current, threeputters };
+      return next;
+    });
+  }
+
+  function getSnakeHolder(): string | null {
+    let holder: string | null = null;
+    for (const state of snakeHoles) {
+      if (state && state.threeputters.length > 0) {
+        holder = state.threeputters[state.threeputters.length - 1];
+      }
+    }
+    return holder;
+  }
+
+  function handleCalculate() {
+    const extras: GameExtras = {
+      wolf: wolfHoles,
+      bbb: bbbHoles,
+      snake: snakeHoles,
+    };
+    
+    multiGameResults = calcAllGames(setup, scores, extras);
     router.push('/results');
   }
 
@@ -134,6 +228,11 @@ export default function ScoresScreen() {
       : target?.kind === 'score'
       ? `${setup.players.find(p => p.id === target.playerId)?.name ?? ''} · Hole ${target.hole + 1}`
       : '';
+
+  const hasWolf = hasGame(activeGameModes, 'wolf');
+  const hasBBB = hasGame(activeGameModes, 'bingo-bango-bongo');
+  const hasSnake = hasGame(activeGameModes, 'snake');
+  const hasExtras = hasWolf || hasBBB || hasSnake;
 
   return (
     <View style={styles.container}>
@@ -191,168 +290,350 @@ export default function ScoresScreen() {
         </TouchableOpacity>
       </Modal>
 
-      {/* Scorecard grid */}
-      <View style={styles.grid}>
-        {/* ── Sticky left column ── */}
-        <View style={styles.stickyCol}>
-          {/* Header cell */}
-          <View style={[styles.cell, styles.hdrCell, { width: NAME_W, height: ROW_H }]}>
-            <Text style={styles.hdrText}>NAME</Text>
-          </View>
-          {/* Par label */}
-          <View style={[styles.cell, styles.parLabelCell, { width: NAME_W, height: ROW_H }]}>
-            <Text style={styles.parLabelText}>PAR</Text>
-          </View>
-          {/* Player name cells */}
-          {setup.players.map((player, i) => (
-            <View
-              key={player.id}
-              style={[styles.cell, styles.nameCell, { width: NAME_W, height: ROW_H }, i % 2 === 1 && styles.rowAlt]}
-            >
-              <Text style={styles.nameText} numberOfLines={1}>{player.name}</Text>
-              <Text style={styles.tmText}>TM {player.taxMan}</Text>
+      <ScrollView style={styles.mainScroll} bounces={false}>
+        {/* Scorecard grid */}
+        <View style={styles.grid}>
+          {/* ── Sticky left column ── */}
+          <View style={styles.stickyCol}>
+            {/* Header cell */}
+            <View style={[styles.cell, styles.hdrCell, { width: NAME_W, height: ROW_H }]}>
+              <Text style={styles.hdrText}>NAME</Text>
             </View>
-          ))}
+            {/* Par label */}
+            <View style={[styles.cell, styles.parLabelCell, { width: NAME_W, height: ROW_H }]}>
+              <Text style={styles.parLabelText}>PAR</Text>
+            </View>
+            {/* Player name cells */}
+            {setup.players.map((player, i) => (
+              <View
+                key={player.id}
+                style={[styles.cell, styles.nameCell, { width: NAME_W, height: ROW_H }, i % 2 === 1 && styles.rowAlt]}
+              >
+                <Text style={styles.nameText} numberOfLines={1}>{player.name}</Text>
+                <Text style={styles.tmText}>TM {player.taxMan}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* ── Horizontally scrollable columns ── */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
+            <View>
+              {/* Header row */}
+              <View style={{ flexDirection: 'row', height: ROW_H }}>
+                {[0,1,2,3,4,5,6,7,8].map(i => (
+                  <View key={i} style={[styles.cell, styles.hdrCell, { width: CELL_W }]}>
+                    <Text style={styles.hdrText}>{i + 1}</Text>
+                  </View>
+                ))}
+                <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
+                  <Text style={styles.sumHdrText}>OUT</Text>
+                </View>
+                {[9,10,11,12,13,14,15,16,17].map(i => (
+                  <View key={i} style={[styles.cell, styles.hdrCell, { width: CELL_W }]}>
+                    <Text style={styles.hdrText}>{i + 1}</Text>
+                  </View>
+                ))}
+                <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
+                  <Text style={styles.sumHdrText}>IN</Text>
+                </View>
+                <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
+                  <Text style={styles.sumHdrText}>TOT</Text>
+                </View>
+              </View>
+
+              {/* Par row */}
+              <View style={{ flexDirection: 'row', height: ROW_H }}>
+                {[0,1,2,3,4,5,6,7,8].map(i => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => openEdit({ kind: 'par', hole: i })}
+                    style={[styles.cell, styles.parCell, { width: CELL_W }]}
+                  >
+                    <Text style={styles.parText}>{pars[i]}</Text>
+                  </TouchableOpacity>
+                ))}
+                <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
+                  <Text style={styles.sumText}>{parSum(0, 9)}</Text>
+                </View>
+                {[9,10,11,12,13,14,15,16,17].map(i => (
+                  <TouchableOpacity
+                    key={i}
+                    onPress={() => openEdit({ kind: 'par', hole: i })}
+                    style={[styles.cell, styles.parCell, { width: CELL_W }]}
+                  >
+                    <Text style={styles.parText}>{pars[i]}</Text>
+                  </TouchableOpacity>
+                ))}
+                <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
+                  <Text style={styles.sumText}>{parSum(9, 18)}</Text>
+                </View>
+                <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
+                  <Text style={styles.sumText}>{parSum(0, 18)}</Text>
+                </View>
+              </View>
+
+              {/* Player rows */}
+              {setup.players.map((player, pi) => {
+                const s = scores[player.id];
+                const outVal = sumSlice(s, 0, 9);
+                const outDone = allFilled(s, 0, 9);
+                const inVal = sumSlice(s, 9, 18);
+                const inDone = allFilled(s, 9, 18);
+                const totVal = outVal + inVal;
+                const totDone = outDone && inDone;
+                const isWin = totDone && totVal > 0 && totVal < player.taxMan;
+                const isLose = totDone && totVal >= player.taxMan;
+
+                return (
+                  <View
+                    key={player.id}
+                    style={[{ flexDirection: 'row', height: ROW_H }, pi % 2 === 1 && styles.rowAlt]}
+                  >
+                    {[0,1,2,3,4,5,6,7,8].map(i => {
+                      const v = s[i];
+                      const diff = v !== null ? v - pars[i] : 0;
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
+                          style={[styles.cell, styles.scoreCell, { width: CELL_W }]}
+                        >
+                          {v !== null ? (
+                            <View style={scoreDotStyle(diff) as object}>
+                              <Text style={[styles.scoreText, diff < 0 && styles.stUnder, diff > 0 && styles.stOver]}>
+                                {v}
+                              </Text>
+                            </View>
+                          ) : (
+                            <Text style={styles.emptyDot}>·</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                    <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
+                      <Text style={styles.sumText}>{outDone ? outVal : '—'}</Text>
+                    </View>
+                    {[9,10,11,12,13,14,15,16,17].map(i => {
+                      const v = s[i];
+                      const diff = v !== null ? v - pars[i] : 0;
+                      return (
+                        <TouchableOpacity
+                          key={i}
+                          onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
+                          style={[styles.cell, styles.scoreCell, { width: CELL_W }]}
+                        >
+                          {v !== null ? (
+                            <View style={scoreDotStyle(diff) as object}>
+                              <Text style={[styles.scoreText, diff < 0 && styles.stUnder, diff > 0 && styles.stOver]}>
+                                {v}
+                              </Text>
+                            </View>
+                          ) : (
+                            <Text style={styles.emptyDot}>·</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                    <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
+                      <Text style={styles.sumText}>{inDone ? inVal : '—'}</Text>
+                    </View>
+                    <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
+                      <Text style={[
+                        styles.sumText,
+                        styles.totText,
+                        isWin && styles.totWin,
+                        isLose && styles.totLose,
+                      ]}>
+                        {totDone ? totVal : '—'}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
         </View>
 
-        {/* ── Horizontally scrollable columns ── */}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
-          <View>
-            {/* Header row */}
-            <View style={{ flexDirection: 'row', height: ROW_H }}>
-              {[0,1,2,3,4,5,6,7,8].map(i => (
-                <View key={i} style={[styles.cell, styles.hdrCell, { width: CELL_W }]}>
-                  <Text style={styles.hdrText}>{i + 1}</Text>
-                </View>
-              ))}
-              <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
-                <Text style={styles.sumHdrText}>OUT</Text>
-              </View>
-              {[9,10,11,12,13,14,15,16,17].map(i => (
-                <View key={i} style={[styles.cell, styles.hdrCell, { width: CELL_W }]}>
-                  <Text style={styles.hdrText}>{i + 1}</Text>
-                </View>
-              ))}
-              <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
-                <Text style={styles.sumHdrText}>IN</Text>
-              </View>
-              <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
-                <Text style={styles.sumHdrText}>TOT</Text>
-              </View>
-            </View>
-
-            {/* Par row */}
-            <View style={{ flexDirection: 'row', height: ROW_H }}>
-              {[0,1,2,3,4,5,6,7,8].map(i => (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => openEdit({ kind: 'par', hole: i })}
-                  style={[styles.cell, styles.parCell, { width: CELL_W }]}
+        {/* ─── Game Extras Panels ─────────────────────────────────────────────── */}
+        {hasExtras && !isPreview && (
+          <View style={styles.extrasContainer}>
+            {/* Wolf Panel */}
+            {hasWolf && (
+              <View style={styles.extrasPanel}>
+                <TouchableOpacity 
+                  style={styles.extrasPanelHeader}
+                  onPress={() => setWolfExpanded(!wolfExpanded)}
+                  activeOpacity={0.7}
                 >
-                  <Text style={styles.parText}>{pars[i]}</Text>
+                  <Text style={styles.extrasPanelTitle}>🐺 Wolf</Text>
+                  <Text style={styles.extrasPanelToggle}>{wolfExpanded ? '▾' : '▸'}</Text>
                 </TouchableOpacity>
-              ))}
-              <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
-                <Text style={styles.sumText}>{parSum(0, 9)}</Text>
+                
+                {wolfExpanded && (
+                  <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                    {Array(18).fill(null).map((_, hole) => {
+                      const wolfState = wolfHoles[hole];
+                      const wolfPlayer = setup.players.find(p => p.id === wolfState?.wolfPlayerId);
+                      const partnerPlayer = wolfState?.partnerId 
+                        ? setup.players.find(p => p.id === wolfState.partnerId)
+                        : null;
+                      const isLoneWolf = wolfState?.partnerId === null;
+                      
+                      return (
+                        <View key={hole} style={styles.wolfRow}>
+                          <Text style={styles.wolfHoleNum}>H{hole + 1}</Text>
+                          <Text style={styles.wolfLabel}>Wolf:</Text>
+                          <Text style={styles.wolfName}>{wolfPlayer?.name ?? '?'}</Text>
+                          <Text style={styles.wolfLabel}>Partner:</Text>
+                          <View style={styles.wolfPartnerPicker}>
+                            <TouchableOpacity
+                              style={[styles.wolfPartnerBtn, isLoneWolf && styles.wolfPartnerBtnActive]}
+                              onPress={() => setWolfPartner(hole, null)}
+                            >
+                              <Text style={[styles.wolfPartnerBtnText, isLoneWolf && styles.wolfPartnerBtnTextActive]}>
+                                Lone
+                              </Text>
+                            </TouchableOpacity>
+                            {setup.players
+                              .filter(p => p.id !== wolfState?.wolfPlayerId)
+                              .map(p => (
+                                <TouchableOpacity
+                                  key={p.id}
+                                  style={[
+                                    styles.wolfPartnerBtn,
+                                    wolfState?.partnerId === p.id && styles.wolfPartnerBtnActive
+                                  ]}
+                                  onPress={() => setWolfPartner(hole, p.id)}
+                                >
+                                  <Text style={[
+                                    styles.wolfPartnerBtnText,
+                                    wolfState?.partnerId === p.id && styles.wolfPartnerBtnTextActive
+                                  ]}>
+                                    {p.name.slice(0, 4)}
+                                  </Text>
+                                </TouchableOpacity>
+                              ))}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
               </View>
-              {[9,10,11,12,13,14,15,16,17].map(i => (
-                <TouchableOpacity
-                  key={i}
-                  onPress={() => openEdit({ kind: 'par', hole: i })}
-                  style={[styles.cell, styles.parCell, { width: CELL_W }]}
+            )}
+
+            {/* BBB Panel */}
+            {hasBBB && (
+              <View style={styles.extrasPanel}>
+                <TouchableOpacity 
+                  style={styles.extrasPanelHeader}
+                  onPress={() => setBbbExpanded(!bbbExpanded)}
+                  activeOpacity={0.7}
                 >
-                  <Text style={styles.parText}>{pars[i]}</Text>
+                  <Text style={styles.extrasPanelTitle}>🎯 Bingo Bango Bongo</Text>
+                  <Text style={styles.extrasPanelToggle}>{bbbExpanded ? '▾' : '▸'}</Text>
                 </TouchableOpacity>
-              ))}
-              <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
-                <Text style={styles.sumText}>{parSum(9, 18)}</Text>
+                
+                {bbbExpanded && (
+                  <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                    {Array(18).fill(null).map((_, hole) => {
+                      const bbbState = bbbHoles[hole];
+                      const bingoPlayer = bbbState?.bingoPlayerId 
+                        ? setup.players.find(p => p.id === bbbState.bingoPlayerId)
+                        : null;
+                      const bangoPlayer = bbbState?.bangoPlayerId 
+                        ? setup.players.find(p => p.id === bbbState.bangoPlayerId)
+                        : null;
+                      const bongoPlayer = bbbState?.bongoPlayerId 
+                        ? setup.players.find(p => p.id === bbbState.bongoPlayerId)
+                        : null;
+                      
+                      return (
+                        <View key={hole} style={styles.bbbRow}>
+                          <Text style={styles.bbbHoleNum}>H{hole + 1}</Text>
+                          <TouchableOpacity 
+                            style={styles.bbbBtn}
+                            onPress={() => cyclePlayer(hole, 'bingoPlayerId')}
+                          >
+                            <Text style={styles.bbbBtnLabel}>Bingo</Text>
+                            <Text style={styles.bbbBtnValue}>{bingoPlayer?.name ?? '—'}</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.bbbBtn}
+                            onPress={() => cyclePlayer(hole, 'bangoPlayerId')}
+                          >
+                            <Text style={styles.bbbBtnLabel}>Bango</Text>
+                            <Text style={styles.bbbBtnValue}>{bangoPlayer?.name ?? '—'}</Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity 
+                            style={styles.bbbBtn}
+                            onPress={() => cyclePlayer(hole, 'bongoPlayerId')}
+                          >
+                            <Text style={styles.bbbBtnLabel}>Bongo</Text>
+                            <Text style={styles.bbbBtnValue}>{bongoPlayer?.name ?? '—'}</Text>
+                          </TouchableOpacity>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
               </View>
-              <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
-                <Text style={styles.sumText}>{parSum(0, 18)}</Text>
-              </View>
-            </View>
+            )}
 
-            {/* Player rows */}
-            {setup.players.map((player, pi) => {
-              const s = scores[player.id];
-              const outVal = sumSlice(s, 0, 9);
-              const outDone = allFilled(s, 0, 9);
-              const inVal = sumSlice(s, 9, 18);
-              const inDone = allFilled(s, 9, 18);
-              const totVal = outVal + inVal;
-              const totDone = outDone && inDone;
-              const isWin = totDone && totVal > 0 && totVal < player.taxMan;
-              const isLose = totDone && totVal >= player.taxMan;
-
-              return (
-                <View
-                  key={player.id}
-                  style={[{ flexDirection: 'row', height: ROW_H }, pi % 2 === 1 && styles.rowAlt]}
+            {/* Snake Panel */}
+            {hasSnake && (
+              <View style={styles.extrasPanel}>
+                <TouchableOpacity 
+                  style={styles.extrasPanelHeader}
+                  onPress={() => setSnakeExpanded(!snakeExpanded)}
+                  activeOpacity={0.7}
                 >
-                  {[0,1,2,3,4,5,6,7,8].map(i => {
-                    const v = s[i];
-                    const diff = v !== null ? v - pars[i] : 0;
-                    return (
-                      <TouchableOpacity
-                        key={i}
-                        onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
-                        style={[styles.cell, styles.scoreCell, { width: CELL_W }]}
-                      >
-                        {v !== null ? (
-                          <View style={scoreDotStyle(diff) as any}>
-                            <Text style={[styles.scoreText, diff < 0 && styles.stUnder, diff > 0 && styles.stOver]}>
-                              {v}
-                            </Text>
+                  <Text style={styles.extrasPanelTitle}>
+                    🐍 Snake {getSnakeHolder() 
+                      ? `(${setup.players.find(p => p.id === getSnakeHolder())?.name ?? '?'} holds)` 
+                      : '(no holder)'}
+                  </Text>
+                  <Text style={styles.extrasPanelToggle}>{snakeExpanded ? '▾' : '▸'}</Text>
+                </TouchableOpacity>
+                
+                {snakeExpanded && (
+                  <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                    {Array(18).fill(null).map((_, hole) => {
+                      const snakeState = snakeHoles[hole];
+                      
+                      return (
+                        <View key={hole} style={styles.snakeRow}>
+                          <Text style={styles.snakeHoleNum}>H{hole + 1}</Text>
+                          <Text style={styles.snakeLabel}>3-putt:</Text>
+                          <View style={styles.snakeCheckboxes}>
+                            {setup.players.map(p => {
+                              const isThreePutt = snakeState?.threeputters.includes(p.id) ?? false;
+                              return (
+                                <TouchableOpacity
+                                  key={p.id}
+                                  style={[styles.snakeCheckbox, isThreePutt && styles.snakeCheckboxActive]}
+                                  onPress={() => toggleThreePutt(hole, p.id)}
+                                >
+                                  <Text style={[
+                                    styles.snakeCheckboxText,
+                                    isThreePutt && styles.snakeCheckboxTextActive
+                                  ]}>
+                                    {p.name.slice(0, 3)}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
                           </View>
-                        ) : (
-                          <Text style={styles.emptyDot}>·</Text>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                  <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
-                    <Text style={styles.sumText}>{outDone ? outVal : '—'}</Text>
-                  </View>
-                  {[9,10,11,12,13,14,15,16,17].map(i => {
-                    const v = s[i];
-                    const diff = v !== null ? v - pars[i] : 0;
-                    return (
-                      <TouchableOpacity
-                        key={i}
-                        onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
-                        style={[styles.cell, styles.scoreCell, { width: CELL_W }]}
-                      >
-                        {v !== null ? (
-                          <View style={scoreDotStyle(diff) as any}>
-                            <Text style={[styles.scoreText, diff < 0 && styles.stUnder, diff > 0 && styles.stOver]}>
-                              {v}
-                            </Text>
-                          </View>
-                        ) : (
-                          <Text style={styles.emptyDot}>·</Text>
-                        )}
-                      </TouchableOpacity>
-                    );
-                  })}
-                  <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
-                    <Text style={styles.sumText}>{inDone ? inVal : '—'}</Text>
-                  </View>
-                  <View style={[styles.cell, styles.sumCell, { width: SUM_W }]}>
-                    <Text style={[
-                      styles.sumText,
-                      styles.totText,
-                      isWin && styles.totWin,
-                      isLose && styles.totLose,
-                    ]}>
-                      {totDone ? totVal : '—'}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+              </View>
+            )}
           </View>
-        </ScrollView>
-      </View>
+        )}
+      </ScrollView>
 
       {/* Footer */}
       <View style={styles.footer}>
@@ -376,6 +657,7 @@ export default function ScoresScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
+  mainScroll: { flex: 1 },
 
   // Preview mode banner
   previewBanner: {
@@ -399,11 +681,7 @@ const styles = StyleSheet.create({
   },
   previewCTAText: { color: '#000', fontWeight: '800', fontSize: 13 },
 
-  errorContainer: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
-  errorText: { color: '#ff5555', fontSize: 18, marginBottom: 16 },
-  errorLink: { color: '#39FF14', fontSize: 16 },
-
-  grid: { flex: 1, flexDirection: 'row' },
+  grid: { flexDirection: 'row' },
 
   stickyCol: { zIndex: 10 },
 
@@ -518,6 +796,174 @@ const styles = StyleSheet.create({
     backgroundColor: '#39FF14',
   },
   modalConfirmText: { color: '#000', fontWeight: '800', fontSize: 15 },
+
+  // ─── Game Extras ──────────────────────────────────────────────────────────
+  extrasContainer: {
+    padding: 12,
+    gap: 12,
+  },
+  extrasPanel: {
+    backgroundColor: '#141414',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    overflow: 'hidden',
+  },
+  extrasPanelHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: '#1a2a1a',
+  },
+  extrasPanelTitle: {
+    color: '#39FF14',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  extrasPanelToggle: {
+    color: '#5a8a5a',
+    fontSize: 16,
+  },
+  extrasPanelContent: {
+    maxHeight: 200,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+
+  // Wolf panel styles
+  wolfRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#2a2a2a',
+  },
+  wolfHoleNum: {
+    color: '#666',
+    fontSize: 12,
+    fontWeight: '700',
+    width: 28,
+  },
+  wolfLabel: {
+    color: '#5a8a5a',
+    fontSize: 11,
+    marginRight: 4,
+  },
+  wolfName: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+    marginRight: 10,
+    minWidth: 50,
+  },
+  wolfPartnerPicker: {
+    flexDirection: 'row',
+    flex: 1,
+    gap: 4,
+  },
+  wolfPartnerBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#0d1f0d',
+    borderWidth: 1,
+    borderColor: '#2a4a2a',
+  },
+  wolfPartnerBtnActive: {
+    backgroundColor: '#39FF14',
+    borderColor: '#39FF14',
+  },
+  wolfPartnerBtnText: {
+    color: '#5a8a5a',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  wolfPartnerBtnTextActive: {
+    color: '#000',
+  },
+
+  // BBB panel styles
+  bbbRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#2a2a2a',
+    gap: 6,
+  },
+  bbbHoleNum: {
+    color: '#666',
+    fontSize: 12,
+    fontWeight: '700',
+    width: 28,
+  },
+  bbbBtn: {
+    flex: 1,
+    backgroundColor: '#0d1f0d',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#2a4a2a',
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+  },
+  bbbBtnLabel: {
+    color: '#5a8a5a',
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  bbbBtnValue: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+
+  // Snake panel styles
+  snakeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#2a2a2a',
+  },
+  snakeHoleNum: {
+    color: '#666',
+    fontSize: 12,
+    fontWeight: '700',
+    width: 28,
+  },
+  snakeLabel: {
+    color: '#5a8a5a',
+    fontSize: 11,
+    marginRight: 8,
+  },
+  snakeCheckboxes: {
+    flexDirection: 'row',
+    flex: 1,
+    gap: 6,
+  },
+  snakeCheckbox: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#0d1f0d',
+    borderWidth: 1,
+    borderColor: '#2a4a2a',
+  },
+  snakeCheckboxActive: {
+    backgroundColor: '#ff5555',
+    borderColor: '#ff5555',
+  },
+  snakeCheckboxText: {
+    color: '#5a8a5a',
+    fontSize: 10,
+    fontWeight: '600',
+  },
+  snakeCheckboxTextActive: {
+    color: '#fff',
+  },
 
   // Footer
   footer: {
