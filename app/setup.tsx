@@ -99,6 +99,11 @@ const GAME_DEFS: GameDef[] = [
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
 
+// Shared green active state — all selected icons use brand neon green
+const ACTIVE_COLORS: [string, string, string] = ['#0A4000', '#1AAA00', '#3EFF18'];
+const ACTIVE_SHADOW = '#39FF14';
+const ACTIVE_TINT = 'rgba(57, 255, 20, 0.28)';
+
 const ICON_DEFS: Record<string, {
   emoji: string;
   activeColors: [string, string, string];
@@ -106,13 +111,13 @@ const ICON_DEFS: Record<string, {
   shadowColor: string;
   glassTint: string;
 }> = {
-  scorecard:        { emoji: '📊', activeColors: ['#005840','#0E9A72','#1ACCA0'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#0E9A72', glassTint: 'rgba(14, 154, 114, 0.35)' },
-  taxman:           { emoji: '💰', activeColors: ['#7A4800','#D4920A','#FFD234'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#D4920A', glassTint: 'rgba(212, 146, 10, 0.35)' },
-  nassau:           { emoji: '🏆', activeColors: ['#0A2070','#1B60C8','#4A9AE8'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#1B60C8', glassTint: 'rgba(27, 96, 200, 0.35)' },
-  skins:            { emoji: '💵', activeColors: ['#0A4000','#1AAA00','#3EFF18'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#39FF14', glassTint: 'rgba(57, 255, 20, 0.25)' },
-  wolf:             { emoji: '🐺', activeColors: ['#3A0870','#7028B8','#9E50E0'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#7028B8', glassTint: 'rgba(112, 40, 184, 0.35)' },
-  'bingo-bango-bongo': { emoji: '🎯', activeColors: ['#7A1800','#D04010','#FF7040'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#D04010', glassTint: 'rgba(208, 64, 16, 0.35)' },
-  snake:            { emoji: '🐍', activeColors: ['#600010','#B81828','#EE3A50'], inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: '#B81828', glassTint: 'rgba(184, 24, 40, 0.35)' },
+  scorecard:        { emoji: '📊', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  taxman:           { emoji: '💰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  nassau:           { emoji: '🏆', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  skins:            { emoji: '💵', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  wolf:             { emoji: '🐺', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  'bingo-bango-bongo': { emoji: '🎯', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  snake:            { emoji: '🐍', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
