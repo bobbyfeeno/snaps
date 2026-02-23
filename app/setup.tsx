@@ -132,24 +132,24 @@ function GameIcon({ game, isActive, onPress }: {
       <View style={[
         styles.gameIconOuter,
         { shadowColor: def.shadowColor },
-        isActive && { shadowOpacity: 0.75, shadowRadius: 20, elevation: 16 },
+        isActive && { shadowOpacity: 0.7, shadowRadius: 20 },
       ]}>
-        {/* Main gradient — light from top-left */}
+        {/* Main gradient — diagonal from bottom-left to top-right */}
         <LinearGradient
           colors={isActive ? def.activeColors : def.inactiveColors}
-          locations={[0, 0.55, 1]}
-          start={{ x: 0.35, y: 1 }}
-          end={{ x: 0.65, y: 0 }}
+          locations={[0, 0.5, 1]}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 1, y: 0 }}
           style={styles.gameIconGrad}
         >
-          {/* Layer 1: Primary specular — large soft oval at top-center */}
-          <View style={styles.glassSpec1} />
-          
-          {/* Layer 2: Secondary specular — small bright oval above center */}
-          <View style={styles.glassSpec2} />
-
-          {/* Layer 3: Bottom rim light — small arc at very bottom */}
-          <View style={styles.glassRim} />
+          {/* Diagonal gloss — fades from top-left white to transparent */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.30)', 'rgba(255,255,255,0.08)', 'rgba(255,255,255,0.0)']}
+            locations={[0, 0.4, 1]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.gameIconGloss}
+          />
 
           {/* Emoji */}
           <Text style={styles.gameIconEmoji}>{def.emoji}</Text>
@@ -863,48 +863,31 @@ const styles = StyleSheet.create({
   gameIconOuter: {
     width: 96,
     height: 96,
-    borderRadius: 48,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 14,
-    elevation: 10,
+    borderRadius: 22,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
   },
   gameIconGrad: {
     width: 96,
     height: 96,
-    borderRadius: 48,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
+    borderWidth: 0.75,
+    borderColor: 'rgba(255,255,255,0.20)',
   },
-  // Glass sphere specular layers
-  glassSpec1: {
+  // Diagonal gloss overlay
+  gameIconGloss: {
     position: 'absolute',
-    top: 8,
-    left: '18%',
-    right: '18%',
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: 'rgba(255,255,255,0.50)',
-  },
-  glassSpec2: {
-    position: 'absolute',
-    top: 12,
-    left: '28%',
-    right: '28%',
-    height: 14,
-    borderRadius: 7,
-    backgroundColor: 'rgba(255,255,255,0.75)',
-  },
-  glassRim: {
-    position: 'absolute',
-    bottom: 8,
-    left: '28%',
-    right: '28%',
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: 'rgba(255,255,255,0.20)',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 22,
   },
   gameIconEmoji: {
     fontSize: 36,
