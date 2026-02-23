@@ -2,8 +2,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -117,6 +117,13 @@ export default function SetupScreen() {
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
   const [nassauHandicaps, setNassauHandicaps] = useState(false);
 
+  // Custom alert modal state
+  const [alertMsg, setAlertMsg] = useState<{ title: string; body: string } | null>(null);
+
+  function showAlert(title: string, body: string) {
+    setAlertMsg({ title, body });
+  }
+
   // ─── Step 1: Game Selection ────────────────────────────────────────────────
 
   const hasTaxMan = activeGames.has('taxman');
@@ -124,7 +131,7 @@ export default function SetupScreen() {
   function handleNextStep() {
     // Validation: at least one game selected
     if (activeGames.size === 0) {
-      setTimeout(() => Alert.alert('No Games Selected', 'Select at least one game to play.'), 50);
+      showAlert('No Games Selected', 'Select at least one game to play.');
       return;
     }
 
@@ -187,22 +194,20 @@ export default function SetupScreen() {
     // Validate players
     const filledPlayers = players.filter(p => p.name.trim());
     if (filledPlayers.length < 2) {
-      setTimeout(() => Alert.alert('Need More Players', 'Add at least 2 players with names.'), 50);
+      showAlert('Need More Players', 'Add at least 2 players with names.');
       return;
     }
 
     for (const p of filledPlayers) {
       if (hasTaxMan && (p.taxMan <= 0 || p.taxMan > 200)) {
-        setTimeout(() => Alert.alert('Invalid Tax Man', `"${p.name}" needs a valid Tax Man score (1–200).`), 50);
+        showAlert('Invalid Tax Man', `"${p.name}" needs a valid Tax Man score (1–200).`);
         return;
       }
     }
 
     // Check Wolf player requirement
     if (activeGames.has('wolf') && filledPlayers.length < 3) {
-      setTimeout(() => {
-        Alert.alert('Wolf Game Selected', '3 or more players must be added for the Wolf game.');
-      }, 50);
+      showAlert('Wolf Game Selected', '3 or more players must be added for the Wolf game.');
       return;
     }
 
@@ -212,7 +217,7 @@ export default function SetupScreen() {
       const amount = parseFloat(gameAmounts[mode]);
       if (isNaN(amount) || amount <= 0) {
         const gameName = GAME_DEFS.find(g => g.mode === mode)?.name ?? mode;
-        setTimeout(() => Alert.alert('Invalid Amount', `Enter a valid dollar amount for ${gameName}.`), 50);
+        showAlert('Invalid Amount', `Enter a valid dollar amount for ${gameName}.`);
         return;
       }
     }
@@ -496,6 +501,38 @@ export default function SetupScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
+        {/* Custom Alert Modal */}
+        {alertMsg && (
+          <Modal
+            transparent
+            animationType="fade"
+            visible={!!alertMsg}
+            onRequestClose={() => setAlertMsg(null)}
+          >
+            <View style={styles.alertOverlay}>
+              <View style={styles.alertBox}>
+                <View style={styles.alertHighlight} />
+                <Text style={styles.alertTitle}>{alertMsg.title}</Text>
+                <Text style={styles.alertBody}>{alertMsg.body}</Text>
+                <TouchableOpacity
+                  style={styles.alertBtn}
+                  onPress={() => setAlertMsg(null)}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={['#44ff18', '#28cc08']}
+                    start={{ x: 0.5, y: 0 }}
+                    end={{ x: 0.5, y: 1 }}
+                    style={styles.alertBtnGrad}
+                  >
+                    <Text style={styles.alertBtnText}>Got it</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        )}
       </KeyboardAvoidingView>
     );
   }
@@ -646,6 +683,38 @@ export default function SetupScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Custom Alert Modal */}
+      {alertMsg && (
+        <Modal
+          transparent
+          animationType="fade"
+          visible={!!alertMsg}
+          onRequestClose={() => setAlertMsg(null)}
+        >
+          <View style={styles.alertOverlay}>
+            <View style={styles.alertBox}>
+              <View style={styles.alertHighlight} />
+              <Text style={styles.alertTitle}>{alertMsg.title}</Text>
+              <Text style={styles.alertBody}>{alertMsg.body}</Text>
+              <TouchableOpacity
+                style={styles.alertBtn}
+                onPress={() => setAlertMsg(null)}
+                activeOpacity={0.8}
+              >
+                <LinearGradient
+                  colors={['#44ff18', '#28cc08']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.alertBtnGrad}
+                >
+                  <Text style={styles.alertBtnText}>Got it</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -1082,5 +1151,69 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 8,
+  },
+
+  // Custom Alert Modal
+  alertOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.75)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  alertBox: {
+    backgroundColor: '#161616',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    padding: 24,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.8,
+    shadowRadius: 24,
+    elevation: 20,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  alertHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+  },
+  alertTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  alertBody: {
+    fontSize: 15,
+    color: '#888',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  alertBtn: {
+    borderRadius: 12,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  alertBtnGrad: {
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  alertBtnText: {
+    color: '#000',
+    fontWeight: '800',
+    fontSize: 16,
   },
 });
