@@ -1,33 +1,29 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Payout, PlayerResult } from '../types';
-import { gameResults, resetGameResults } from './scores';
+import { GameMode, GameResult, Payout } from '../types';
+import { multiGameResults, resetGameResults } from './scores';
 import { gameSetup, resetGameSetup } from './setup';
 
-function buildPayouts(results: PlayerResult[], taxAmount: number): Payout[] {
-  const winners = results.filter(r => r.beatTaxMan);
-  const losers = results.filter(r => !r.beatTaxMan);
-  const payouts: Payout[] = [];
-
-  for (const loser of losers) {
-    for (const winner of winners) {
-      payouts.push({
-        from: loser.player.name,
-        to: winner.player.name,
-        amount: taxAmount,
-      });
-    }
-  }
-  return payouts;
+function formatMoney(n: number) {
+  if (n === 0) return '$0';
+  return n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
 }
 
-function formatMoney(n: number) {
-  return n % 1 === 0 ? `$${n}` : `$${n.toFixed(2)}`;
+function getGameEmoji(mode: GameMode): string {
+  switch (mode) {
+    case 'taxman': return '💰';
+    case 'nassau': return '🏌️';
+    case 'skins': return '🎰';
+    case 'wolf': return '🐺';
+    case 'bingo-bango-bongo': return '🎯';
+    case 'snake': return '🐍';
+    default: return '🎮';
+  }
 }
 
 export default function ResultsScreen() {
   const router = useRouter();
-  const results = gameResults;
+  const results = multiGameResults;
   const setup = gameSetup;
 
   if (!results || !setup) {
@@ -41,25 +37,19 @@ export default function ResultsScreen() {
     );
   }
 
-  const winners = results.filter(r => r.beatTaxMan);
-  const losers = results.filter(r => !r.beatTaxMan);
-  const payouts = buildPayouts(results, setup.taxAmount);
+  // Calculate summary stats
+  const totalPot = results.games.reduce((sum, game) => {
+    return sum + game.payouts.reduce((ps, p) => ps + p.amount, 0);
+  }, 0);
 
-  // Net per player
-  const net: Record<string, number> = {};
-  for (const r of results) {
-    net[r.player.name] = 0;
-  }
-  for (const p of payouts) {
-    net[p.from] -= p.amount;
-    net[p.to] += p.amount;
-  }
+  const winners = Object.entries(results.combinedNet).filter(([_, n]) => n > 0);
+  const losers = Object.entries(results.combinedNet).filter(([_, n]) => n < 0);
 
-  const sortedResults = [...results].sort((a, b) => a.score - b.score);
+  // Sort combined net for display
+  const sortedNet = Object.entries(results.combinedNet).sort((a, b) => b[1] - a[1]);
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
-
       {/* Summary banner */}
       <View style={styles.summaryBanner}>
         <View style={styles.summaryItem}>
@@ -73,80 +63,53 @@ export default function ResultsScreen() {
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
-          <Text style={styles.summaryNum}>{formatMoney(setup.taxAmount)}</Text>
-          <Text style={styles.summaryLabel}>Per Win</Text>
+          <Text style={styles.summaryNum}>{formatMoney(totalPot / 2)}</Text>
+          <Text style={styles.summaryLabel}>Total Pot</Text>
         </View>
       </View>
 
-      {/* Scoreboard */}
-      <Text style={styles.sectionLabel}>Scoreboard</Text>
-      {sortedResults.map(r => (
-        <View
-          key={r.player.id}
-          style={[styles.scoreRow, r.beatTaxMan ? styles.scoreRowWin : styles.scoreRowLose]}
-        >
-          <View style={styles.scoreLeft}>
-            <Text style={[styles.scoreIcon]}>{r.beatTaxMan ? '✓' : '✗'}</Text>
-            <View>
-              <Text style={styles.scoreName}>{r.player.name}</Text>
-              <Text style={styles.scoreDetail}>
-                Tax Man {r.player.taxMan} · Shot {r.score}
-                {' · '}
-                {r.beatTaxMan
-                  ? `${r.player.taxMan - r.score} under`
-                  : `${r.score - r.player.taxMan} over`}
-              </Text>
-            </View>
+      {/* Active games indicator */}
+      <View style={styles.gamesBar}>
+        {results.games.map(g => (
+          <View key={g.mode} style={styles.gameChip}>
+            <Text style={styles.gameChipText}>{getGameEmoji(g.mode)} {g.label}</Text>
           </View>
-          <View style={[styles.netBadge, net[r.player.name] >= 0 ? styles.netBadgePos : styles.netBadgeNeg]}>
-            <Text style={styles.netText}>
-              {net[r.player.name] >= 0 ? '+' : ''}{formatMoney(net[r.player.name])}
-            </Text>
-          </View>
-        </View>
+        ))}
+      </View>
+
+      {/* Per-game results */}
+      {results.games.map((game, idx) => (
+        <GameResultSection key={game.mode} game={game} isLast={idx === results.games.length - 1} />
       ))}
 
-      {/* Payouts */}
-      {payouts.length > 0 ? (
+      {/* Combined Net Totals */}
+      {results.games.length > 1 && (
         <>
-          <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Payouts</Text>
-          {payouts.map((p, i) => (
-            <View key={i} style={styles.payoutRow}>
-              <Text style={styles.payoutFrom}>{p.from}</Text>
-              <View style={styles.payoutArrowContainer}>
-                <View style={styles.payoutLine} />
-                <Text style={styles.payoutAmount}>{formatMoney(p.amount)}</Text>
-                <View style={styles.payoutLine} />
-                <Text style={styles.payoutArrow}>→</Text>
-              </View>
-              <Text style={styles.payoutTo}>{p.to}</Text>
+          <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Combined Net Totals</Text>
+          <Text style={styles.sectionHint}>All games combined</Text>
+          {sortedNet.map(([name, amount]) => (
+            <View key={name} style={styles.totalRow}>
+              <Text style={styles.totalName}>{name}</Text>
+              <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
+                {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+              </Text>
             </View>
           ))}
         </>
-      ) : (
-        <View style={styles.noPayoutsCard}>
-          <Text style={styles.noPayoutsText}>
-            {winners.length === 0
-              ? 'Nobody beat their Tax Man — no payouts.'
-              : 'Everyone beat their Tax Man — no payouts!'}
-          </Text>
-        </View>
       )}
 
-      {/* Totals */}
-      {payouts.length > 0 && (
+      {/* If only one game, show net totals for that game */}
+      {results.games.length === 1 && (
         <>
           <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Net Totals</Text>
-          {Object.entries(net)
-            .sort((a, b) => b[1] - a[1])
-            .map(([name, amount]) => (
-              <View key={name} style={styles.totalRow}>
-                <Text style={styles.totalName}>{name}</Text>
-                <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
-                  {amount >= 0 ? '+' : ''}{formatMoney(amount)}
-                </Text>
-              </View>
-            ))}
+          {sortedNet.map(([name, amount]) => (
+            <View key={name} style={styles.totalRow}>
+              <Text style={styles.totalName}>{name}</Text>
+              <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
+                {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+              </Text>
+            </View>
+          ))}
         </>
       )}
 
@@ -178,6 +141,77 @@ export default function ResultsScreen() {
   );
 }
 
+// ─── Per-game result section ────────────────────────────────────────────────
+
+function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean }) {
+  const hasPayouts = game.payouts.length > 0;
+  const sortedNet = Object.entries(game.net).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <View style={[styles.gameSection, !isLast && styles.gameSectionBorder]}>
+      <View style={styles.gameSectionHeader}>
+        <Text style={styles.gameSectionTitle}>
+          {getGameEmoji(game.mode)} {game.label}
+        </Text>
+      </View>
+
+      {/* Net standings for this game */}
+      <View style={styles.gameNetList}>
+        {sortedNet.map(([name, amount]) => (
+          <View key={name} style={styles.gameNetRow}>
+            <Text style={styles.gameNetName}>{name}</Text>
+            <View style={[styles.gameNetBadge, amount >= 0 ? styles.gameNetBadgePos : styles.gameNetBadgeNeg]}>
+              <Text style={styles.gameNetText}>
+                {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+              </Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* Payouts for this game */}
+      {hasPayouts ? (
+        <View style={styles.payoutsContainer}>
+          <Text style={styles.payoutsLabel}>Payouts</Text>
+          {consolidatePayouts(game.payouts).map((p, i) => (
+            <View key={i} style={styles.payoutRow}>
+              <Text style={styles.payoutFrom}>{p.from}</Text>
+              <View style={styles.payoutArrowContainer}>
+                <View style={styles.payoutLine} />
+                <Text style={styles.payoutAmount}>{formatMoney(p.amount)}</Text>
+                <View style={styles.payoutLine} />
+                <Text style={styles.payoutArrow}>→</Text>
+              </View>
+              <Text style={styles.payoutTo}>{p.to}</Text>
+            </View>
+          ))}
+        </View>
+      ) : (
+        <View style={styles.noPayoutsCard}>
+          <Text style={styles.noPayoutsText}>No payouts for this game</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// Consolidate multiple payouts between same players
+function consolidatePayouts(payouts: Payout[]): Payout[] {
+  const map = new Map<string, Payout>();
+  
+  for (const p of payouts) {
+    const key = `${p.from}→${p.to}`;
+    const existing = map.get(key);
+    if (existing) {
+      existing.amount += p.amount;
+    } else {
+      map.set(key, { ...p });
+    }
+  }
+  
+  return Array.from(map.values());
+}
+
 const styles = StyleSheet.create({
   scroll: { flex: 1, backgroundColor: '#0d1f0d' },
   content: { padding: 20, paddingBottom: 48 },
@@ -193,75 +227,138 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#2a4a2a',
     paddingVertical: 20,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryNum: { fontSize: 28, fontWeight: '800', color: '#39FF14' },
   summaryLabel: { fontSize: 12, color: '#5a8a5a', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   summaryDivider: { width: 1, backgroundColor: '#2a4a2a', marginVertical: 8 },
 
-  sectionLabel: { fontSize: 18, fontWeight: '700', color: '#39FF14', marginBottom: 10 },
+  gamesBar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  gameChip: {
+    backgroundColor: '#1a2a1a',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#2a4a2a',
+  },
+  gameChipText: {
+    color: '#88bb88',
+    fontSize: 12,
+    fontWeight: '600',
+  },
 
-  scoreRow: {
+  // Per-game sections
+  gameSection: {
+    marginBottom: 20,
+  },
+  gameSectionBorder: {
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a4a2a',
+  },
+  gameSectionHeader: {
+    marginBottom: 12,
+  },
+  gameSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#39FF14',
+  },
+
+  gameNetList: {
+    marginBottom: 12,
+  },
+  gameNetRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    borderRadius: 12,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#162416',
+    borderRadius: 10,
+    marginBottom: 6,
     borderWidth: 1,
-    padding: 14,
-    marginBottom: 10,
+    borderColor: '#2a4a2a',
   },
-  scoreRowWin: { backgroundColor: '#0f2a0f', borderColor: '#39FF14' },
-  scoreRowLose: { backgroundColor: '#2a0f0f', borderColor: '#cc3333' },
-  scoreLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  scoreIcon: { fontSize: 22, marginRight: 12, color: '#fff' },
-  scoreName: { fontSize: 18, fontWeight: '700', color: '#fff' },
-  scoreDetail: { fontSize: 12, color: '#88bb88', marginTop: 2 },
+  gameNetName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  gameNetBadge: {
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  gameNetBadgePos: { backgroundColor: '#1a3d1a' },
+  gameNetBadgeNeg: { backgroundColor: '#3d1a1a' },
+  gameNetText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
+  },
 
-  netBadge: { borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, minWidth: 70, alignItems: 'center' },
-  netBadgePos: { backgroundColor: '#1a3d1a' },
-  netBadgeNeg: { backgroundColor: '#3d1a1a' },
-  netText: { fontSize: 17, fontWeight: '800', color: '#fff' },
-
+  payoutsContainer: {
+    marginTop: 8,
+  },
+  payoutsLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#5a8a5a',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
   payoutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#162416',
-    borderRadius: 12,
+    backgroundColor: '#0f1f0f',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
-    padding: 14,
-    marginBottom: 8,
+    borderColor: '#1a2a1a',
+    padding: 12,
+    marginBottom: 6,
   },
-  payoutFrom: { fontSize: 15, fontWeight: '700', color: '#ff6666', flex: 1 },
+  payoutFrom: { fontSize: 14, fontWeight: '700', color: '#ff6666', flex: 1 },
   payoutArrowContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, flex: 1.4, justifyContent: 'center' },
   payoutLine: { height: 1, flex: 1, backgroundColor: '#2a4a2a' },
-  payoutAmount: { fontSize: 15, fontWeight: '800', color: '#fff', marginHorizontal: 6 },
-  payoutArrow: { fontSize: 16, color: '#39FF14', marginLeft: 2 },
-  payoutTo: { fontSize: 15, fontWeight: '700', color: '#39FF14', flex: 1, textAlign: 'right' },
+  payoutAmount: { fontSize: 14, fontWeight: '800', color: '#fff', marginHorizontal: 6 },
+  payoutArrow: { fontSize: 14, color: '#39FF14', marginLeft: 2 },
+  payoutTo: { fontSize: 14, fontWeight: '700', color: '#39FF14', flex: 1, textAlign: 'right' },
 
   noPayoutsCard: {
-    backgroundColor: '#162416',
-    borderRadius: 12,
+    backgroundColor: '#0f1f0f',
+    borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
-    padding: 20,
-    marginTop: 8,
+    borderColor: '#1a2a1a',
+    padding: 14,
     alignItems: 'center',
   },
-  noPayoutsText: { fontSize: 15, color: '#88bb88', textAlign: 'center' },
+  noPayoutsText: { fontSize: 13, color: '#5a8a5a', textAlign: 'center' },
+
+  sectionLabel: { fontSize: 18, fontWeight: '700', color: '#39FF14', marginBottom: 4 },
+  sectionHint: { fontSize: 12, color: '#5a8a5a', marginBottom: 12 },
 
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 4,
     borderBottomWidth: 1,
     borderBottomColor: '#1e3a1e',
   },
   totalName: { fontSize: 17, color: '#fff', fontWeight: '600' },
-  totalAmount: { fontSize: 20, fontWeight: '800' },
+  totalAmount: { fontSize: 22, fontWeight: '800' },
   totalPos: { color: '#39FF14' },
   totalNeg: { color: '#ff6666' },
 
