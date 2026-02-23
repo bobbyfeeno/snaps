@@ -96,21 +96,21 @@ const GAME_DEFS: GameDef[] = [
   },
 ];
 
-// ─── iOS-style glossy icon definitions ──────────────────────────────────────
+// ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
 
 const ICON_DEFS: Record<string, {
   emoji: string;
-  activeColors: [string, string];
-  inactiveColors: [string, string];
+  activeColors: [string, string, string];
+  inactiveColors: [string, string, string];
   shadowColor: string;
 }> = {
-  scorecard:        { emoji: '📊', activeColors: ['#1ABC9C', '#0E8A70'], inactiveColors: ['#0a2020', '#051010'], shadowColor: '#1ABC9C' },
-  taxman:           { emoji: '💰', activeColors: ['#FFD600', '#E89400'], inactiveColors: ['#3a3010', '#1e180a'], shadowColor: '#FFD600' },
-  nassau:           { emoji: '🏆', activeColors: ['#4A90E2', '#1A5FBF'], inactiveColors: ['#0e1e35', '#080f1c'], shadowColor: '#4A90E2' },
-  skins:            { emoji: '💵', activeColors: ['#39FF14', '#1AAA00'], inactiveColors: ['#0d2808', '#060f02'], shadowColor: '#39FF14' },
-  wolf:             { emoji: '🐺', activeColors: ['#9B59B6', '#6A1E9A'], inactiveColors: ['#1e0a2e', '#0f0516'], shadowColor: '#9B59B6' },
-  'bingo-bango-bongo': { emoji: '🎯', activeColors: ['#FF6B35', '#D03A00'], inactiveColors: ['#2e1008', '#160803'], shadowColor: '#FF6B35' },
-  snake:            { emoji: '🐍', activeColors: ['#E74C3C', '#A01020'], inactiveColors: ['#2e0808', '#160404'], shadowColor: '#E74C3C' },
+  scorecard:        { emoji: '📊', activeColors: ['#005840','#0E9A72','#1ACCA0'], inactiveColors: ['#001810','#002818','#003820'], shadowColor: '#0E9A72' },
+  taxman:           { emoji: '💰', activeColors: ['#7A4800','#D4920A','#FFD234'], inactiveColors: ['#1a1000','#2a1e00','#3a2a00'], shadowColor: '#D4920A' },
+  nassau:           { emoji: '🏆', activeColors: ['#0A2070','#1B60C8','#4A9AE8'], inactiveColors: ['#060c1e','#0e1830','#141e3a'], shadowColor: '#1B60C8' },
+  skins:            { emoji: '💵', activeColors: ['#0A4000','#1AAA00','#3EFF18'], inactiveColors: ['#030f00','#081a00','#0d2200'], shadowColor: '#39FF14' },
+  wolf:             { emoji: '🐺', activeColors: ['#3A0870','#7028B8','#9E50E0'], inactiveColors: ['#0e0318','#18062a','#200838'], shadowColor: '#7028B8' },
+  'bingo-bango-bongo': { emoji: '🎯', activeColors: ['#7A1800','#D04010','#FF7040'], inactiveColors: ['#1e0600','#2e0c00','#3a1000'], shadowColor: '#D04010' },
+  snake:            { emoji: '🐍', activeColors: ['#600010','#B81828','#EE3A50'], inactiveColors: ['#180004','#240008','#300010'], shadowColor: '#B81828' },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -132,24 +132,28 @@ function GameIcon({ game, isActive, onPress }: {
       <View style={[
         styles.gameIconOuter,
         { shadowColor: def.shadowColor },
-        isActive && { shadowOpacity: 0.7, shadowRadius: 16 },
+        isActive && { shadowOpacity: 0.75, shadowRadius: 20, elevation: 16 },
       ]}>
-        {/* Main gradient */}
+        {/* Main gradient — light from top-left */}
         <LinearGradient
           colors={isActive ? def.activeColors : def.inactiveColors}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
+          locations={[0, 0.55, 1]}
+          start={{ x: 0.35, y: 1 }}
+          end={{ x: 0.65, y: 0 }}
           style={styles.gameIconGrad}
         >
-          {/* Gloss overlay — top half white dome */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.0)']}
-            start={{ x: 0.5, y: 0 }}
-            end={{ x: 0.5, y: 1 }}
-            style={styles.gameIconGloss}
-          />
+          {/* Layer 1: Primary specular — large soft oval at top-center */}
+          <View style={styles.glassSpec1} />
+          
+          {/* Layer 2: Secondary specular — small bright oval above center */}
+          <View style={styles.glassSpec2} />
+
+          {/* Layer 3: Bottom rim light — small arc at very bottom */}
+          <View style={styles.glassRim} />
+
           {/* Emoji */}
           <Text style={styles.gameIconEmoji}>{def.emoji}</Text>
+
           {/* Selection checkmark */}
           {isActive && (
             <View style={styles.gameIconCheck}>
@@ -854,38 +858,60 @@ const styles = StyleSheet.create({
   gameIconWrapper: {
     width: '30%',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   gameIconOuter: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 14,
+    elevation: 10,
   },
   gameIconGrad: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
   },
-  gameIconGloss: {
+  // Glass sphere specular layers
+  glassSpec1: {
     position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 40,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    top: 8,
+    left: '18%',
+    right: '18%',
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: 'rgba(255,255,255,0.50)',
+  },
+  glassSpec2: {
+    position: 'absolute',
+    top: 12,
+    left: '28%',
+    right: '28%',
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: 'rgba(255,255,255,0.75)',
+  },
+  glassRim: {
+    position: 'absolute',
+    bottom: 8,
+    left: '28%',
+    right: '28%',
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.20)',
   },
   gameIconEmoji: {
-    fontSize: 32,
-    lineHeight: 38,
+    fontSize: 36,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 6,
+    zIndex: 2,
   },
   gameIconCheck: {
     position: 'absolute',
