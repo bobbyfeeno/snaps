@@ -128,10 +128,7 @@ export default function SetupScreen() {
       return;
     }
 
-    // Check Wolf player requirement (will be re-validated on start, but good UX to warn early)
-    if (activeGames.has('wolf') && players.length < 3) {
-      // Just proceed - they can add more players in step 2
-    }
+    // Wolf player check happens at Start Round
 
     setStep(2);
   }
@@ -203,7 +200,7 @@ export default function SetupScreen() {
 
     // Check Wolf player requirement
     if (activeGames.has('wolf') && filledPlayers.length < 3) {
-      Alert.alert('Not Enough Players', 'Wolf requires at least 3 players.');
+      Alert.alert('Wolf Game Selected', '3 or more players must be added for the Wolf game.');
       return;
     }
 
