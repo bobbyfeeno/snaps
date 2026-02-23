@@ -63,7 +63,7 @@ export default function HomeScreen() {
           opacity: taglineAnim,
           transform: [{ translateY: taglineAnim.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
         }]}>
-          Beat your number. Collect the cash.
+          Bet that.
         </Animated.Text>
       </View>
 
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   tagline: {
-    fontSize: 16,
-    color: '#88bb88',
+    fontSize: 20,
+    color: '#888888',
     marginTop: 4,
     textAlign: 'center',
   },
