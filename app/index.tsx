@@ -69,21 +69,46 @@ export default function HomeScreen() {
             style={styles.newGameBtnOuter}
           >
             <LinearGradient
-              colors={['#52ff20', '#2dcc08', '#1fa005']}
-              locations={[0, 0.6, 1]}
+              colors={['#60ff28', '#3ddc10', '#28a808', '#1a7005']}
+              locations={[0, 0.35, 0.7, 1]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={styles.newGameButton}
             >
+              {/* Side lighting */}
+              <LinearGradient
+                colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.0)', 'rgba(0,0,0,0.15)']}
+                locations={[0, 0.4, 1]}
+                start={{ x: 0, y: 0.5 }}
+                end={{ x: 1, y: 0.5 }}
+                style={StyleSheet.absoluteFill}
+              />
+              {/* Primary specular — wide soft oval at top */}
+              <LinearGradient
+                colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0.0)']}
+                locations={[0, 0.4, 1]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.btnSpecularGrad}
+              />
+              {/* Secondary specular dot */}
+              <View style={styles.btnSpecularDot} />
+              {/* Bottom shadow */}
+              <LinearGradient
+                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.btnBottomShadow}
+              />
+              {/* Top edge */}
+              <View style={styles.btnTopEdge} />
+              {/* Glass */}
               <GlassView
                 style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}
                 glassEffectStyle="regular"
                 colorScheme="dark"
-                tintColor="rgba(57,255,20,0.20)"
+                tintColor="rgba(57,255,20,0.18)"
               />
-              <View style={styles.btnSpecular} />
-              <View style={styles.btnEdgeTop} />
-              <View style={styles.btnEdgeBottom} />
               <Text style={styles.newGameText}>Start Round</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -112,10 +137,10 @@ const styles = StyleSheet.create({
   },
   buttonGlow: {
     shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 20,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
+    elevation: 16,
     borderRadius: 16,
   },
   newGameBtnOuter: {
@@ -130,21 +155,44 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
-  btnSpecular: {
+  btnSpecularGrad: {
     position: 'absolute',
-    top: 3, left: '15%', right: '15%', height: 8,
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 8,
+    top: 0,
+    left: '5%',
+    right: '5%',
+    height: '60%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    borderBottomLeftRadius: 60,
+    borderBottomRightRadius: 60,
   },
-  btnEdgeTop: {
-    position: 'absolute', top: 0, left: 0, right: 0, height: 1,
-    backgroundColor: 'rgba(255,255,255,0.40)',
-    borderTopLeftRadius: 16, borderTopRightRadius: 16,
+  btnSpecularDot: {
+    position: 'absolute',
+    top: 5,
+    left: '25%',
+    width: '30%',
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.65)',
   },
-  btnEdgeBottom: {
-    position: 'absolute', bottom: 0, left: 0, right: 0, height: 1,
-    backgroundColor: 'rgba(0,0,0,0.30)',
-    borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
+  btnBottomShadow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '40%',
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+  },
+  btnTopEdge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.55)',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
   newGameText: {
     fontSize: 22,

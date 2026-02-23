@@ -123,48 +123,69 @@ function GameIcon({ game, isActive, onPress }: {
   onPress: () => void;
 }) {
   const def = ICON_DEFS[game.mode];
-  
+
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.75}
-      style={styles.gameIconWrapper}
-    >
-      {/* Outer shadow + selection ring */}
+    <TouchableOpacity onPress={onPress} activeOpacity={0.75} style={styles.gameIconWrapper}>
+      {/* Outer container with deep shadow */}
       <View style={[
         styles.gameIconOuter,
         { shadowColor: isActive ? def.shadowColor : '#000' },
-        isActive && { shadowOpacity: 0.7, shadowRadius: 20, elevation: 14 },
+        isActive ? styles.gameIconOuterActive : styles.gameIconOuterInactive,
       ]}>
-        {/* Layer 1: Gradient base (works on all platforms) */}
+        {/* === LAYER 1: Base face gradient (top-bright → rich → dark-bottom) === */}
         <LinearGradient
-          colors={isActive ? def.activeColors : def.inactiveColors}
+          colors={isActive
+            ? [def.activeColors[2], def.activeColors[1], def.activeColors[0]]
+            : ['#181818', '#0d0d0d', '#000000']}
           locations={[0, 0.5, 1]}
-          start={{ x: 0, y: 1 }}
-          end={{ x: 1, y: 0 }}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
           style={styles.gameIconGrad}
         >
-          {/* Layer 2: Diagonal gloss — fades from top-left white to transparent */}
+          {/* === LAYER 2: Side lighting (left bright → center → right dark) === */}
           <LinearGradient
-            colors={['rgba(255,255,255,0.28)', 'rgba(255,255,255,0.06)', 'rgba(255,255,255,0.0)']}
-            locations={[0, 0.35, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.gameIconGloss}
+            colors={['rgba(255,255,255,0.10)', 'rgba(255,255,255,0.0)', 'rgba(0,0,0,0.18)']}
+            locations={[0, 0.4, 1]}
+            start={{ x: 0, y: 0.5 }}
+            end={{ x: 1, y: 0.5 }}
+            style={StyleSheet.absoluteFill}
           />
 
-          {/* Layer 3: Native GlassView (iOS 26+ only, transparent on older) */}
+          {/* === LAYER 3: Primary specular — soft oval top-center === */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.60)', 'rgba(255,255,255,0.18)', 'rgba(255,255,255,0.0)']}
+            locations={[0, 0.45, 1]}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.iconSpecularPrimary}
+          />
+
+          {/* === LAYER 4: Secondary specular — small bright hot spot === */}
+          <View style={styles.iconSpecularDot} />
+
+          {/* === LAYER 5: Bottom inner shadow === */}
+          <LinearGradient
+            colors={['rgba(0,0,0,0.0)', 'rgba(0,0,0,0.40)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.iconBottomShadow}
+          />
+
+          {/* === LAYER 6: Top edge highlight === */}
+          <View style={styles.iconTopEdge} />
+
+          {/* === LAYER 7: Native glass (iOS 26+) === */}
           <GlassView
-            style={[StyleSheet.absoluteFill, styles.gameIconGlassLayer]}
+            style={[StyleSheet.absoluteFill, { borderRadius: 22, overflow: 'hidden' }]}
             glassEffectStyle="regular"
             colorScheme="dark"
-            tintColor={isActive ? def.glassTint : 'rgba(5,5,5,0.3)'}
+            tintColor={isActive ? def.glassTint : 'rgba(5,5,5,0.15)'}
           />
 
-          {/* Emoji — on top of glass */}
+          {/* === Emoji (floats above all layers) === */}
           <Text style={styles.gameIconEmoji}>{def.emoji}</Text>
 
-          {/* Selection checkmark */}
+          {/* === Checkmark === */}
           {isActive && (
             <View style={styles.gameIconCheck}>
               <Text style={styles.gameIconCheckText}>✓</Text>
@@ -172,7 +193,7 @@ function GameIcon({ game, isActive, onPress }: {
           )}
         </LinearGradient>
       </View>
-      {/* Label below icon */}
+
       <Text style={[styles.gameIconLabel, isActive && styles.gameIconLabelActive]}>
         {game.name}
       </Text>
@@ -952,8 +973,17 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 22,
+  },
+  gameIconOuterActive: {
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.85,
+    shadowRadius: 24,
+    elevation: 18,
+  },
+  gameIconOuterInactive: {
+    shadowColor: '#000',
     shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.7,
     shadowRadius: 12,
     elevation: 8,
   },
@@ -961,33 +991,58 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 22,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
     position: 'relative',
-    borderWidth: 0.75,
-    borderColor: 'rgba(255,255,255,0.20)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.12)',
   },
-  // Diagonal gloss overlay
-  gameIconGloss: {
+  iconSpecularPrimary: {
+    position: 'absolute',
+    top: 0,
+    left: '8%',
+    right: '8%',
+    height: '52%',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderBottomLeftRadius: 48,
+    borderBottomRightRadius: 48,
+  },
+  iconSpecularDot: {
+    position: 'absolute',
+    top: 9,
+    left: '28%',
+    width: '28%',
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: 'rgba(255,255,255,0.70)',
+  },
+  iconBottomShadow: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '38%',
+    borderBottomLeftRadius: 22,
+    borderBottomRightRadius: 22,
+  },
+  iconTopEdge: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    bottom: 0,
-    borderRadius: 22,
-  },
-  // Native glass layer (iOS 26+ only, transparent fallback on older)
-  gameIconGlassLayer: {
-    borderRadius: 22,
-    overflow: 'hidden',
+    height: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.50)',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
   },
   gameIconEmoji: {
     fontSize: 38,
-    textShadowColor: 'rgba(0,0,0,0.4)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    zIndex: 3,
+    textShadowColor: 'rgba(0,0,0,0.55)',
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 6,
+    zIndex: 4,
   },
   gameIconCheck: {
     position: 'absolute',
