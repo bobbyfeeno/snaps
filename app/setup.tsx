@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { BevelCard } from '../components/BevelCard';
 import { GameConfig, GameMode, GameSetup, NassauConfig, Player } from '../types';
 
 const MAX_PLAYERS = 6;
@@ -274,69 +275,66 @@ export default function SetupScreen() {
             <Text style={styles.sectionSubtitle}>Name + their Tax Man score</Text>
 
             {players.map((player, idx) => (
-              <LinearGradient
-                key={player.id}
-                colors={['#212121', '#141414']}
-                style={styles.playerCard}
-              >
-                <View style={styles.cardHighlight} />
-                <View style={styles.playerHeader}>
-                  <Text style={styles.playerLabel}>PLAYER {idx + 1}</Text>
-                  {players.length > 1 && (
-                    <TouchableOpacity
-                      onPress={() => removePlayer(player.id)}
-                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                    >
-                      <Text style={styles.removeBtn}>×</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
+              <BevelCard key={player.id} style={styles.playerCard}>
+                <View style={styles.playerCardInner}>
+                  <View style={styles.playerHeader}>
+                    <Text style={styles.playerLabel}>PLAYER {idx + 1}</Text>
+                    {players.length > 1 && (
+                      <TouchableOpacity
+                        onPress={() => removePlayer(player.id)}
+                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                      >
+                        <Text style={styles.removeBtn}>×</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
 
-                <TextInput
-                  ref={el => { nameRefs.current[idx] = el; }}
-                  style={styles.nameInput}
-                  placeholder="Name"
-                  placeholderTextColor="#444"
-                  value={player.name}
-                  onChangeText={val => updateName(player.id, val)}
-                  autoCapitalize="words"
-                  returnKeyType="done"
-                  maxLength={20}
-                />
-
-                <View style={styles.taxManRow}>
-                  <Text style={styles.taxManLabel}>Tax Man:</Text>
                   <TextInput
-                    style={styles.taxManInput}
-                    value={player.taxMan > 0 ? String(player.taxMan) : ''}
-                    onChangeText={val => updateTaxMan(player.id, val)}
-                    keyboardType="number-pad"
-                    placeholderTextColor="#39FF14"
-                    placeholder="90"
-                    maxLength={3}
-                    selectTextOnFocus
+                    ref={el => { nameRefs.current[idx] = el; }}
+                    style={styles.nameInput}
+                    placeholder="Name"
+                    placeholderTextColor="#444"
+                    value={player.name}
+                    onChangeText={val => updateName(player.id, val)}
+                    autoCapitalize="words"
+                    returnKeyType="done"
+                    maxLength={20}
                   />
-                  <Text style={styles.taxManHint}>shoot below to win</Text>
-                </View>
 
-                {/* Handicap input - only show when Nassau with handicaps enabled */}
-                {activeGames.has('nassau') && nassauHandicaps && (
-                  <View style={styles.handicapRow}>
-                    <Text style={styles.handicapLabel}>Handicap:</Text>
+                  <View style={styles.taxManRow}>
+                    <Text style={styles.taxManLabel}>Tax Man:</Text>
                     <TextInput
-                      style={styles.handicapInput}
-                      value={player.handicap !== undefined ? String(player.handicap) : ''}
-                      onChangeText={val => updateHandicap(player.id, val)}
+                      style={styles.taxManInput}
+                      value={player.taxMan > 0 ? String(player.taxMan) : ''}
+                      onChangeText={val => updateTaxMan(player.id, val)}
                       keyboardType="number-pad"
-                      placeholderTextColor="#555"
-                      placeholder="0"
-                      maxLength={2}
+                      placeholderTextColor="#39FF14"
+                      placeholder="90"
+                      maxLength={3}
                       selectTextOnFocus
                     />
-                    <Text style={styles.handicapHint}>(0-36)</Text>
+                    <Text style={styles.taxManHint}>shoot below to win</Text>
                   </View>
-                )}
-              </LinearGradient>
+
+                  {/* Handicap input - only show when Nassau with handicaps enabled */}
+                  {activeGames.has('nassau') && nassauHandicaps && (
+                    <View style={styles.handicapRow}>
+                      <Text style={styles.handicapLabel}>Handicap:</Text>
+                      <TextInput
+                        style={styles.handicapInput}
+                        value={player.handicap !== undefined ? String(player.handicap) : ''}
+                        onChangeText={val => updateHandicap(player.id, val)}
+                        keyboardType="number-pad"
+                        placeholderTextColor="#555"
+                        placeholder="0"
+                        maxLength={2}
+                        selectTextOnFocus
+                      />
+                      <Text style={styles.handicapHint}>(0-36)</Text>
+                    </View>
+                  )}
+                </View>
+              </BevelCard>
             ))}
           </View>
 
@@ -355,11 +353,15 @@ export default function SetupScreen() {
             )}
             <TouchableOpacity style={styles.primaryBtnOuter} onPress={handleNextStep} activeOpacity={0.85}>
               <LinearGradient
-                colors={['#44ff18', '#28cc08']}
+                colors={['#52ff20', '#2dcc08', '#1fa005']}
+                locations={[0, 0.6, 1]}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
-                style={styles.primaryBtnInner}
+                style={styles.primaryBtnGrad}
               >
+                <View style={styles.btnSpecular} />
+                <View style={styles.btnEdgeTop} />
+                <View style={styles.btnEdgeBottom} />
                 <Text style={styles.primaryBtnText}>Next →</Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -415,20 +417,10 @@ export default function SetupScreen() {
           const isDisabled = game.minPlayers !== undefined && players.length < game.minPlayers;
           const isScorecard = game.mode === 'scorecard';
           
-          const cardColors = isActive && !isScorecard 
-            ? ['#172210', '#0d1508'] as const
-            : isActive && isScorecard
-            ? ['#1a1a1a', '#111111'] as const
-            : ['#1a1a1a', '#111111'] as const;
-          
-          const highlightColor = isActive && !isScorecard 
-            ? 'rgba(57,255,20,0.15)' 
-            : 'rgba(255,255,255,0.07)';
-          
           return (
-            <LinearGradient
+            <BevelCard
               key={game.mode}
-              colors={cardColors}
+              active={isActive && !isScorecard}
               style={[
                 styles.gameCard,
                 isActive && !isScorecard && styles.gameCardActive,
@@ -436,7 +428,7 @@ export default function SetupScreen() {
                 isDisabled && styles.gameCardDisabled,
               ]}
             >
-              <View style={[styles.cardHighlight, { backgroundColor: highlightColor }]} />
+              <View style={styles.gameCardInner}>
               <View style={styles.gameHeader}>
                 <TouchableOpacity
                   onPress={() => !isDisabled && toggleGame(game.mode)}
@@ -590,7 +582,8 @@ export default function SetupScreen() {
                   </View>
                 </View>
               )}
-            </LinearGradient>
+              </View>
+            </BevelCard>
           );
         })}
 
@@ -617,11 +610,15 @@ export default function SetupScreen() {
             disabled={Boolean(activeGames.size === 0)}
           >
             <LinearGradient
-              colors={activeGames.size === 0 ? ['#1a3a0a', '#0f2006'] : ['#44ff18', '#28cc08']}
+              colors={activeGames.size === 0 ? ['#1a3a0a', '#133005', '#0f2006'] : ['#52ff20', '#2dcc08', '#1fa005']}
+              locations={[0, 0.6, 1]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={styles.primaryBtnInner}
+              style={styles.primaryBtnGrad}
             >
+              {activeGames.size > 0 && <View style={styles.btnSpecular} />}
+              <View style={styles.btnEdgeTop} />
+              <View style={styles.btnEdgeBottom} />
               <Text style={styles.primaryBtnText}>Start Round →</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -632,7 +629,7 @@ export default function SetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#060606' },
+  flex: { flex: 1, backgroundColor: '#050505' },
   scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
 
@@ -650,18 +647,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 1,
     shadowRadius: 120,
-  },
-
-  // Card highlight (top edge)
-  cardHighlight: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 1,
-    backgroundColor: 'rgba(255,255,255,0.07)',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
   },
 
   // Step indicator
@@ -730,15 +715,10 @@ const styles = StyleSheet.create({
 
   // Player cards (Step 1)
   playerCard: {
-    borderRadius: 16,
+    marginBottom: 16,
+  },
+  playerCardInner: {
     padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
-    overflow: 'hidden',
   },
   playerHeader: {
     flexDirection: 'row',
@@ -755,30 +735,38 @@ const styles = StyleSheet.create({
   },
   removeBtn: { fontSize: 18, color: '#555', fontWeight: '400' },
 
+  // Recessed input (inset look)
   nameInput: {
-    backgroundColor: '#080808',
+    backgroundColor: '#060606',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.95)',       // dark top = shadow inside hole
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(0,0,0,0.6)',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.03)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)', // light bounce at bottom
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 17,
     color: '#fff',
     marginBottom: 10,
-    // Inset shadow simulation
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -1 },
-    shadowOpacity: 0.5,
-    shadowRadius: 3,
   },
 
   taxManRow: { flexDirection: 'row', alignItems: 'center' },
   taxManLabel: { fontSize: 15, color: '#fff', marginRight: 10 },
+  // Glowing inset input
   taxManInput: {
-    backgroundColor: '#050a03',
+    backgroundColor: '#040a02',
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
+    elevation: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 22,
@@ -787,12 +775,6 @@ const styles = StyleSheet.create({
     width: 72,
     textAlign: 'center',
     marginRight: 10,
-    // Glow
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
-    elevation: 6,
   },
   taxManHint: { fontSize: 12, color: '#555', flex: 1 },
 
@@ -800,10 +782,16 @@ const styles = StyleSheet.create({
   handicapRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   handicapLabel: { fontSize: 15, color: '#888', marginRight: 10 },
   handicapInput: {
-    backgroundColor: '#080808',
+    backgroundColor: '#060606',
     borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0,0,0,0.95)',
+    borderLeftWidth: 1,
+    borderLeftColor: 'rgba(0,0,0,0.6)',
+    borderRightWidth: 1,
+    borderRightColor: 'rgba(255,255,255,0.03)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 20,
@@ -825,25 +813,51 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 14,
   },
   primaryBtnDisabled: {
     shadowOpacity: 0,
   },
-  primaryBtnInner: {
+  primaryBtnGrad: {
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
-    borderWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.25)',
-    borderLeftColor: 'rgba(255,255,255,0.1)',
-    borderRightColor: 'rgba(255,255,255,0.05)',
-    borderBottomColor: 'rgba(0,0,0,0.2)',
+    overflow: 'hidden',
+    position: 'relative',
   },
-  primaryBtnText: { fontSize: 18, fontWeight: '900', color: '#000', letterSpacing: 0.3 },
+  btnSpecular: {
+    position: 'absolute',
+    top: 3,
+    left: '15%',
+    right: '15%',
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 8,
+  },
+  btnEdgeTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  btnEdgeBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+  },
+  primaryBtnText: { color: '#000', fontWeight: '900', fontSize: 18, letterSpacing: 0.3, zIndex: 1 },
   
   secondaryBtnOuter: {
     flex: 1,
@@ -875,25 +889,19 @@ const styles = StyleSheet.create({
 
   // Game cards (Step 2)
   gameCard: {
-    borderRadius: 16,
-    padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
-    overflow: 'hidden',
+  },
+  gameCardInner: {
+    padding: 16,
   },
   gameCardActive: {
-    borderWidth: 1,
-    borderColor: '#39FF14',
     shadowColor: '#39FF14',
-    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
   },
   gameCardActiveScorecard: {
-    borderWidth: 1,
-    borderColor: '#888',
+    // No special glow for scorecard
   },
   gameCardDisabled: {
     opacity: 0.5,

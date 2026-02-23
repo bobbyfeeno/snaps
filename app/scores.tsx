@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
 import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, SnakeHoleState, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
@@ -373,41 +374,43 @@ export default function ScoresScreen() {
           activeOpacity={1}
         >
           <TouchableOpacity activeOpacity={1} onPress={() => {}}>
-            <LinearGradient
-              colors={['#222222', '#161616']}
-              style={styles.modalCard}
-            >
-              <View style={styles.cardHighlight} />
-              <Text style={styles.modalTitle}>{modalLabel}</Text>
-              <TextInput
-                style={styles.modalInput}
-                value={inputVal}
-                onChangeText={setInputVal}
-                keyboardType="number-pad"
-                autoFocus
-                maxLength={2}
-                selectTextOnFocus
-                onSubmitEditing={confirmEdit}
-              />
-              <View style={styles.modalBtns}>
-                <TouchableOpacity style={styles.modalCancelOuter} onPress={() => setTarget(null)}>
-                  <LinearGradient
-                    colors={['#1e1e1e', '#141414']}
-                    style={styles.modalCancelInner}
-                  >
-                    <Text style={styles.modalCancelText}>Cancel</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.modalConfirmOuter} onPress={confirmEdit}>
-                  <LinearGradient
-                    colors={['#44ff18', '#28cc08']}
-                    style={styles.modalConfirmInner}
-                  >
-                    <Text style={styles.modalConfirmText}>Save</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+            <BevelCard style={styles.modalCard}>
+              <View style={styles.modalCardInner}>
+                <Text style={styles.modalTitle}>{modalLabel}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={inputVal}
+                  onChangeText={setInputVal}
+                  keyboardType="number-pad"
+                  autoFocus
+                  maxLength={2}
+                  selectTextOnFocus
+                  onSubmitEditing={confirmEdit}
+                />
+                <View style={styles.modalBtns}>
+                  <TouchableOpacity style={styles.modalCancelOuter} onPress={() => setTarget(null)}>
+                    <LinearGradient
+                      colors={['#1e1e1e', '#141414']}
+                      style={styles.modalCancelInner}
+                    >
+                      <Text style={styles.modalCancelText}>Cancel</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalConfirmOuter} onPress={confirmEdit}>
+                    <LinearGradient
+                      colors={['#52ff20', '#2dcc08', '#1fa005']}
+                      locations={[0, 0.6, 1]}
+                      style={styles.modalConfirmInner}
+                    >
+                      <View style={styles.btnSpecular} />
+                      <View style={styles.btnEdgeTop} />
+                      <View style={styles.btnEdgeBottom} />
+                      <Text style={styles.modalConfirmText}>Save</Text>
+                    </LinearGradient>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </LinearGradient>
+            </BevelCard>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -798,7 +801,7 @@ export default function ScoresScreen() {
       {/* ─── Live Game Status Bar ─────────────────────────────────────────────── */}
       {!isPreview && liveStatus.length > 0 && (
         <LinearGradient
-          colors={['#0f0f0f', '#080808']}
+          colors={['#0d0d0d', '#060606']}
           style={styles.liveStatusBar}
         >
           <View style={styles.liveStatusHighlight} />
@@ -841,22 +844,30 @@ export default function ScoresScreen() {
             activeOpacity={0.85}
           >
             <LinearGradient
-              colors={['#44ff18', '#28cc08']}
+              colors={['#52ff20', '#2dcc08', '#1fa005']}
+              locations={[0, 0.6, 1]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={styles.calcBtnInner}
+              style={styles.calcBtnGrad}
             >
+              <View style={styles.btnSpecular} />
+              <View style={styles.btnEdgeTop} />
+              <View style={styles.btnEdgeBottom} />
               <Text style={styles.calcBtnText}>Start a Real Game →</Text>
             </LinearGradient>
           </TouchableOpacity>
         ) : (
           <TouchableOpacity style={styles.calcBtnOuter} onPress={handleCalculate} activeOpacity={0.85}>
             <LinearGradient
-              colors={['#44ff18', '#28cc08']}
+              colors={['#52ff20', '#2dcc08', '#1fa005']}
+              locations={[0, 0.6, 1]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
-              style={styles.calcBtnInner}
+              style={styles.calcBtnGrad}
             >
+              <View style={styles.btnSpecular} />
+              <View style={styles.btnEdgeTop} />
+              <View style={styles.btnEdgeBottom} />
               <Text style={styles.calcBtnText}>Calculate Payout →</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -867,7 +878,7 @@ export default function ScoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#060606' },
+  container: { flex: 1, backgroundColor: '#050505' },
   mainScroll: { flex: 1 },
 
   // Radial center glow
@@ -898,6 +909,37 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     zIndex: 1,
+  },
+  
+  // Button bevel styles
+  btnSpecular: {
+    position: 'absolute',
+    top: 3,
+    left: '15%',
+    right: '15%',
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 8,
+  },
+  btnEdgeTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  btnEdgeBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
   },
 
   // Preview mode banner
@@ -975,9 +1017,9 @@ const styles = StyleSheet.create({
   scoreCell: {},
 
   dotBase: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -986,22 +1028,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#39FF14',
     shadowColor: '#39FF14',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 4,
+    shadowOpacity: 0.7,
+    shadowRadius: 5,
   },
   dotBogey: { 
     backgroundColor: '#ff4444',
     shadowColor: '#ff4444',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
-    shadowRadius: 3,
+    shadowRadius: 4,
   },
   dotDouble: { 
     backgroundColor: '#cc2222',
     shadowColor: '#cc2222',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
-    shadowRadius: 3,
+    shadowRadius: 4,
   },
 
   scoreText: { fontSize: 12, fontWeight: '700', color: '#fff' },
@@ -1017,20 +1059,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCard: {
-    borderRadius: 20,
-    padding: 24,
     width: 240,
+  },
+  modalCardInner: {
+    padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.6,
-    shadowRadius: 20,
-    elevation: 20,
-    overflow: 'hidden',
   },
   modalTitle: { color: '#fff', fontWeight: '600', fontSize: 15, marginBottom: 16, letterSpacing: 0.3 },
   modalInput: {
-    backgroundColor: '#080808',
+    backgroundColor: '#040a02',
     borderWidth: 2,
     borderColor: '#39FF14',
     borderRadius: 14,
@@ -1043,8 +1080,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     shadowColor: '#39FF14',
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 8,
+    shadowOpacity: 0.6,
+    shadowRadius: 10,
   },
   modalBtns: { flexDirection: 'row', gap: 10, width: '100%' },
   modalCancelOuter: {
@@ -1068,21 +1105,19 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: 14,
     shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 14,
   },
   modalConfirmInner: {
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 14,
-    borderWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.25)',
-    borderLeftColor: 'rgba(255,255,255,0.1)',
-    borderRightColor: 'rgba(255,255,255,0.05)',
-    borderBottomColor: 'rgba(0,0,0,0.2)',
+    overflow: 'hidden',
+    position: 'relative',
   },
-  modalConfirmText: { color: '#000', fontWeight: '800', fontSize: 16 },
+  modalConfirmText: { color: '#000', fontWeight: '800', fontSize: 16, zIndex: 1 },
 
   // ─── Game Extras ──────────────────────────────────────────────────────────
   extrasContainer: {
@@ -1321,27 +1356,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
-    backgroundColor: '#060606',
+    backgroundColor: '#050505',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#242424',
   },
   calcBtnOuter: {
     borderRadius: 14,
     shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 14,
   },
-  calcBtnInner: {
+  calcBtnGrad: {
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
-    borderWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.25)',
-    borderLeftColor: 'rgba(255,255,255,0.1)',
-    borderRightColor: 'rgba(255,255,255,0.05)',
-    borderBottomColor: 'rgba(0,0,0,0.2)',
+    overflow: 'hidden',
+    position: 'relative',
   },
-  calcBtnText: { fontSize: 18, fontWeight: '900', color: '#000', letterSpacing: 0.3 },
+  calcBtnText: { color: '#000', fontWeight: '900', fontSize: 18, letterSpacing: 0.3, zIndex: 1 },
 });

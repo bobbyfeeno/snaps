@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { BevelCard } from '../components/BevelCard';
 import { GameMode, GameResult, LeaderboardEntry, Payout } from '../types';
 import { multiGameResults, resetGameResults } from './scores';
 import { gameSetup, resetGameSetup } from './setup';
@@ -56,23 +57,24 @@ export default function ResultsScreen() {
       <View pointerEvents="none" style={styles.topGlow} />
 
       {/* Summary banner */}
-      <LinearGradient colors={['#212121', '#141414']} style={styles.summaryBanner}>
-        <View style={styles.cardHighlight} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryNum}>{winners.length}</Text>
-          <Text style={styles.summaryLabel}>WINNER{winners.length !== 1 ? 'S' : ''}</Text>
+      <BevelCard style={styles.summaryBanner}>
+        <View style={styles.summaryBannerInner}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryNum}>{winners.length}</Text>
+            <Text style={styles.summaryLabel}>WINNER{winners.length !== 1 ? 'S' : ''}</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryNum}>{losers.length}</Text>
+            <Text style={styles.summaryLabel}>LOSER{losers.length !== 1 ? 'S' : ''}</Text>
+          </View>
+          <View style={styles.summaryDivider} />
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryNum}>{formatMoney(totalPot / 2)}</Text>
+            <Text style={styles.summaryLabel}>TOTAL POT</Text>
+          </View>
         </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryNum}>{losers.length}</Text>
-          <Text style={styles.summaryLabel}>LOSER{losers.length !== 1 ? 'S' : ''}</Text>
-        </View>
-        <View style={styles.summaryDivider} />
-        <View style={styles.summaryItem}>
-          <Text style={styles.summaryNum}>{formatMoney(totalPot / 2)}</Text>
-          <Text style={styles.summaryLabel}>TOTAL POT</Text>
-        </View>
-      </LinearGradient>
+      </BevelCard>
 
       {/* Active games indicator */}
       <View style={styles.gamesBar}>
@@ -91,20 +93,23 @@ export default function ResultsScreen() {
       {/* Combined Net Totals */}
       {results.games.length > 1 && (
         <>
-          <LinearGradient colors={['#1a1a1a', '#111111']} style={styles.sectionHeader}>
-            <View style={styles.cardHighlight} />
-            <Text style={styles.sectionLabel}>Combined Net Totals</Text>
-            <Text style={styles.sectionHint}>All games combined</Text>
-          </LinearGradient>
+          <BevelCard style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderInner}>
+              <Text style={styles.sectionLabel}>Combined Net Totals</Text>
+              <Text style={styles.sectionHint}>All games combined</Text>
+            </View>
+          </BevelCard>
           {sortedNet.map(([name, amount]) => {
             const isWinner = amount > 0;
             const isLoser = amount < 0;
             return isWinner ? (
               <LinearGradient 
                 key={name} 
-                colors={['#172210', '#0d1508']} 
+                colors={['#1e2e12', '#131f0c', '#0b1507']} 
+                locations={[0, 0.5, 1]}
                 style={[styles.totalRow, styles.totalRowWinner]}
               >
+                <View style={styles.rowEdgeTop} />
                 <Text style={styles.totalName}>{name}</Text>
                 <Text style={[styles.totalAmount, styles.totalPos]}>
                   +{formatMoney(amount)}
@@ -113,9 +118,11 @@ export default function ResultsScreen() {
             ) : isLoser ? (
               <LinearGradient 
                 key={name} 
-                colors={['#1a0808', '#110505']} 
+                colors={['#2a0808', '#180505', '#100404']} 
+                locations={[0, 0.5, 1]}
                 style={[styles.totalRow, styles.totalRowLoser]}
               >
+                <View style={styles.rowEdgeTop} />
                 <Text style={styles.totalName}>{name}</Text>
                 <Text style={[styles.totalAmount, styles.totalNeg]}>
                   {formatMoney(amount)}
@@ -124,9 +131,11 @@ export default function ResultsScreen() {
             ) : (
               <LinearGradient 
                 key={name} 
-                colors={['#1c1c1c', '#121212']} 
+                colors={['#262626', '#1a1a1a', '#101010']} 
+                locations={[0, 0.5, 1]}
                 style={styles.totalRow}
               >
+                <View style={styles.rowEdgeTop} />
                 <Text style={styles.totalName}>{name}</Text>
                 <Text style={[styles.totalAmount, { color: '#888' }]}>
                   {formatMoney(amount)}
@@ -140,19 +149,22 @@ export default function ResultsScreen() {
       {/* If only one game, show net totals for that game */}
       {results.games.length === 1 && (
         <>
-          <LinearGradient colors={['#1a1a1a', '#111111']} style={styles.sectionHeader}>
-            <View style={styles.cardHighlight} />
-            <Text style={styles.sectionLabel}>Net Totals</Text>
-          </LinearGradient>
+          <BevelCard style={styles.sectionHeader}>
+            <View style={styles.sectionHeaderInner}>
+              <Text style={styles.sectionLabel}>Net Totals</Text>
+            </View>
+          </BevelCard>
           {sortedNet.map(([name, amount]) => {
             const isWinner = amount > 0;
             const isLoser = amount < 0;
             return isWinner ? (
               <LinearGradient 
                 key={name} 
-                colors={['#172210', '#0d1508']} 
+                colors={['#1e2e12', '#131f0c', '#0b1507']} 
+                locations={[0, 0.5, 1]}
                 style={[styles.totalRow, styles.totalRowWinner]}
               >
+                <View style={styles.rowEdgeTop} />
                 <Text style={styles.totalName}>{name}</Text>
                 <Text style={[styles.totalAmount, styles.totalPos]}>
                   +{formatMoney(amount)}
@@ -161,9 +173,11 @@ export default function ResultsScreen() {
             ) : isLoser ? (
               <LinearGradient 
                 key={name} 
-                colors={['#1a0808', '#110505']} 
+                colors={['#2a0808', '#180505', '#100404']} 
+                locations={[0, 0.5, 1]}
                 style={[styles.totalRow, styles.totalRowLoser]}
               >
+                <View style={styles.rowEdgeTop} />
                 <Text style={styles.totalName}>{name}</Text>
                 <Text style={[styles.totalAmount, styles.totalNeg]}>
                   {formatMoney(amount)}
@@ -172,9 +186,11 @@ export default function ResultsScreen() {
             ) : (
               <LinearGradient 
                 key={name} 
-                colors={['#1c1c1c', '#121212']} 
+                colors={['#262626', '#1a1a1a', '#101010']} 
+                locations={[0, 0.5, 1]}
                 style={styles.totalRow}
               >
+                <View style={styles.rowEdgeTop} />
                 <Text style={styles.totalName}>{name}</Text>
                 <Text style={[styles.totalAmount, { color: '#888' }]}>
                   {formatMoney(amount)}
@@ -196,11 +212,15 @@ export default function ResultsScreen() {
           }}
         >
           <LinearGradient
-            colors={['#44ff18', '#28cc08']}
+            colors={['#52ff20', '#2dcc08', '#1fa005']}
+            locations={[0, 0.6, 1]}
             start={{ x: 0.5, y: 0 }}
             end={{ x: 0.5, y: 1 }}
-            style={styles.playAgainInner}
+            style={styles.playAgainGrad}
           >
+            <View style={styles.btnSpecular} />
+            <View style={styles.btnEdgeTop} />
+            <View style={styles.btnEdgeBottom} />
             <Text style={styles.playAgainText}>Play Again</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -360,7 +380,7 @@ function consolidatePayouts(payouts: Payout[]): Payout[] {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#060606' },
+  scroll: { flex: 1, backgroundColor: '#050505' },
   content: { padding: 20, paddingBottom: 48 },
 
   topGlow: {
@@ -378,7 +398,7 @@ const styles = StyleSheet.create({
     shadowRadius: 120,
   },
 
-  errorContainer: { flex: 1, backgroundColor: '#060606', alignItems: 'center', justifyContent: 'center' },
+  errorContainer: { flex: 1, backgroundColor: '#050505', alignItems: 'center', justifyContent: 'center' },
   errorText: { color: '#ff4444', fontSize: 18, marginBottom: 16 },
   errorLink: { color: '#39FF14', fontSize: 16 },
 
@@ -392,20 +412,56 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
+  
+  // Button bevel styles
+  btnSpecular: {
+    position: 'absolute',
+    top: 3,
+    left: '15%',
+    right: '15%',
+    height: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 8,
+  },
+  btnEdgeTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
+  btnEdgeBottom: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+  },
+  
+  // Row edge bevel
+  rowEdgeTop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.10)',
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
 
   summaryBanner: {
-    flexDirection: 'row',
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#242424',
-    paddingVertical: 20,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
-    overflow: 'hidden',
+  },
+  summaryBannerInner: {
+    flexDirection: 'row',
+    paddingVertical: 20,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryNum: { fontSize: 28, fontWeight: '800', color: '#39FF14' },
@@ -621,14 +677,9 @@ const styles = StyleSheet.create({
   sectionHeader: {
     marginTop: 28,
     marginBottom: 12,
-    borderRadius: 12,
+  },
+  sectionHeaderInner: {
     padding: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
-    overflow: 'hidden',
   },
   sectionLabel: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
   sectionHint: { fontSize: 13, color: '#888' },
@@ -639,23 +690,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 14,
     paddingHorizontal: 12,
-    marginBottom: 6,
+    marginBottom: 8,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#242424',
+    borderColor: '#1e1e1e',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 12,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.7,
+    shadowRadius: 16,
+    elevation: 12,
+    overflow: 'hidden',
+    position: 'relative',
   },
   totalRowWinner: {
     borderLeftWidth: 3,
     borderLeftColor: '#39FF14',
     shadowColor: '#39FF14',
-    shadowOffset: { width: -2, height: 0 },
+    shadowOffset: { width: -2, height: 4 },
     shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowRadius: 12,
   },
   totalRowLoser: {
     borderLeftWidth: 3,
@@ -669,24 +722,21 @@ const styles = StyleSheet.create({
   playAgainOuter: {
     borderRadius: 14,
     shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.45,
-    shadowRadius: 16,
-    elevation: 12,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 14,
     marginTop: 32,
     marginBottom: 12,
   },
-  playAgainInner: {
+  playAgainGrad: {
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
-    borderWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.25)',
-    borderLeftColor: 'rgba(255,255,255,0.1)',
-    borderRightColor: 'rgba(255,255,255,0.05)',
-    borderBottomColor: 'rgba(0,0,0,0.2)',
+    overflow: 'hidden',
+    position: 'relative',
   },
-  playAgainText: { color: '#000', fontWeight: '900', fontSize: 18 },
+  playAgainText: { color: '#000', fontWeight: '900', fontSize: 18, zIndex: 1 },
 
   homeBtn: {
     borderRadius: 14,
