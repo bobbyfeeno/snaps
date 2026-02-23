@@ -442,8 +442,6 @@ export default function SetupScreen() {
                     >
                       <View
                         style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
-                        glassEffectStyle="regular"
-                        colorScheme="dark"
                       />
                       <Text style={[
                         styles.pillBtnText,
@@ -460,8 +458,6 @@ export default function SetupScreen() {
                     >
                       <View
                         style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
-                        glassEffectStyle="regular"
-                        colorScheme="dark"
                       />
                       <Text style={[
                         styles.pillBtnText,
@@ -485,8 +481,6 @@ export default function SetupScreen() {
                         >
                           <View
                             style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
-                            glassEffectStyle="regular"
-                            colorScheme="dark"
                           />
                           <Text style={[
                             styles.pillBtnText,
@@ -503,8 +497,6 @@ export default function SetupScreen() {
                         >
                           <View
                             style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
-                            glassEffectStyle="regular"
-                            colorScheme="dark"
                           />
                           <Text style={[
                             styles.pillBtnText,
@@ -529,8 +521,6 @@ export default function SetupScreen() {
                       >
                         <View
                           style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
-                          glassEffectStyle="regular"
-                          colorScheme="dark"
                         />
                         <Text style={[
                           styles.pillBtnText,
@@ -547,8 +537,6 @@ export default function SetupScreen() {
                       >
                         <View
                           style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
-                          glassEffectStyle="regular"
-                          colorScheme="dark"
                         />
                         <Text style={[
                           styles.pillBtnText,
@@ -577,8 +565,6 @@ export default function SetupScreen() {
                 <View style={styles.secondaryBtnHighlight} />
                 <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                  glassEffectStyle="regular"
-                  colorScheme="dark"
                 />
                 <Text style={styles.secondaryBtnText}>Cancel</Text>
               </LinearGradient>
@@ -601,8 +587,6 @@ export default function SetupScreen() {
                 <View style={styles.btnEdgeBottom} />
                 <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                  glassEffectStyle="regular"
-                  colorScheme="dark"
                 />
                 <Text style={styles.primaryBtnText}>Next →</Text>
               </LinearGradient>
@@ -636,8 +620,6 @@ export default function SetupScreen() {
                   >
                     <View
                       style={[StyleSheet.absoluteFill, { borderRadius: 12, overflow: 'hidden' }]}
-                      glassEffectStyle="regular"
-                      colorScheme="dark"
                     />
                     <Text style={styles.alertBtnText}>Got it</Text>
                   </LinearGradient>
@@ -768,8 +750,6 @@ export default function SetupScreen() {
                 <View style={styles.secondaryBtnHighlight} />
                 <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                  glassEffectStyle="regular"
-                  colorScheme="dark"
                 />
                 <Text style={styles.secondaryBtnText}>+ Add Player</Text>
               </LinearGradient>
@@ -783,8 +763,6 @@ export default function SetupScreen() {
                 <View style={styles.secondaryBtnHighlight} />
                 <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                  glassEffectStyle="regular"
-                  colorScheme="dark"
                 />
                 <Text style={styles.secondaryBtnText}>← Back</Text>
               </LinearGradient>
@@ -803,8 +781,6 @@ export default function SetupScreen() {
               <View style={styles.btnEdgeBottom} />
               <View
                 style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                glassEffectStyle="regular"
-                colorScheme="dark"
               />
               <Text style={styles.primaryBtnText}>Start Round →</Text>
             </LinearGradient>
@@ -838,8 +814,6 @@ export default function SetupScreen() {
                 >
                   <View
                     style={[StyleSheet.absoluteFill, { borderRadius: 12, overflow: 'hidden' }]}
-                    glassEffectStyle="regular"
-                    colorScheme="dark"
                   />
                   <Text style={styles.alertBtnText}>Got it</Text>
                 </LinearGradient>
@@ -1058,7 +1032,7 @@ const styles = StyleSheet.create({
   // Config panel
   configPanel: {
     marginTop: 20,
-    padding: 16,
+    padding: 22,
   },
   cardHighlight: {
     position: 'absolute',
@@ -1072,13 +1046,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
+    paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#1e1e1e',
   },
   configLabel: {
-    color: '#888',
-    fontSize: 14,
+    color: '#bbb',
+    fontSize: 17,
     fontWeight: '600',
   },
   configRight: {
@@ -1089,13 +1063,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#080808',
     borderWidth: 1,
     borderColor: '#2a2a2a',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    fontSize: 16,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 18,
     fontWeight: '700',
     color: '#39FF14',
-    width: 64,
+    width: 84,
     textAlign: 'center',
   },
   nassauOpts: {
@@ -1277,25 +1251,25 @@ const styles = StyleSheet.create({
   secondaryBtnText: { fontSize: 16, color: '#888' },
 
   dollarSign: {
-    color: '#555',
-    fontSize: 14,
-    marginRight: 4,
+    color: '#666',
+    fontSize: 17,
+    marginRight: 6,
   },
 
   // Nassau mode toggles (pill buttons)
   nassauModeRow: {
     flexDirection: 'row',
-    marginTop: 12,
-    gap: 8,
+    marginTop: 16,
+    gap: 10,
   },
   pillBtn: {
     flex: 1,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingVertical: 13,
+    paddingHorizontal: 16,
+    borderRadius: 22,
     backgroundColor: '#1e1e1e',
     borderWidth: 1,
-    borderColor: '#242424',
+    borderColor: '#2a2a2a',
     alignItems: 'center',
     overflow: 'hidden',
   },
@@ -1304,7 +1278,7 @@ const styles = StyleSheet.create({
     borderColor: '#39FF14',
   },
   pillBtnText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#888',
   },
@@ -1317,19 +1291,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 10,
-    paddingTop: 10,
+    marginTop: 14,
+    paddingTop: 14,
     borderTopWidth: 1,
     borderTopColor: '#242424',
   },
   nassauOptionLabel: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    color: '#aaa',
     fontWeight: '600',
   },
   nassauToggleGroup: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 10,
   },
 
   validationHint: {
