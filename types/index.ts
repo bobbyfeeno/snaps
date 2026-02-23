@@ -2,6 +2,7 @@ export interface Player {
   id: string;
   name: string;
   taxMan: number; // Tax Man target score (used only when taxman game active)
+  handicap?: number; // 0-36, optional, only used when Nassau useHandicaps=true
 }
 
 // ─── Game Configs (per-game settings set at setup) ───────────────────────────
@@ -13,6 +14,8 @@ export interface TaxManConfig {
 export interface NassauConfig {
   betAmount: number; // $ per leg (front 9, back 9, full 18 = 3 possible payouts)
   mode: 'stroke' | 'match'; // stroke = total score per leg, match = hole-by-hole wins
+  press: 'none' | 'auto'; // 'auto' = auto-press when 2 down (match play only)
+  useHandicaps: boolean; // apply handicap strokes per hole
 }
 
 export interface SkinsConfig {
@@ -76,6 +79,24 @@ export interface HoleExtras {
   wolf?: WolfHoleState;
   bbb?: BBBHoleState;
   snake?: SnakeHoleState;
+}
+
+// ─── Press Match (Nassau auto-press side bets) ──────────────────────────────
+
+export interface PressMatch {
+  id: string;
+  leg: 'front' | 'back' | 'full';
+  startHole: number; // 0-indexed, first hole of this press
+  endHole: number;   // last hole of this leg (8 for front, 17 for back, 17 for full)
+}
+
+// ─── Game Extras (per-round tracking) ───────────────────────────────────────
+
+export interface GameExtras {
+  wolf?: (WolfHoleState | null)[];
+  bbb?: (BBBHoleState | null)[];
+  snake?: (SnakeHoleState | null)[];
+  pressMatches?: PressMatch[];
 }
 
 // ─── Results ────────────────────────────────────────────────────────────────

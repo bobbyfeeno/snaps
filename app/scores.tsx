@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
-import { BBBHoleState, GameMode, MultiGameResults, SnakeHoleState, WolfHoleState } from '../types';
+import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, SnakeHoleState, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -37,14 +37,14 @@ function scoreDotStyle(diff: number): object[] {
   return [styles.dotBase, styles.dotPar];
 }
 
-const DEMO_SETUP = {
+const DEMO_SETUP: GameSetup = {
   players: [
     { id: 'p1', name: 'Bobby', taxMan: 85 },
     { id: 'p2', name: 'Mike', taxMan: 90 },
     { id: 'p3', name: 'Dave', taxMan: 95 },
     { id: 'p4', name: 'Chris', taxMan: 92 },
   ],
-  games: [{ mode: 'taxman' as const, config: { taxAmount: 10 } }],
+  games: [{ mode: 'taxman', config: { taxAmount: 10 } }],
 };
 
 const DEMO_SCORES: Record<string, (number | null)[]> = {
@@ -101,6 +101,15 @@ export default function ScoresScreen() {
     }))
   );
 
+  // ─── Press state (Nassau match play auto-press) ───────────────────────────
+  const [pressMatches, setPressMatches] = useState<PressMatch[]>([]);
+
+  // Check if Nassau auto-press is active
+  const nassauGame = setup.games.find(g => g.mode === 'nassau');
+  const nassauConfig = nassauGame?.config as NassauConfig | undefined;
+  const hasNassauAutoPress = !!nassauGame && nassauConfig?.mode === 'match' && nassauConfig?.press === 'auto';
+  const useHandicaps = !!nassauGame && !!nassauConfig?.useHandicaps;
+
   // Collapsible panel states
   const [wolfExpanded, setWolfExpanded] = useState(false);
   const [bbbExpanded, setBbbExpanded] = useState(false);
@@ -108,8 +117,8 @@ export default function ScoresScreen() {
 
   // ─── Live Status ──────────────────────────────────────────────────────────
   const liveStatus = useMemo(() => 
-    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles),
-    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles]
+    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches),
+    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches]
   );
 
   function openEdit(t: EditTarget) {
@@ -141,6 +150,8 @@ export default function ScoresScreen() {
           arr[target.hole] = n;
           return { ...prev, [target.playerId]: arr };
         });
+        // Check for auto-press after score entry
+        setTimeout(() => checkAutoPress(), 0);
       } else if (inputVal === '') {
         setScores(prev => {
           const arr = [...prev[target.playerId]];
@@ -218,11 +229,86 @@ export default function ScoresScreen() {
     return holder;
   }
 
+  // ─── Auto-press check ─────────────────────────────────────────────────────
+  function checkAutoPress() {
+    if (!hasNassauAutoPress) return;
+
+    const legs: { name: 'front' | 'back' | 'full'; start: number; end: number }[] = [
+      { name: 'front', start: 0, end: 9 },
+      { name: 'back', start: 9, end: 18 },
+    ];
+
+    const newPresses: PressMatch[] = [];
+
+    for (const leg of legs) {
+      // Find current hole being played in this leg
+      let currentHole = -1;
+      for (let h = leg.start; h < leg.end; h++) {
+        const allHaveScore = setup.players.every(p => scores[p.id][h] !== null);
+        if (allHaveScore) {
+          currentHole = h;
+        }
+      }
+
+      if (currentHole < leg.start) continue; // No completed holes in this leg yet
+
+      // Calculate holes won per player up to and including currentHole
+      const holesWon: Record<string, number> = {};
+      for (const p of setup.players) holesWon[p.id] = 0;
+
+      for (let h = leg.start; h <= currentHole; h++) {
+        const holeScores = setup.players
+          .map(p => ({ id: p.id, score: scores[p.id][h] }))
+          .filter(x => x.score !== null) as { id: string; score: number }[];
+        
+        if (holeScores.length < 2) continue;
+
+        const minScore = Math.min(...holeScores.map(x => x.score));
+        const winners = holeScores.filter(x => x.score === minScore);
+        if (winners.length === 1) {
+          holesWon[winners[0].id]++;
+        }
+      }
+
+      // Find leader and check if anyone is 2+ down
+      const maxWon = Math.max(...Object.values(holesWon));
+      
+      for (const p of setup.players) {
+        const deficit = maxWon - holesWon[p.id];
+        if (deficit >= 2 && currentHole < leg.end - 1) {
+          // Player is 2+ down and there are holes remaining
+          const nextHole = currentHole + 1;
+          
+          // Check if a press already covers this situation
+          const alreadyPressed = pressMatches.some(pm =>
+            pm.leg === leg.name && pm.startHole <= nextHole && pm.endHole >= nextHole
+          ) || newPresses.some(pm =>
+            pm.leg === leg.name && pm.startHole <= nextHole && pm.endHole >= nextHole
+          );
+
+          if (!alreadyPressed) {
+            newPresses.push({
+              id: `${leg.name}-${nextHole}-${Date.now()}`,
+              leg: leg.name,
+              startHole: nextHole,
+              endHole: leg.end - 1,
+            });
+          }
+        }
+      }
+    }
+
+    if (newPresses.length > 0) {
+      setPressMatches(prev => [...prev, ...newPresses]);
+    }
+  }
+
   function handleCalculate() {
     const extras: GameExtras = {
       wolf: wolfHoles,
       bbb: bbbHoles,
       snake: snakeHoles,
+      pressMatches: pressMatches,
     };
     
     multiGameResults = calcAllGames(setup, scores, extras);
@@ -320,6 +406,9 @@ export default function ScoresScreen() {
                   {hasSnake && getSnakeHolder() === player.id ? '🐍 ' : ''}{player.name}
                 </Text>
                 <Text style={styles.tmText}>TM {player.taxMan}</Text>
+                {useHandicaps && player.handicap !== undefined && (
+                  <Text style={styles.hcpText}>HCP {player.handicap}</Text>
+                )}
               </View>
             ))}
           </View>
@@ -753,6 +842,7 @@ const styles = StyleSheet.create({
   nameCell: { backgroundColor: '#0d0d0d', paddingHorizontal: 6, alignItems: 'flex-start' },
   nameText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   tmText: { color: '#39FF14', fontSize: 9, fontWeight: '700', marginTop: 1 },
+  hcpText: { color: '#888', fontSize: 9, fontWeight: '600' },
 
   // Par cells
   parCell: { backgroundColor: '#141414' },

@@ -2,6 +2,7 @@ import {
   BBBHoleState,
   BingoBangoBongoConfig,
   GameConfig,
+  GameExtras,
   GameMode,
   GameResult,
   GameSetup,
@@ -9,6 +10,7 @@ import {
   NassauConfig,
   Payout,
   Player,
+  PressMatch,
   ScorecardConfig,
   SkinsConfig,
   SnakeConfig,
@@ -17,6 +19,9 @@ import {
   WolfConfig,
   WolfHoleState,
 } from '../types';
+
+// Re-export GameExtras for backwards compatibility
+export type { GameExtras } from '../types';
 
 // ─── Live Status Types ──────────────────────────────────────────────────────
 
@@ -49,6 +54,27 @@ function sumScores(scores: (number | null)[], start: number, end: number): numbe
     sum += scores[i]!;
   }
   return sum;
+}
+
+// ─── Handicap Helpers ───────────────────────────────────────────────────────
+
+// Standard USGA-style hole handicap indices for 18 holes
+// Index = hole number (0-based), value = difficulty rank (1=hardest, 18=easiest)
+const HOLE_HANDICAP_STROKES = [1, 10, 2, 11, 3, 12, 4, 13, 5, 14, 6, 15, 7, 16, 8, 17, 9, 18];
+
+function getHandicapAllowances(players: Player[]): Record<string, number> {
+  // Find minimum handicap in group
+  const minHcp = Math.min(...players.map(p => p.handicap ?? 0));
+  // Each player's allowance = their handicap - min handicap
+  return Object.fromEntries(players.map(p => [p.id, (p.handicap ?? 0) - minHcp]));
+}
+
+function getNetScore(grossScore: number | null, playerAllowance: number, hole: number): number | null {
+  if (grossScore === null) return null;
+  // Does this player get a stroke on this hole?
+  const holeDifficulty = HOLE_HANDICAP_STROKES[hole]; // 1-18
+  const strokesOnThisHole = playerAllowance >= holeDifficulty ? 1 : 0;
+  return grossScore - strokesOnThisHole;
 }
 
 // ─── Tax Man ────────────────────────────────────────────────────────────────
@@ -107,6 +133,9 @@ function calcNassauStroke(
 ): { payouts: Payout[]; net: Record<string, number> } {
   const payouts: Payout[] = [];
   const net = initNet(players);
+  
+  // Handicap allowances (if enabled)
+  const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
 
   const legs: { name: string; start: number; end: number }[] = [
     { name: 'Front 9', start: 0, end: 9 },
@@ -115,13 +144,31 @@ function calcNassauStroke(
   ];
 
   for (const leg of legs) {
-    // Calculate totals for each player for this leg
+    // Calculate totals for each player for this leg (net if handicaps enabled)
     const totals: { player: Player; total: number }[] = [];
     
     for (const player of players) {
-      const total = sumScores(scores[player.id], leg.start, leg.end);
-      if (total !== null) {
-        totals.push({ player, total });
+      if (config.useHandicaps) {
+        // Calculate net total for this leg
+        let netTotal = 0;
+        let complete = true;
+        for (let h = leg.start; h < leg.end; h++) {
+          const gross = scores[player.id][h];
+          if (gross === null) {
+            complete = false;
+            break;
+          }
+          const netScore = getNetScore(gross, allowances[player.id] ?? 0, h);
+          netTotal += netScore ?? 0;
+        }
+        if (complete) {
+          totals.push({ player, total: netTotal });
+        }
+      } else {
+        const total = sumScores(scores[player.id], leg.start, leg.end);
+        if (total !== null) {
+          totals.push({ player, total });
+        }
       }
     }
 
@@ -154,73 +201,89 @@ function calcNassauStroke(
   return { payouts, net };
 }
 
+// Helper to calculate match play result for a range of holes
+function calcMatchPlayRange(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  start: number,
+  end: number,
+  useHandicaps: boolean,
+  allowances: Record<string, number>
+): { holesWon: Record<string, number>; participating: Player[] } {
+  const holesWon: Record<string, number> = {};
+  for (const p of players) {
+    holesWon[p.id] = 0;
+  }
+
+  for (let hole = start; hole <= end; hole++) {
+    // Get scores for this hole (net if handicaps enabled)
+    const holeScores: { player: Player; score: number }[] = [];
+    
+    for (const player of players) {
+      const gross = scores[player.id][hole];
+      if (gross !== null) {
+        const score = useHandicaps
+          ? getNetScore(gross, allowances[player.id] ?? 0, hole)!
+          : gross;
+        holeScores.push({ player, score });
+      }
+    }
+
+    if (holeScores.length < 2) continue;
+
+    const minScore = Math.min(...holeScores.map(h => h.score));
+    const holeWinners = holeScores.filter(h => h.score === minScore);
+
+    if (holeWinners.length === 1) {
+      holesWon[holeWinners[0].player.id]++;
+    }
+  }
+
+  const participating = players.filter(p => {
+    for (let h = start; h <= end; h++) {
+      if (scores[p.id][h] !== null) return true;
+    }
+    return false;
+  });
+
+  return { holesWon, participating };
+}
+
 function calcNassauMatch(
   players: Player[],
   scores: Record<string, (number | null)[]>,
-  config: NassauConfig
+  config: NassauConfig,
+  pressMatches?: PressMatch[]
 ): { payouts: Payout[]; net: Record<string, number> } {
   const payouts: Payout[] = [];
   const net = initNet(players);
+  
+  // Handicap allowances (if enabled)
+  const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
 
-  const legs: { name: string; start: number; end: number }[] = [
-    { name: 'Front 9', start: 0, end: 9 },
-    { name: 'Back 9', start: 9, end: 18 },
-    { name: 'Full 18', start: 0, end: 18 },
+  const legs: { name: string; key: 'front' | 'back' | 'full'; start: number; end: number }[] = [
+    { name: 'Front 9', key: 'front', start: 0, end: 8 },
+    { name: 'Back 9', key: 'back', start: 9, end: 17 },
+    { name: 'Full 18', key: 'full', start: 0, end: 17 },
   ];
 
   for (const leg of legs) {
-    // Count holes won per player for this leg
-    const holesWon: Record<string, number> = {};
-    for (const p of players) {
-      holesWon[p.id] = 0;
-    }
+    const { holesWon, participating } = calcMatchPlayRange(
+      players, scores, leg.start, leg.end, config.useHandicaps, allowances
+    );
 
-    for (let hole = leg.start; hole < leg.end; hole++) {
-      // Get scores for this hole (only players with non-null scores)
-      const holeScores: { player: Player; score: number }[] = [];
-      
-      for (const player of players) {
-        const score = scores[player.id][hole];
-        if (score !== null) {
-          holeScores.push({ player, score });
-        }
-      }
+    if (participating.length < 2) continue;
 
-      if (holeScores.length < 2) continue; // Need at least 2 players with scores
+    const maxHolesWon = Math.max(...participating.map(p => holesWon[p.id]));
+    if (maxHolesWon === 0) continue;
 
-      // Find lowest score for this hole
-      const minScore = Math.min(...holeScores.map(h => h.score));
-      const holeWinners = holeScores.filter(h => h.score === minScore);
+    const legWinners = participating.filter(p => holesWon[p.id] === maxHolesWon);
 
-      // Single winner takes the hole; ties = halved (no hole winner)
-      if (holeWinners.length === 1) {
-        holesWon[holeWinners[0].player.id]++;
-      }
-    }
-
-    // Find who won the most holes in this leg
-    const participatingPlayers = players.filter(p => {
-      // Player participated if they have at least one non-null score in this leg
-      for (let h = leg.start; h < leg.end; h++) {
-        if (scores[p.id][h] !== null) return true;
-      }
-      return false;
-    });
-
-    if (participatingPlayers.length < 2) continue;
-
-    const maxHolesWon = Math.max(...participatingPlayers.map(p => holesWon[p.id]));
-    if (maxHolesWon === 0) continue; // No holes won = no payout
-
-    const legWinners = participatingPlayers.filter(p => holesWon[p.id] === maxHolesWon);
-
-    // If tied on holes won = push (no payout for this leg)
-    if (legWinners.length > 1) continue;
+    if (legWinners.length > 1) continue; // Push
 
     const winner = legWinners[0];
 
-    // Winner receives betAmount from each other participating player
-    for (const other of participatingPlayers) {
+    for (const other of participating) {
       if (other.id !== winner.id) {
         payouts.push({
           from: other.name,
@@ -234,24 +297,72 @@ function calcNassauMatch(
     }
   }
 
+  // Process press bets
+  if (pressMatches && pressMatches.length > 0) {
+    // Group presses by leg for labeling
+    const pressCountByLeg: Record<string, number> = { front: 0, back: 0, full: 0 };
+
+    for (const press of pressMatches) {
+      pressCountByLeg[press.leg]++;
+      const pressNum = pressCountByLeg[press.leg];
+      const labelSuffix = pressNum === 1 ? '' : ` ${pressNum}`;
+      const legLabel = press.leg === 'front' ? 'F9' : press.leg === 'back' ? 'B9' : '18';
+
+      const { holesWon, participating } = calcMatchPlayRange(
+        players, scores, press.startHole, press.endHole, config.useHandicaps, allowances
+      );
+
+      if (participating.length < 2) continue;
+
+      const maxHolesWon = Math.max(...participating.map(p => holesWon[p.id]));
+      if (maxHolesWon === 0) continue;
+
+      const pressWinners = participating.filter(p => holesWon[p.id] === maxHolesWon);
+
+      if (pressWinners.length > 1) continue; // Push
+
+      const winner = pressWinners[0];
+
+      for (const other of participating) {
+        if (other.id !== winner.id) {
+          payouts.push({
+            from: other.name,
+            to: winner.name,
+            amount: config.betAmount,
+            game: 'nassau',
+          });
+          net[other.name] -= config.betAmount;
+          net[winner.name] += config.betAmount;
+        }
+      }
+    }
+  }
+
   return { payouts, net };
 }
 
 export function calcNassau(
   players: Player[],
   scores: Record<string, (number | null)[]>,
-  config: NassauConfig
+  config: NassauConfig,
+  pressMatches?: PressMatch[]
 ): GameResult {
   // Default to stroke play for backwards compatibility
   const mode = config.mode ?? 'stroke';
   
   const { payouts, net } = mode === 'match'
-    ? calcNassauMatch(players, scores, config)
+    ? calcNassauMatch(players, scores, config, pressMatches)
     : calcNassauStroke(players, scores, config);
+
+  // Build label
+  let label = mode === 'match' ? 'Nassau (Match)' : 'Nassau';
+  if (config.useHandicaps) {
+    label += ' w/ HCP';
+  }
 
   return {
     mode: 'nassau',
-    label: mode === 'match' ? 'Nassau (Match)' : 'Nassau',
+    label,
     payouts,
     net,
   };
@@ -600,12 +711,6 @@ export function calcSnake(
 
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
-export interface GameExtras {
-  wolf?: (WolfHoleState | null)[];
-  bbb?: (BBBHoleState | null)[];
-  snake?: (SnakeHoleState | null)[];
-}
-
 export function calcAllGames(
   setup: GameSetup,
   scores: Record<string, (number | null)[]>,
@@ -628,7 +733,7 @@ export function calcAllGames(
         result = calcTaxMan(players, scores, game.config);
         break;
       case 'nassau':
-        result = calcNassau(players, scores, game.config);
+        result = calcNassau(players, scores, game.config, extras.pressMatches);
         break;
       case 'skins':
         result = calcSkins(players, scores, game.config);
@@ -783,9 +888,12 @@ function calcLiveNassauStroke(
 
 function calcLiveNassauMatch(
   players: Player[],
-  scores: Record<string, (number | null)[]>
+  scores: Record<string, (number | null)[]>,
+  config: NassauConfig,
+  pressMatches?: PressMatch[]
 ): LiveStatus {
   const lines: LiveStatusLine[] = [];
+  const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
 
   const calcLegStatus = (start: number, end: number, label: string) => {
     const holesWon: Record<string, number> = {};
@@ -796,7 +904,13 @@ function calcLiveNassauMatch(
       const allScored = players.every(p => scores[p.id][hole] !== null);
       if (!allScored) continue;
 
-      const holeScores = players.map(p => ({ player: p, score: scores[p.id][hole]! }));
+      const holeScores = players.map(p => {
+        const gross = scores[p.id][hole]!;
+        const score = config.useHandicaps
+          ? getNetScore(gross, allowances[p.id] ?? 0, hole)!
+          : gross;
+        return { player: p, score };
+      });
       const minScore = Math.min(...holeScores.map(h => h.score));
       const winners = holeScores.filter(h => h.score === minScore);
 
@@ -829,7 +943,21 @@ function calcLiveNassauMatch(
   lines.push(calcLegStatus(0, 9, 'F9'));
   lines.push(calcLegStatus(9, 18, 'B9'));
 
-  return { mode: 'nassau', label: '🏌️ Nassau (Match)', lines };
+  // Show active press matches
+  if (pressMatches && pressMatches.length > 0) {
+    const activeF9Presses = pressMatches.filter(pm => pm.leg === 'front').length;
+    const activeB9Presses = pressMatches.filter(pm => pm.leg === 'back').length;
+    
+    if (activeF9Presses > 0) {
+      lines.push({ text: `F9: ${activeF9Presses} press${activeF9Presses > 1 ? 'es' : ''}`, color: 'yellow' });
+    }
+    if (activeB9Presses > 0) {
+      lines.push({ text: `B9: ${activeB9Presses} press${activeB9Presses > 1 ? 'es' : ''}`, color: 'yellow' });
+    }
+  }
+
+  const labelSuffix = config.useHandicaps ? ' w/ HCP' : '';
+  return { mode: 'nassau', label: `🏌️ Nassau (Match)${labelSuffix}`, lines };
 }
 
 function calcLiveSkins(
@@ -1037,7 +1165,8 @@ export function calcLiveStatus(
   pars: number[],
   wolfHoles: (WolfHoleState | null)[],
   bbbHoles: (BBBHoleState | null)[],
-  snakeHoles: (SnakeHoleState | null)[]
+  snakeHoles: (SnakeHoleState | null)[],
+  pressMatches?: PressMatch[]
 ): LiveStatus[] {
   const results: LiveStatus[] = [];
   const { players, games } = setup;
@@ -1052,7 +1181,7 @@ export function calcLiveStatus(
         break;
       case 'nassau':
         if (game.config.mode === 'match') {
-          results.push(calcLiveNassauMatch(players, scores));
+          results.push(calcLiveNassauMatch(players, scores, game.config, pressMatches));
         } else {
           results.push(calcLiveNassauStroke(players, scores));
         }

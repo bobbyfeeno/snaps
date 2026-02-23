@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { GameConfig, GameMode, GameSetup, Player } from '../types';
+import { GameConfig, GameMode, GameSetup, NassauConfig, Player } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -112,6 +112,8 @@ export default function SetupScreen() {
     snake: '10',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
+  const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
+  const [nassauHandicaps, setNassauHandicaps] = useState(false);
 
   // ─── Step 1: Player Management ────────────────────────────────────────────
 
@@ -135,6 +137,13 @@ export default function SetupScreen() {
     const n = parseInt(val, 10);
     setPlayers(prev =>
       prev.map(p => (p.id === id ? { ...p, taxMan: isNaN(n) ? 0 : n } : p))
+    );
+  }
+
+  function updateHandicap(id: string, val: string) {
+    const n = parseInt(val, 10);
+    setPlayers(prev =>
+      prev.map(p => (p.id === id ? { ...p, handicap: isNaN(n) ? undefined : Math.min(36, Math.max(0, n)) } : p))
     );
   }
 
@@ -206,7 +215,7 @@ export default function SetupScreen() {
           games.push({ mode: 'taxman', config: { taxAmount: amount } });
           break;
         case 'nassau':
-          games.push({ mode: 'nassau', config: { betAmount: amount, mode: nassauMode } });
+          games.push({ mode: 'nassau', config: { betAmount: amount, mode: nassauMode, press: nassauPress, useHandicaps: nassauHandicaps } });
           break;
         case 'skins':
           games.push({ mode: 'skins', config: { betPerSkin: amount } });
@@ -292,6 +301,24 @@ export default function SetupScreen() {
                   />
                   <Text style={styles.taxManHint}>shoot below to win</Text>
                 </View>
+
+                {/* Handicap input - only show when Nassau with handicaps enabled */}
+                {activeGames.has('nassau') && nassauHandicaps && (
+                  <View style={styles.handicapRow}>
+                    <Text style={styles.handicapLabel}>Handicap:</Text>
+                    <TextInput
+                      style={styles.handicapInput}
+                      value={player.handicap !== undefined ? String(player.handicap) : ''}
+                      onChangeText={val => updateHandicap(player.id, val)}
+                      keyboardType="number-pad"
+                      placeholderTextColor="#666"
+                      placeholder="0"
+                      maxLength={2}
+                      selectTextOnFocus
+                    />
+                    <Text style={styles.handicapHint}>(0-36)</Text>
+                  </View>
+                )}
               </View>
             ))}
 
@@ -434,6 +461,76 @@ export default function SetupScreen() {
                       nassauMode === 'match' && styles.nassauModeBtnTextActive,
                     ]}>Match Play</Text>
                   </TouchableOpacity>
+                </View>
+              )}
+
+              {/* Nassau Press toggle - only show for match play */}
+              {isActive && game.mode === 'nassau' && nassauMode === 'match' && (
+                <View style={styles.nassauOptionRow}>
+                  <Text style={styles.nassauOptionLabel}>Press</Text>
+                  <View style={styles.nassauToggleGroup}>
+                    <TouchableOpacity
+                      style={[
+                        styles.nassauModeBtn,
+                        nassauPress === 'none' && styles.nassauModeBtnActive,
+                      ]}
+                      onPress={() => setNassauPress('none')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.nassauModeBtnText,
+                        nassauPress === 'none' && styles.nassauModeBtnTextActive,
+                      ]}>No Press</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.nassauModeBtn,
+                        nassauPress === 'auto' && styles.nassauModeBtnActive,
+                      ]}
+                      onPress={() => setNassauPress('auto')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.nassauModeBtnText,
+                        nassauPress === 'auto' && styles.nassauModeBtnTextActive,
+                      ]}>Auto Press</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              )}
+
+              {/* Nassau Handicaps toggle */}
+              {isActive && game.mode === 'nassau' && (
+                <View style={styles.nassauOptionRow}>
+                  <Text style={styles.nassauOptionLabel}>Handicaps</Text>
+                  <View style={styles.nassauToggleGroup}>
+                    <TouchableOpacity
+                      style={[
+                        styles.nassauModeBtn,
+                        !nassauHandicaps && styles.nassauModeBtnActive,
+                      ]}
+                      onPress={() => setNassauHandicaps(false)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.nassauModeBtnText,
+                        !nassauHandicaps && styles.nassauModeBtnTextActive,
+                      ]}>Off</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.nassauModeBtn,
+                        nassauHandicaps && styles.nassauModeBtnActive,
+                      ]}
+                      onPress={() => setNassauHandicaps(true)}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.nassauModeBtnText,
+                        nassauHandicaps && styles.nassauModeBtnTextActive,
+                      ]}>On</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </View>
@@ -706,6 +803,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
+  // Handicap row (Step 1)
+  handicapRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  handicapLabel: { fontSize: 15, color: '#888', marginRight: 10 },
+  handicapInput: {
+    backgroundColor: '#0d1f0d',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#666',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ccc',
+    width: 60,
+    textAlign: 'center',
+    marginRight: 10,
+  },
+  handicapHint: { fontSize: 12, color: '#666', flex: 1 },
+
   // Nassau stroke/match toggle
   nassauModeRow: {
     flexDirection: 'row',
@@ -733,6 +849,26 @@ const styles = StyleSheet.create({
   },
   nassauModeBtnTextActive: {
     color: '#000',
+  },
+
+  // Nassau option rows (Press, Handicaps)
+  nassauOptionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#2a4a2a',
+  },
+  nassauOptionLabel: {
+    fontSize: 14,
+    color: '#5a8a5a',
+    fontWeight: '600',
+  },
+  nassauToggleGroup: {
+    flexDirection: 'row',
+    gap: 6,
   },
 
   validationHint: {
