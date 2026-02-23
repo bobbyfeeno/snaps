@@ -96,6 +96,76 @@ const GAME_DEFS: GameDef[] = [
   },
 ];
 
+// ─── iOS-style glossy icon definitions ──────────────────────────────────────
+
+const ICON_DEFS: Record<string, {
+  emoji: string;
+  activeColors: [string, string];
+  inactiveColors: [string, string];
+  shadowColor: string;
+}> = {
+  scorecard:        { emoji: '📊', activeColors: ['#1ABC9C', '#0E8A70'], inactiveColors: ['#0a2020', '#051010'], shadowColor: '#1ABC9C' },
+  taxman:           { emoji: '💰', activeColors: ['#FFD600', '#E89400'], inactiveColors: ['#3a3010', '#1e180a'], shadowColor: '#FFD600' },
+  nassau:           { emoji: '🏆', activeColors: ['#4A90E2', '#1A5FBF'], inactiveColors: ['#0e1e35', '#080f1c'], shadowColor: '#4A90E2' },
+  skins:            { emoji: '💵', activeColors: ['#39FF14', '#1AAA00'], inactiveColors: ['#0d2808', '#060f02'], shadowColor: '#39FF14' },
+  wolf:             { emoji: '🐺', activeColors: ['#9B59B6', '#6A1E9A'], inactiveColors: ['#1e0a2e', '#0f0516'], shadowColor: '#9B59B6' },
+  'bingo-bango-bongo': { emoji: '🎯', activeColors: ['#FF6B35', '#D03A00'], inactiveColors: ['#2e1008', '#160803'], shadowColor: '#FF6B35' },
+  snake:            { emoji: '🐍', activeColors: ['#E74C3C', '#A01020'], inactiveColors: ['#2e0808', '#160404'], shadowColor: '#E74C3C' },
+};
+
+// ─── GameIcon Component ─────────────────────────────────────────────────────
+
+function GameIcon({ game, isActive, onPress }: {
+  game: GameDef;
+  isActive: boolean;
+  onPress: () => void;
+}) {
+  const def = ICON_DEFS[game.mode];
+  
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      style={styles.gameIconWrapper}
+    >
+      {/* Outer shadow + selection ring */}
+      <View style={[
+        styles.gameIconOuter,
+        { shadowColor: def.shadowColor },
+        isActive && { shadowOpacity: 0.7, shadowRadius: 16 },
+      ]}>
+        {/* Main gradient */}
+        <LinearGradient
+          colors={isActive ? def.activeColors : def.inactiveColors}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.gameIconGrad}
+        >
+          {/* Gloss overlay — top half white dome */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.45)', 'rgba(255,255,255,0.0)']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.gameIconGloss}
+          />
+          {/* Emoji */}
+          <Text style={styles.gameIconEmoji}>{def.emoji}</Text>
+          {/* Selection checkmark */}
+          {isActive && (
+            <View style={styles.gameIconCheck}>
+              <Text style={styles.gameIconCheckText}>✓</Text>
+            </View>
+          )}
+        </LinearGradient>
+      </View>
+      {/* Label below icon */}
+      <Text style={[styles.gameIconLabel, isActive && styles.gameIconLabelActive]}>
+        {game.name}
+      </Text>
+    </TouchableOpacity>
+  );
+}
+
 export default function SetupScreen() {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
@@ -295,71 +365,43 @@ export default function SetupScreen() {
             <Text style={styles.sectionSubtitle}>Pick your games for this round</Text>
           </View>
 
-          {/* Game cards */}
-          {GAME_DEFS.map(game => {
-            const isActive = activeGames.has(game.mode);
-            const isScorecard = game.mode === 'scorecard';
-            
-            return (
-              <BevelCard
+          {/* Icon Grid */}
+          <View style={styles.iconGrid}>
+            {GAME_DEFS.map(game => (
+              <GameIcon
                 key={game.mode}
-                active={isActive && !isScorecard}
-                style={[
-                  styles.gameCard,
-                  isActive && !isScorecard && styles.gameCardActive,
-                  isActive && isScorecard && styles.gameCardActiveScorecard,
-                ]}
-              >
-                <View style={styles.gameCardInner}>
-                <View style={styles.gameHeader}>
-                  <TouchableOpacity
-                    onPress={() => toggleGame(game.mode)}
-                    style={[
-                      styles.toggle,
-                      isActive && !isScorecard && styles.toggleActive,
-                      isActive && isScorecard && styles.toggleActiveScorecard,
-                    ]}
-                    activeOpacity={0.7}
-                  >
-                    {isActive && <Text style={isScorecard ? styles.toggleCheckScorecard : styles.toggleCheck}>✓</Text>}
-                  </TouchableOpacity>
-                  <View style={styles.gameInfo}>
-                    <Text style={[
-                      styles.gameName, 
-                      isScorecard && styles.gameNameScorecard,
-                    ]}>
-                      {game.name}
-                    </Text>
-                    <Text style={[
-                      styles.gameDesc, 
-                      isScorecard && styles.gameDescScorecard,
-                    ]}>
-                      {game.description}
-                    </Text>
+                game={game}
+                isActive={activeGames.has(game.mode)}
+                onPress={() => toggleGame(game.mode)}
+              />
+            ))}
+          </View>
+
+          {/* Config panel for active games */}
+          {Array.from(activeGames).filter(m => m !== 'scorecard').length > 0 && (
+            <BevelCard style={styles.configPanel}>
+              <View style={styles.cardHighlight} />
+              {Array.from(activeGames).filter(m => m !== 'scorecard').map(mode => (
+                <View key={mode} style={styles.configRow}>
+                  <Text style={styles.configLabel}>{GAME_DEFS.find(g => g.mode === mode)?.name}</Text>
+                  <View style={styles.configRight}>
+                    <Text style={styles.dollarSign}>$</Text>
+                    <TextInput
+                      style={styles.configAmountInput}
+                      value={gameAmounts[mode as GameMode]}
+                      onChangeText={v => updateGameAmount(mode as GameMode, v)}
+                      keyboardType="numeric"
+                      maxLength={4}
+                      placeholder="0"
+                      placeholderTextColor="#333"
+                    />
                   </View>
                 </View>
-                
-                {/* Amount input - skip for scorecard */}
-                {isActive && !isScorecard && game.inputLabel && (
-                  <View style={styles.gameAmountRow}>
-                    <Text style={styles.gameAmountLabel}>{game.inputLabel}</Text>
-                    <View style={styles.gameAmountInputContainer}>
-                      <Text style={styles.dollarSign}>$</Text>
-                      <TextInput
-                        style={styles.amountInput}
-                        value={gameAmounts[game.mode]}
-                        onChangeText={val => updateGameAmount(game.mode, val)}
-                        keyboardType="decimal-pad"
-                        placeholderTextColor="#39FF14"
-                        maxLength={6}
-                        selectTextOnFocus
-                      />
-                    </View>
-                  </View>
-                )}
-                
-                {/* Nassau stroke/match play toggle */}
-                {isActive && game.mode === 'nassau' && (
+              ))}
+              {/* Nassau-specific options */}
+              {activeGames.has('nassau') && (
+                <View style={styles.nassauOpts}>
+                  {/* Stroke/Match Play toggle */}
                   <View style={styles.nassauModeRow}>
                     <TouchableOpacity
                       style={[
@@ -388,45 +430,43 @@ export default function SetupScreen() {
                       ]}>Match Play</Text>
                     </TouchableOpacity>
                   </View>
-                )}
 
-                {/* Nassau Press toggle - only show for match play */}
-                {isActive && game.mode === 'nassau' && nassauMode === 'match' && (
-                  <View style={styles.nassauOptionRow}>
-                    <Text style={styles.nassauOptionLabel}>Press</Text>
-                    <View style={styles.nassauToggleGroup}>
-                      <TouchableOpacity
-                        style={[
-                          styles.pillBtn,
-                          nassauPress === 'none' && styles.pillBtnActive,
-                        ]}
-                        onPress={() => setNassauPress('none')}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={[
-                          styles.pillBtnText,
-                          nassauPress === 'none' && styles.pillBtnTextActive,
-                        ]}>No Press</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[
-                          styles.pillBtn,
-                          nassauPress === 'auto' && styles.pillBtnActive,
-                        ]}
-                        onPress={() => setNassauPress('auto')}
-                        activeOpacity={0.7}
-                      >
-                        <Text style={[
-                          styles.pillBtnText,
-                          nassauPress === 'auto' && styles.pillBtnTextActive,
-                        ]}>Auto Press</Text>
-                      </TouchableOpacity>
+                  {/* Press toggle - only show for match play */}
+                  {nassauMode === 'match' && (
+                    <View style={styles.nassauOptionRow}>
+                      <Text style={styles.nassauOptionLabel}>Press</Text>
+                      <View style={styles.nassauToggleGroup}>
+                        <TouchableOpacity
+                          style={[
+                            styles.pillBtn,
+                            nassauPress === 'none' && styles.pillBtnActive,
+                          ]}
+                          onPress={() => setNassauPress('none')}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[
+                            styles.pillBtnText,
+                            nassauPress === 'none' && styles.pillBtnTextActive,
+                          ]}>No Press</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[
+                            styles.pillBtn,
+                            nassauPress === 'auto' && styles.pillBtnActive,
+                          ]}
+                          onPress={() => setNassauPress('auto')}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[
+                            styles.pillBtnText,
+                            nassauPress === 'auto' && styles.pillBtnTextActive,
+                          ]}>Auto Press</Text>
+                        </TouchableOpacity>
+                      </View>
                     </View>
-                  </View>
-                )}
+                  )}
 
-                {/* Nassau Handicaps toggle */}
-                {isActive && game.mode === 'nassau' && (
+                  {/* Handicaps toggle */}
                   <View style={styles.nassauOptionRow}>
                     <Text style={styles.nassauOptionLabel}>Handicaps</Text>
                     <View style={styles.nassauToggleGroup}>
@@ -458,11 +498,10 @@ export default function SetupScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
-                )}
                 </View>
-              </BevelCard>
-            );
-          })}
+              )}
+            </BevelCard>
+          )}
 
           {/* Validation message */}
           {activeGames.size === 0 && (
@@ -804,6 +843,126 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
   sectionSubtitle: { fontSize: 13, color: '#888', marginBottom: 14 },
 
+  // Icon grid
+  iconGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+    justifyContent: 'flex-start',
+    marginTop: 16,
+  },
+  gameIconWrapper: {
+    width: '30%',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  gameIconOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  gameIconGrad: {
+    width: 80,
+    height: 80,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  gameIconGloss: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 40,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  gameIconEmoji: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  gameIconCheck: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gameIconCheckText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#000',
+    lineHeight: 13,
+  },
+  gameIconLabel: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#555',
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textAlign: 'center',
+  },
+  gameIconLabelActive: {
+    color: '#fff',
+  },
+
+  // Config panel
+  configPanel: {
+    marginTop: 20,
+    padding: 16,
+  },
+  cardHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  configRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e1e1e',
+  },
+  configLabel: {
+    color: '#888',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  configRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  configAmountInput: {
+    backgroundColor: '#080808',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#39FF14',
+    width: 64,
+    textAlign: 'center',
+  },
+  nassauOpts: {
+    marginTop: 12,
+  },
+
   // Player cards (Step 1)
   playerCard: {
     marginBottom: 16,
@@ -978,122 +1137,10 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: { fontSize: 16, color: '#888' },
 
-  // Game cards (Step 2)
-  gameCard: {
-    marginBottom: 12,
-  },
-  gameCardInner: {
-    padding: 16,
-  },
-  gameCardActive: {
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-  },
-  gameCardActiveScorecard: {
-    // No special glow for scorecard
-  },
-
-  gameHeader: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-
-  toggle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#0a0a0a',
-    borderWidth: 2,
-    borderColor: '#242424',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    marginTop: 2,
-  },
-  toggleActive: {
-    backgroundColor: '#39FF14',
-    borderColor: '#39FF14',
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 6,
-  },
-  toggleActiveScorecard: {
-    backgroundColor: '#888',
-    borderColor: '#888',
-  },
-  toggleCheck: {
-    color: '#000',
-    fontWeight: '800',
-    fontSize: 16,
-  },
-  toggleCheckScorecard: {
-    color: '#fff',
-    fontWeight: '800',
-    fontSize: 16,
-  },
-
-  gameInfo: {
-    flex: 1,
-  },
-  gameName: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  gameNameScorecard: {
-    color: '#ccc',
-  },
-  gameDesc: {
-    fontSize: 13,
-    color: '#888',
-    lineHeight: 18,
-  },
-  gameDescScorecard: {
-    color: '#666',
-  },
-
-  gameAmountRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 14,
-    paddingTop: 14,
-    borderTopWidth: 1,
-    borderTopColor: '#242424',
-  },
-  gameAmountLabel: {
-    fontSize: 14,
-    color: '#666',
-  },
-  gameAmountInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#050a03',
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: '#39FF14',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-  },
   dollarSign: {
-    fontSize: 18,
-    color: '#39FF14',
+    color: '#555',
+    fontSize: 14,
     marginRight: 4,
-  },
-  amountInput: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#39FF14',
-    width: 60,
-    textAlign: 'center',
   },
 
   // Nassau mode toggles (pill buttons)
