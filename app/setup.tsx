@@ -43,6 +43,13 @@ interface GameDef {
 
 const GAME_DEFS: GameDef[] = [
   {
+    mode: 'scorecard',
+    name: 'Keep Score',
+    description: 'Track scores and see a final leaderboard. No betting required.',
+    inputLabel: '',
+    defaultAmount: 0,
+  },
+  {
     mode: 'taxman',
     name: 'Tax Man',
     description: 'Beat your target score. Losers pay every winner.',
@@ -94,8 +101,9 @@ export default function SetupScreen() {
   const nameRefs = useRef<(TextInput | null)[]>([]);
   
   // Game selection state
-  const [activeGames, setActiveGames] = useState<Set<GameMode>>(new Set(['taxman']));
+  const [activeGames, setActiveGames] = useState<Set<GameMode>>(new Set(['scorecard', 'taxman']));
   const [gameAmounts, setGameAmounts] = useState<Record<GameMode, string>>({
+    scorecard: '0',
     taxman: '10',
     nassau: '5',
     skins: '5',
@@ -175,8 +183,9 @@ export default function SetupScreen() {
       return;
     }
 
-    // Validate all active game amounts
+    // Validate all active game amounts (skip scorecard since it has no amount)
     for (const mode of activeGames) {
+      if (mode === 'scorecard') continue; // scorecard has no bet amount
       const amount = parseFloat(gameAmounts[mode]);
       if (isNaN(amount) || amount <= 0) {
         const gameName = GAME_DEFS.find(g => g.mode === mode)?.name ?? mode;
@@ -190,6 +199,9 @@ export default function SetupScreen() {
     for (const mode of activeGames) {
       const amount = parseFloat(gameAmounts[mode]);
       switch (mode) {
+        case 'scorecard':
+          games.push({ mode: 'scorecard', config: {} });
+          break;
         case 'taxman':
           games.push({ mode: 'taxman', config: { taxAmount: amount } });
           break;
@@ -331,13 +343,14 @@ export default function SetupScreen() {
         {GAME_DEFS.map(game => {
           const isActive = activeGames.has(game.mode);
           const isDisabled = game.minPlayers !== undefined && players.length < game.minPlayers;
+          const isScorecard = game.mode === 'scorecard';
           
           return (
             <View 
               key={game.mode} 
               style={[
                 styles.gameCard,
-                isActive && styles.gameCardActive,
+                isActive && (isScorecard ? styles.gameCardActiveScorecard : styles.gameCardActive),
                 isDisabled && styles.gameCardDisabled,
               ]}
             >
@@ -346,26 +359,35 @@ export default function SetupScreen() {
                   onPress={() => !isDisabled && toggleGame(game.mode)}
                   style={[
                     styles.toggle,
-                    isActive && styles.toggleActive,
+                    isActive && (isScorecard ? styles.toggleActiveScorecard : styles.toggleActive),
                     isDisabled && styles.toggleDisabled,
                   ]}
                   activeOpacity={0.7}
                   disabled={Boolean(isDisabled)}
                 >
-                  {isActive && <Text style={styles.toggleCheck}>✓</Text>}
+                  {isActive && <Text style={isScorecard ? styles.toggleCheckScorecard : styles.toggleCheck}>✓</Text>}
                 </TouchableOpacity>
                 <View style={styles.gameInfo}>
-                  <Text style={[styles.gameName, isDisabled && styles.gameNameDisabled]}>
+                  <Text style={[
+                    styles.gameName, 
+                    isDisabled && styles.gameNameDisabled,
+                    isScorecard && styles.gameNameScorecard,
+                  ]}>
                     {game.name}
                   </Text>
-                  <Text style={[styles.gameDesc, isDisabled && styles.gameDescDisabled]}>
+                  <Text style={[
+                    styles.gameDesc, 
+                    isDisabled && styles.gameDescDisabled,
+                    isScorecard && styles.gameDescScorecard,
+                  ]}>
                     {game.description}
                     {isDisabled && ` (needs ${game.minPlayers}+ players)`}
                   </Text>
                 </View>
               </View>
               
-              {isActive && (
+              {/* Amount input - skip for scorecard */}
+              {isActive && !isScorecard && game.inputLabel && (
                 <View style={styles.gameAmountRow}>
                   <Text style={styles.gameAmountLabel}>{game.inputLabel}</Text>
                   <View style={styles.gameAmountInput}>
@@ -574,6 +596,10 @@ const styles = StyleSheet.create({
     borderColor: '#39FF14',
     backgroundColor: '#0f2a0f',
   },
+  gameCardActiveScorecard: {
+    borderColor: '#888',
+    backgroundColor: '#1a1a1a',
+  },
   gameCardDisabled: {
     opacity: 0.5,
   },
@@ -599,11 +625,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#39FF14',
     borderColor: '#39FF14',
   },
+  toggleActiveScorecard: {
+    backgroundColor: '#888',
+    borderColor: '#888',
+  },
   toggleDisabled: {
     borderColor: '#1a2a1a',
   },
   toggleCheck: {
     color: '#000',
+    fontWeight: '800',
+    fontSize: 16,
+  },
+  toggleCheckScorecard: {
+    color: '#fff',
     fontWeight: '800',
     fontSize: 16,
   },
@@ -620,6 +655,9 @@ const styles = StyleSheet.create({
   gameNameDisabled: {
     color: '#666',
   },
+  gameNameScorecard: {
+    color: '#ccc',
+  },
   gameDesc: {
     fontSize: 13,
     color: '#88bb88',
@@ -627,6 +665,9 @@ const styles = StyleSheet.create({
   },
   gameDescDisabled: {
     color: '#555',
+  },
+  gameDescScorecard: {
+    color: '#999',
   },
 
   gameAmountRow: {

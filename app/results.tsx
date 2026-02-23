@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { GameMode, GameResult, Payout } from '../types';
+import { GameMode, GameResult, LeaderboardEntry, Payout } from '../types';
 import { multiGameResults, resetGameResults } from './scores';
 import { gameSetup, resetGameSetup } from './setup';
 
@@ -17,6 +17,7 @@ function getGameEmoji(mode: GameMode): string {
     case 'wolf': return '🐺';
     case 'bingo-bango-bongo': return '🎯';
     case 'snake': return '🐍';
+    case 'scorecard': return '📋';
     default: return '🎮';
   }
 }
@@ -146,6 +147,7 @@ export default function ResultsScreen() {
 function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean }) {
   const hasPayouts = game.payouts.length > 0;
   const sortedNet = Object.entries(game.net).sort((a, b) => b[1] - a[1]);
+  const isScorecard = game.mode === 'scorecard';
 
   return (
     <View style={[styles.gameSection, !isLast && styles.gameSectionBorder]}>
@@ -155,41 +157,62 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
         </Text>
       </View>
 
-      {/* Net standings for this game */}
-      <View style={styles.gameNetList}>
-        {sortedNet.map(([name, amount]) => (
-          <View key={name} style={styles.gameNetRow}>
-            <Text style={styles.gameNetName}>{name}</Text>
-            <View style={[styles.gameNetBadge, amount >= 0 ? styles.gameNetBadgePos : styles.gameNetBadgeNeg]}>
-              <Text style={styles.gameNetText}>
-                {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+      {/* Scorecard: show leaderboard instead of net standings */}
+      {isScorecard && game.leaderboard ? (
+        <View style={styles.leaderboardList}>
+          {game.leaderboard.map((entry, idx) => (
+            <View key={entry.name} style={styles.leaderboardRow}>
+              <Text style={[styles.leaderboardRank, idx === 0 && styles.leaderboardRankFirst]}>
+                {entry.rank}
               </Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Payouts for this game */}
-      {hasPayouts ? (
-        <View style={styles.payoutsContainer}>
-          <Text style={styles.payoutsLabel}>Payouts</Text>
-          {consolidatePayouts(game.payouts).map((p, i) => (
-            <View key={i} style={styles.payoutRow}>
-              <Text style={styles.payoutFrom}>{p.from}</Text>
-              <View style={styles.payoutArrowContainer}>
-                <View style={styles.payoutLine} />
-                <Text style={styles.payoutAmount}>{formatMoney(p.amount)}</Text>
-                <View style={styles.payoutLine} />
-                <Text style={styles.payoutArrow}>→</Text>
-              </View>
-              <Text style={styles.payoutTo}>{p.to}</Text>
+              <Text style={[styles.leaderboardName, idx === 0 && styles.leaderboardNameFirst]}>
+                {entry.name}
+              </Text>
+              <Text style={[styles.leaderboardScore, idx === 0 && styles.leaderboardScoreFirst]}>
+                {entry.total}
+              </Text>
             </View>
           ))}
         </View>
       ) : (
-        <View style={styles.noPayoutsCard}>
-          <Text style={styles.noPayoutsText}>No payouts for this game</Text>
-        </View>
+        <>
+          {/* Net standings for this game */}
+          <View style={styles.gameNetList}>
+            {sortedNet.map(([name, amount]) => (
+              <View key={name} style={styles.gameNetRow}>
+                <Text style={styles.gameNetName}>{name}</Text>
+                <View style={[styles.gameNetBadge, amount >= 0 ? styles.gameNetBadgePos : styles.gameNetBadgeNeg]}>
+                  <Text style={styles.gameNetText}>
+                    {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+
+          {/* Payouts for this game */}
+          {hasPayouts ? (
+            <View style={styles.payoutsContainer}>
+              <Text style={styles.payoutsLabel}>Payouts</Text>
+              {consolidatePayouts(game.payouts).map((p, i) => (
+                <View key={i} style={styles.payoutRow}>
+                  <Text style={styles.payoutFrom}>{p.from}</Text>
+                  <View style={styles.payoutArrowContainer}>
+                    <View style={styles.payoutLine} />
+                    <Text style={styles.payoutAmount}>{formatMoney(p.amount)}</Text>
+                    <View style={styles.payoutLine} />
+                    <Text style={styles.payoutArrow}>→</Text>
+                  </View>
+                  <Text style={styles.payoutTo}>{p.to}</Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.noPayoutsCard}>
+              <Text style={styles.noPayoutsText}>No payouts for this game</Text>
+            </View>
+          )}
+        </>
       )}
     </View>
   );
@@ -305,6 +328,50 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: '#fff',
+  },
+
+  // Scorecard leaderboard
+  leaderboardList: {
+    marginBottom: 12,
+  },
+  leaderboardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    backgroundColor: '#162416',
+    borderRadius: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#2a4a2a',
+  },
+  leaderboardRank: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#888',
+    width: 28,
+  },
+  leaderboardRankFirst: {
+    color: '#39FF14',
+  },
+  leaderboardName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  leaderboardNameFirst: {
+    color: '#39FF14',
+  },
+  leaderboardScore: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#fff',
+    minWidth: 40,
+    textAlign: 'right',
+  },
+  leaderboardScoreFirst: {
+    color: '#39FF14',
   },
 
   payoutsContainer: {

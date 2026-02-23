@@ -26,7 +26,7 @@ export default function HomeScreen() {
         onPress={() => router.push('/setup')}
         activeOpacity={0.8}
       >
-        <Text style={styles.newGameText}>New Game</Text>
+        <Text style={styles.newGameText}>Start Round</Text>
       </TouchableOpacity>
 
       <Text style={styles.rulesHint}>

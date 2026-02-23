@@ -8,6 +8,7 @@ import {
   NassauConfig,
   Payout,
   Player,
+  ScorecardConfig,
   SkinsConfig,
   SnakeConfig,
   SnakeHoleState,
@@ -490,6 +491,48 @@ export function calcBBB(
   };
 }
 
+// ─── Scorecard ──────────────────────────────────────────────────────────────
+
+export function calcScorecard(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): GameResult {
+  // Build a leaderboard: players ranked by total score (lowest wins in golf)
+  // No payouts — this is just score tracking
+  const net = initNet(players); // all zeros
+  
+  // Calculate totals for each player
+  const playerScores = players.map(p => {
+    const total = scores[p.id].reduce<number>((a, b) => a + (b ?? 0), 0);
+    return { name: p.name, total };
+  });
+  
+  // Sort by total score ascending (lowest = best in golf)
+  playerScores.sort((a, b) => a.total - b.total);
+  
+  // Build leaderboard with ranks (handle ties)
+  const leaderboard = playerScores.map((ps, idx) => {
+    // If tied with previous player, use same rank
+    const rank = idx > 0 && playerScores[idx - 1].total === ps.total
+      ? playerScores.findIndex(p => p.total === ps.total) + 1
+      : idx + 1;
+    return {
+      rank,
+      name: ps.name,
+      total: ps.total,
+    };
+  });
+  
+  // No payouts for scorecard mode
+  return {
+    mode: 'scorecard',
+    label: 'Scorecard',
+    payouts: [],
+    net,
+    leaderboard,
+  };
+}
+
 // ─── Snake ──────────────────────────────────────────────────────────────────
 
 export function calcSnake(
@@ -583,6 +626,9 @@ export function calcAllGames(
         break;
       case 'snake':
         result = calcSnake(players, extras.snake ?? [], game.config);
+        break;
+      case 'scorecard':
+        result = calcScorecard(players, scores);
         break;
     }
 

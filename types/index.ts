@@ -31,13 +31,16 @@ export interface SnakeConfig {
   snakeAmount: number; // $ the snake holder pays everyone at end
 }
 
+export interface ScorecardConfig {} // no config needed
+
 export type GameConfig =
   | { mode: 'taxman'; config: TaxManConfig }
   | { mode: 'nassau'; config: NassauConfig }
   | { mode: 'skins'; config: SkinsConfig }
   | { mode: 'wolf'; config: WolfConfig }
   | { mode: 'bingo-bango-bongo'; config: BingoBangoBongoConfig }
-  | { mode: 'snake'; config: SnakeConfig };
+  | { mode: 'snake'; config: SnakeConfig }
+  | { mode: 'scorecard'; config: ScorecardConfig };
 
 export type GameMode = GameConfig['mode'];
 
@@ -84,11 +87,18 @@ export interface Payout {
   game: GameMode; // which game this payout is from
 }
 
+export interface LeaderboardEntry {
+  rank: number;
+  name: string;
+  total: number;
+}
+
 export interface GameResult {
   mode: GameMode;
   label: string;       // "Tax Man", "Nassau", etc.
   payouts: Payout[];
   net: Record<string, number>; // net per player name for this game
+  leaderboard?: LeaderboardEntry[]; // for scorecard mode
 }
 
 export interface MultiGameResults {
