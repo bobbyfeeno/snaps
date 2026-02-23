@@ -7,7 +7,6 @@ export default function HomeScreen() {
 
   // Animation values
   const logoAnim = useRef(new Animated.Value(0)).current;
-  const taglineAnim = useRef(new Animated.Value(0)).current;
   const buttonAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0.4)).current;
 
@@ -20,14 +19,7 @@ export default function HomeScreen() {
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      // 2. Tagline fades up
-      Animated.timing(taglineAnim, {
-        toValue: 1,
-        duration: 400,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-      // 3. Button slides up
+      // 2. Button slides up
       Animated.timing(buttonAnim, {
         toValue: 1,
         duration: 400,
@@ -59,12 +51,6 @@ export default function HomeScreen() {
           />
         </Animated.View>
 
-        <Animated.Text style={[styles.tagline, {
-          opacity: taglineAnim,
-          transform: [{ translateY: taglineAnim.interpolate({ inputRange: [0, 1], outputRange: [8, 0] }) }],
-        }]}>
-          Bet that.
-        </Animated.Text>
       </View>
 
       <Animated.View style={{
@@ -104,12 +90,6 @@ const styles = StyleSheet.create({
     width: 280,
     height: 200,
     marginBottom: 16,
-  },
-  tagline: {
-    fontSize: 20,
-    color: '#888888',
-    marginTop: 4,
-    textAlign: 'center',
   },
   buttonGlow: {
     shadowColor: '#39FF14',
