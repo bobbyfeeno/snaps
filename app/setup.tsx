@@ -117,7 +117,26 @@ export default function SetupScreen() {
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
   const [nassauHandicaps, setNassauHandicaps] = useState(false);
 
-  // ─── Step 1: Player Management ────────────────────────────────────────────
+  // ─── Step 1: Game Selection ────────────────────────────────────────────────
+
+  const hasTaxMan = activeGames.has('taxman');
+
+  function handleNextStep() {
+    // Validation: at least one game selected
+    if (activeGames.size === 0) {
+      Alert.alert('No Games Selected', 'Select at least one game to play.');
+      return;
+    }
+
+    // Check Wolf player requirement (will be re-validated on start, but good UX to warn early)
+    if (activeGames.has('wolf') && players.length < 3) {
+      // Just proceed - they can add more players in step 2
+    }
+
+    setStep(2);
+  }
+
+  // ─── Step 2: Player Management ────────────────────────────────────────────
 
   function addPlayer() {
     if (players.length < MAX_PLAYERS) {
@@ -149,21 +168,7 @@ export default function SetupScreen() {
     );
   }
 
-  function handleNextStep() {
-    for (const p of players) {
-      if (!p.name.trim()) {
-        Alert.alert('Missing Name', 'Every player needs a name.');
-        return;
-      }
-      if (p.taxMan <= 0 || p.taxMan > 200) {
-        Alert.alert('Invalid Tax Man', `"${p.name || 'A player'}" needs a valid Tax Man score (1–200).`);
-        return;
-      }
-    }
-    setStep(2);
-  }
-
-  // ─── Step 2: Game Selection ───────────────────────────────────────────────
+  // ─── Game Toggle ──────────────────────────────────────────────────────────
 
   function toggleGame(mode: GameMode) {
     setActiveGames(prev => {
@@ -182,14 +187,22 @@ export default function SetupScreen() {
   }
 
   function handleStart() {
-    // Validation
-    if (activeGames.size === 0) {
-      Alert.alert('No Games Selected', 'Select at least one game to play.');
+    // Validate players
+    const filledPlayers = players.filter(p => p.name.trim());
+    if (filledPlayers.length < 2) {
+      Alert.alert('Need More Players', 'Add at least 2 players with names.');
       return;
     }
 
+    for (const p of filledPlayers) {
+      if (hasTaxMan && (p.taxMan <= 0 || p.taxMan > 200)) {
+        Alert.alert('Invalid Tax Man', `"${p.name}" needs a valid Tax Man score (1–200).`);
+        return;
+      }
+    }
+
     // Check Wolf player requirement
-    if (activeGames.has('wolf') && players.length < 3) {
+    if (activeGames.has('wolf') && filledPlayers.length < 3) {
       Alert.alert('Not Enough Players', 'Wolf requires at least 3 players.');
       return;
     }
@@ -204,6 +217,9 @@ export default function SetupScreen() {
         return;
       }
     }
+
+    // Use only players with names
+    const finalPlayers = filledPlayers;
 
     // Build GameConfig array
     const games: GameConfig[] = [];
@@ -234,11 +250,11 @@ export default function SetupScreen() {
       }
     }
 
-    gameSetup = { players, games };
+    gameSetup = { players: finalPlayers, games };
     router.push('/scores');
   }
 
-  // ─── Render Step 1: Players ───────────────────────────────────────────────
+  // ─── Render Step 1: Games ─────────────────────────────────────────────────
 
   if (step === 1) {
     return (
@@ -269,97 +285,218 @@ export default function SetupScreen() {
             />
           </View>
 
-          {/* Players */}
+          {/* Header */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Players</Text>
-            <Text style={styles.sectionSubtitle}>Name + their Tax Man score</Text>
+            <Text style={styles.sectionTitle}>Games</Text>
+            <Text style={styles.sectionSubtitle}>Pick your games for this round</Text>
+          </View>
 
-            {players.map((player, idx) => (
-              <BevelCard key={player.id} style={styles.playerCard}>
-                <View style={styles.playerCardInner}>
-                  <View style={styles.playerHeader}>
-                    <Text style={styles.playerLabel}>PLAYER {idx + 1}</Text>
-                    {players.length > 1 && (
-                      <TouchableOpacity
-                        onPress={() => removePlayer(player.id)}
-                        hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                      >
-                        <Text style={styles.removeBtn}>×</Text>
-                      </TouchableOpacity>
-                    )}
+          {/* Game cards */}
+          {GAME_DEFS.map(game => {
+            const isActive = activeGames.has(game.mode);
+            const isDisabled = game.minPlayers !== undefined && players.length < game.minPlayers;
+            const isScorecard = game.mode === 'scorecard';
+            
+            return (
+              <BevelCard
+                key={game.mode}
+                active={isActive && !isScorecard}
+                style={[
+                  styles.gameCard,
+                  isActive && !isScorecard && styles.gameCardActive,
+                  isActive && isScorecard && styles.gameCardActiveScorecard,
+                  isDisabled && styles.gameCardDisabled,
+                ]}
+              >
+                <View style={styles.gameCardInner}>
+                <View style={styles.gameHeader}>
+                  <TouchableOpacity
+                    onPress={() => !isDisabled && toggleGame(game.mode)}
+                    style={[
+                      styles.toggle,
+                      isActive && !isScorecard && styles.toggleActive,
+                      isActive && isScorecard && styles.toggleActiveScorecard,
+                      isDisabled && styles.toggleDisabled,
+                    ]}
+                    activeOpacity={0.7}
+                    disabled={Boolean(isDisabled)}
+                  >
+                    {isActive && <Text style={isScorecard ? styles.toggleCheckScorecard : styles.toggleCheck}>✓</Text>}
+                  </TouchableOpacity>
+                  <View style={styles.gameInfo}>
+                    <Text style={[
+                      styles.gameName, 
+                      isDisabled && styles.gameNameDisabled,
+                      isScorecard && styles.gameNameScorecard,
+                    ]}>
+                      {game.name}
+                    </Text>
+                    <Text style={[
+                      styles.gameDesc, 
+                      isDisabled && styles.gameDescDisabled,
+                      isScorecard && styles.gameDescScorecard,
+                    ]}>
+                      {game.description}
+                      {isDisabled && ` (needs ${game.minPlayers}+ players)`}
+                    </Text>
                   </View>
-
-                  <TextInput
-                    ref={el => { nameRefs.current[idx] = el; }}
-                    style={styles.nameInput}
-                    placeholder="Name"
-                    placeholderTextColor="#444"
-                    value={player.name}
-                    onChangeText={val => updateName(player.id, val)}
-                    autoCapitalize="words"
-                    returnKeyType="done"
-                    maxLength={20}
-                  />
-
-                  <View style={styles.taxManRow}>
-                    <Text style={styles.taxManLabel}>Tax Man:</Text>
-                    <TextInput
-                      style={styles.taxManInput}
-                      value={player.taxMan > 0 ? String(player.taxMan) : ''}
-                      onChangeText={val => updateTaxMan(player.id, val)}
-                      keyboardType="number-pad"
-                      placeholderTextColor="#39FF14"
-                      placeholder="90"
-                      maxLength={3}
-                      selectTextOnFocus
-                    />
-                    <Text style={styles.taxManHint}>shoot below to win</Text>
-                  </View>
-
-                  {/* Handicap input - only show when Nassau with handicaps enabled */}
-                  {activeGames.has('nassau') && nassauHandicaps && (
-                    <View style={styles.handicapRow}>
-                      <Text style={styles.handicapLabel}>Handicap:</Text>
+                </View>
+                
+                {/* Amount input - skip for scorecard */}
+                {isActive && !isScorecard && game.inputLabel && (
+                  <View style={styles.gameAmountRow}>
+                    <Text style={styles.gameAmountLabel}>{game.inputLabel}</Text>
+                    <View style={styles.gameAmountInputContainer}>
+                      <Text style={styles.dollarSign}>$</Text>
                       <TextInput
-                        style={styles.handicapInput}
-                        value={player.handicap !== undefined ? String(player.handicap) : ''}
-                        onChangeText={val => updateHandicap(player.id, val)}
-                        keyboardType="number-pad"
-                        placeholderTextColor="#555"
-                        placeholder="0"
-                        maxLength={2}
+                        style={styles.amountInput}
+                        value={gameAmounts[game.mode]}
+                        onChangeText={val => updateGameAmount(game.mode, val)}
+                        keyboardType="decimal-pad"
+                        placeholderTextColor="#39FF14"
+                        maxLength={6}
                         selectTextOnFocus
                       />
-                      <Text style={styles.handicapHint}>(0-36)</Text>
                     </View>
-                  )}
+                  </View>
+                )}
+                
+                {/* Nassau stroke/match play toggle */}
+                {isActive && game.mode === 'nassau' && (
+                  <View style={styles.nassauModeRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.pillBtn,
+                        nassauMode === 'stroke' && styles.pillBtnActive,
+                      ]}
+                      onPress={() => setNassauMode('stroke')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.pillBtnText,
+                        nassauMode === 'stroke' && styles.pillBtnTextActive,
+                      ]}>Stroke Play</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.pillBtn,
+                        nassauMode === 'match' && styles.pillBtnActive,
+                      ]}
+                      onPress={() => setNassauMode('match')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[
+                        styles.pillBtnText,
+                        nassauMode === 'match' && styles.pillBtnTextActive,
+                      ]}>Match Play</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Nassau Press toggle - only show for match play */}
+                {isActive && game.mode === 'nassau' && nassauMode === 'match' && (
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>Press</Text>
+                    <View style={styles.nassauToggleGroup}>
+                      <TouchableOpacity
+                        style={[
+                          styles.pillBtn,
+                          nassauPress === 'none' && styles.pillBtnActive,
+                        ]}
+                        onPress={() => setNassauPress('none')}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          styles.pillBtnText,
+                          nassauPress === 'none' && styles.pillBtnTextActive,
+                        ]}>No Press</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.pillBtn,
+                          nassauPress === 'auto' && styles.pillBtnActive,
+                        ]}
+                        onPress={() => setNassauPress('auto')}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          styles.pillBtnText,
+                          nassauPress === 'auto' && styles.pillBtnTextActive,
+                        ]}>Auto Press</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+
+                {/* Nassau Handicaps toggle */}
+                {isActive && game.mode === 'nassau' && (
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>Handicaps</Text>
+                    <View style={styles.nassauToggleGroup}>
+                      <TouchableOpacity
+                        style={[
+                          styles.pillBtn,
+                          !nassauHandicaps && styles.pillBtnActive,
+                        ]}
+                        onPress={() => setNassauHandicaps(false)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          styles.pillBtnText,
+                          !nassauHandicaps && styles.pillBtnTextActive,
+                        ]}>Off</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[
+                          styles.pillBtn,
+                          nassauHandicaps && styles.pillBtnActive,
+                        ]}
+                        onPress={() => setNassauHandicaps(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[
+                          styles.pillBtnText,
+                          nassauHandicaps && styles.pillBtnTextActive,
+                        ]}>On</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
                 </View>
               </BevelCard>
-            ))}
-          </View>
+            );
+          })}
+
+          {/* Validation message */}
+          {activeGames.size === 0 && (
+            <Text style={styles.validationHint}>Select at least one game</Text>
+          )}
 
           {/* Bottom buttons */}
           <View style={styles.bottomBtns}>
-            {players.length < MAX_PLAYERS && (
-              <TouchableOpacity style={styles.secondaryBtnOuter} onPress={addPlayer} activeOpacity={0.7}>
-                <LinearGradient
-                  colors={['#1e1e1e', '#141414']}
-                  style={styles.secondaryBtnInner}
-                >
-                  <View style={styles.secondaryBtnHighlight} />
-                  <Text style={styles.secondaryBtnText}>+ Add Player</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.primaryBtnOuter} onPress={handleNextStep} activeOpacity={0.85}>
+            <TouchableOpacity style={styles.secondaryBtnOuter} onPress={() => router.back()} activeOpacity={0.7}>
               <LinearGradient
-                colors={['#52ff20', '#2dcc08', '#1fa005']}
+                colors={['#1e1e1e', '#141414']}
+                style={styles.secondaryBtnInner}
+              >
+                <View style={styles.secondaryBtnHighlight} />
+                <Text style={styles.secondaryBtnText}>Cancel</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.primaryBtnOuter, activeGames.size === 0 && styles.primaryBtnDisabled]} 
+              onPress={handleNextStep} 
+              activeOpacity={0.85}
+              disabled={Boolean(activeGames.size === 0)}
+            >
+              <LinearGradient
+                colors={activeGames.size === 0 ? ['#1a3a0a', '#133005', '#0f2006'] : ['#52ff20', '#2dcc08', '#1fa005']}
                 locations={[0, 0.6, 1]}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
                 style={styles.primaryBtnGrad}
               >
-                <View style={styles.btnSpecular} />
+                {activeGames.size > 0 && <View style={styles.btnSpecular} />}
                 <View style={styles.btnEdgeTop} />
                 <View style={styles.btnEdgeBottom} />
                 <Text style={styles.primaryBtnText}>Next →</Text>
@@ -371,7 +508,7 @@ export default function SetupScreen() {
     );
   }
 
-  // ─── Render Step 2: Games ─────────────────────────────────────────────────
+  // ─── Render Step 2: Players ───────────────────────────────────────────────
 
   return (
     <KeyboardAvoidingView
@@ -405,218 +542,111 @@ export default function SetupScreen() {
           </LinearGradient>
         </View>
 
-        {/* Header */}
+        {/* Players */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose Your Games</Text>
-          <Text style={styles.sectionSubtitle}>Stack multiple games — they all run at once</Text>
-        </View>
+          <Text style={styles.sectionTitle}>Players</Text>
+          <Text style={styles.sectionSubtitle}>
+            {hasTaxMan ? 'Name + Tax Man score' : 'Add your players'}
+          </Text>
 
-        {/* Game cards */}
-        {GAME_DEFS.map(game => {
-          const isActive = activeGames.has(game.mode);
-          const isDisabled = game.minPlayers !== undefined && players.length < game.minPlayers;
-          const isScorecard = game.mode === 'scorecard';
-          
-          return (
-            <BevelCard
-              key={game.mode}
-              active={isActive && !isScorecard}
-              style={[
-                styles.gameCard,
-                isActive && !isScorecard && styles.gameCardActive,
-                isActive && isScorecard && styles.gameCardActiveScorecard,
-                isDisabled && styles.gameCardDisabled,
-              ]}
-            >
-              <View style={styles.gameCardInner}>
-              <View style={styles.gameHeader}>
-                <TouchableOpacity
-                  onPress={() => !isDisabled && toggleGame(game.mode)}
-                  style={[
-                    styles.toggle,
-                    isActive && !isScorecard && styles.toggleActive,
-                    isActive && isScorecard && styles.toggleActiveScorecard,
-                    isDisabled && styles.toggleDisabled,
-                  ]}
-                  activeOpacity={0.7}
-                  disabled={Boolean(isDisabled)}
-                >
-                  {isActive && <Text style={isScorecard ? styles.toggleCheckScorecard : styles.toggleCheck}>✓</Text>}
-                </TouchableOpacity>
-                <View style={styles.gameInfo}>
-                  <Text style={[
-                    styles.gameName, 
-                    isDisabled && styles.gameNameDisabled,
-                    isScorecard && styles.gameNameScorecard,
-                  ]}>
-                    {game.name}
-                  </Text>
-                  <Text style={[
-                    styles.gameDesc, 
-                    isDisabled && styles.gameDescDisabled,
-                    isScorecard && styles.gameDescScorecard,
-                  ]}>
-                    {game.description}
-                    {isDisabled && ` (needs ${game.minPlayers}+ players)`}
-                  </Text>
+          {players.map((player, idx) => (
+            <BevelCard key={player.id} style={styles.playerCard}>
+              <View style={styles.playerCardInner}>
+                <View style={styles.playerHeader}>
+                  <Text style={styles.playerLabel}>PLAYER {idx + 1}</Text>
+                  {players.length > 1 && (
+                    <TouchableOpacity
+                      onPress={() => removePlayer(player.id)}
+                      hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                    >
+                      <Text style={styles.removeBtn}>×</Text>
+                    </TouchableOpacity>
+                  )}
                 </View>
-              </View>
-              
-              {/* Amount input - skip for scorecard */}
-              {isActive && !isScorecard && game.inputLabel && (
-                <View style={styles.gameAmountRow}>
-                  <Text style={styles.gameAmountLabel}>{game.inputLabel}</Text>
-                  <View style={styles.gameAmountInputContainer}>
-                    <Text style={styles.dollarSign}>$</Text>
+
+                <TextInput
+                  ref={el => { nameRefs.current[idx] = el; }}
+                  style={styles.nameInput}
+                  placeholder="Name"
+                  placeholderTextColor="#444"
+                  value={player.name}
+                  onChangeText={val => updateName(player.id, val)}
+                  autoCapitalize="words"
+                  returnKeyType="done"
+                  maxLength={20}
+                />
+
+                {hasTaxMan && (
+                  <View style={styles.taxManRow}>
+                    <Text style={styles.taxManLabel}>Tax Man:</Text>
                     <TextInput
-                      style={styles.amountInput}
-                      value={gameAmounts[game.mode]}
-                      onChangeText={val => updateGameAmount(game.mode, val)}
-                      keyboardType="decimal-pad"
+                      style={styles.taxManInput}
+                      value={player.taxMan > 0 ? String(player.taxMan) : ''}
+                      onChangeText={val => updateTaxMan(player.id, val)}
+                      keyboardType="number-pad"
                       placeholderTextColor="#39FF14"
-                      maxLength={6}
+                      placeholder="90"
+                      maxLength={3}
                       selectTextOnFocus
                     />
+                    <Text style={styles.taxManHint}>shoot below to win</Text>
                   </View>
-                </View>
-              )}
-              
-              {/* Nassau stroke/match play toggle */}
-              {isActive && game.mode === 'nassau' && (
-                <View style={styles.nassauModeRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.pillBtn,
-                      nassauMode === 'stroke' && styles.pillBtnActive,
-                    ]}
-                    onPress={() => setNassauMode('stroke')}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.pillBtnText,
-                      nassauMode === 'stroke' && styles.pillBtnTextActive,
-                    ]}>Stroke Play</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.pillBtn,
-                      nassauMode === 'match' && styles.pillBtnActive,
-                    ]}
-                    onPress={() => setNassauMode('match')}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[
-                      styles.pillBtnText,
-                      nassauMode === 'match' && styles.pillBtnTextActive,
-                    ]}>Match Play</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+                )}
 
-              {/* Nassau Press toggle - only show for match play */}
-              {isActive && game.mode === 'nassau' && nassauMode === 'match' && (
-                <View style={styles.nassauOptionRow}>
-                  <Text style={styles.nassauOptionLabel}>Press</Text>
-                  <View style={styles.nassauToggleGroup}>
-                    <TouchableOpacity
-                      style={[
-                        styles.pillBtn,
-                        nassauPress === 'none' && styles.pillBtnActive,
-                      ]}
-                      onPress={() => setNassauPress('none')}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                        styles.pillBtnText,
-                        nassauPress === 'none' && styles.pillBtnTextActive,
-                      ]}>No Press</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.pillBtn,
-                        nassauPress === 'auto' && styles.pillBtnActive,
-                      ]}
-                      onPress={() => setNassauPress('auto')}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                        styles.pillBtnText,
-                        nassauPress === 'auto' && styles.pillBtnTextActive,
-                      ]}>Auto Press</Text>
-                    </TouchableOpacity>
+                {/* Handicap input - only show when Nassau with handicaps enabled */}
+                {activeGames.has('nassau') && nassauHandicaps && (
+                  <View style={styles.handicapRow}>
+                    <Text style={styles.handicapLabel}>Handicap:</Text>
+                    <TextInput
+                      style={styles.handicapInput}
+                      value={player.handicap !== undefined ? String(player.handicap) : ''}
+                      onChangeText={val => updateHandicap(player.id, val)}
+                      keyboardType="number-pad"
+                      placeholderTextColor="#555"
+                      placeholder="0"
+                      maxLength={2}
+                      selectTextOnFocus
+                    />
+                    <Text style={styles.handicapHint}>(0-36)</Text>
                   </View>
-                </View>
-              )}
-
-              {/* Nassau Handicaps toggle */}
-              {isActive && game.mode === 'nassau' && (
-                <View style={styles.nassauOptionRow}>
-                  <Text style={styles.nassauOptionLabel}>Handicaps</Text>
-                  <View style={styles.nassauToggleGroup}>
-                    <TouchableOpacity
-                      style={[
-                        styles.pillBtn,
-                        !nassauHandicaps && styles.pillBtnActive,
-                      ]}
-                      onPress={() => setNassauHandicaps(false)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                        styles.pillBtnText,
-                        !nassauHandicaps && styles.pillBtnTextActive,
-                      ]}>Off</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={[
-                        styles.pillBtn,
-                        nassauHandicaps && styles.pillBtnActive,
-                      ]}
-                      onPress={() => setNassauHandicaps(true)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[
-                        styles.pillBtnText,
-                        nassauHandicaps && styles.pillBtnTextActive,
-                      ]}>On</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              )}
+                )}
               </View>
             </BevelCard>
-          );
-        })}
-
-        {/* Validation message */}
-        {activeGames.size === 0 && (
-          <Text style={styles.validationHint}>Select at least one game</Text>
-        )}
+          ))}
+        </View>
 
         {/* Bottom buttons */}
         <View style={styles.bottomBtns}>
-          <TouchableOpacity style={styles.secondaryBtnOuter} onPress={() => setStep(1)} activeOpacity={0.7}>
+          {players.length < MAX_PLAYERS ? (
+            <TouchableOpacity style={styles.secondaryBtnOuter} onPress={addPlayer} activeOpacity={0.7}>
+              <LinearGradient
+                colors={['#1e1e1e', '#141414']}
+                style={styles.secondaryBtnInner}
+              >
+                <View style={styles.secondaryBtnHighlight} />
+                <Text style={styles.secondaryBtnText}>+ Add Player</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.secondaryBtnOuter} onPress={() => setStep(1)} activeOpacity={0.7}>
+              <LinearGradient
+                colors={['#1e1e1e', '#141414']}
+                style={styles.secondaryBtnInner}
+              >
+                <View style={styles.secondaryBtnHighlight} />
+                <Text style={styles.secondaryBtnText}>← Back</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity style={styles.primaryBtnOuter} onPress={handleStart} activeOpacity={0.85}>
             <LinearGradient
-              colors={['#1e1e1e', '#141414']}
-              style={styles.secondaryBtnInner}
-            >
-              <View style={styles.secondaryBtnHighlight} />
-              <Text style={styles.secondaryBtnText}>← Back</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.primaryBtnOuter, activeGames.size === 0 && styles.primaryBtnDisabled]} 
-            onPress={handleStart} 
-            activeOpacity={0.85}
-            disabled={Boolean(activeGames.size === 0)}
-          >
-            <LinearGradient
-              colors={activeGames.size === 0 ? ['#1a3a0a', '#133005', '#0f2006'] : ['#52ff20', '#2dcc08', '#1fa005']}
+              colors={['#52ff20', '#2dcc08', '#1fa005']}
               locations={[0, 0.6, 1]}
               start={{ x: 0.5, y: 0 }}
               end={{ x: 0.5, y: 1 }}
               style={styles.primaryBtnGrad}
             >
-              {activeGames.size > 0 && <View style={styles.btnSpecular} />}
+              <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
               <Text style={styles.primaryBtnText}>Start Round →</Text>
