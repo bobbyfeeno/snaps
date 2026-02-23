@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Modal,
   Platform,
@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { calcAllGames, GameExtras } from '../lib/gameEngines';
+import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
 import { BBBHoleState, GameMode, MultiGameResults, SnakeHoleState, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
@@ -105,6 +105,12 @@ export default function ScoresScreen() {
   const [wolfExpanded, setWolfExpanded] = useState(false);
   const [bbbExpanded, setBbbExpanded] = useState(false);
   const [snakeExpanded, setSnakeExpanded] = useState(false);
+
+  // ─── Live Status ──────────────────────────────────────────────────────────
+  const liveStatus = useMemo(() => 
+    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles),
+    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles]
+  );
 
   function openEdit(t: EditTarget) {
     if (isPreview) return;
@@ -636,6 +642,39 @@ export default function ScoresScreen() {
         )}
       </ScrollView>
 
+      {/* ─── Live Game Status Bar ─────────────────────────────────────────────── */}
+      {!isPreview && liveStatus.length > 0 && (
+        <View style={styles.liveStatusBar}>
+          <Text style={styles.liveStatusHeader}>ACTIVE GAMES</Text>
+          <ScrollView 
+            style={styles.liveStatusScroll} 
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled
+          >
+            {liveStatus.map((game, gi) => (
+              <View key={gi} style={styles.liveStatusRow}>
+                <Text style={styles.liveStatusLabel}>{game.label}:</Text>
+                <View style={styles.liveStatusLines}>
+                  {game.lines.map((line, li) => (
+                    <Text
+                      key={li}
+                      style={[
+                        styles.liveStatusText,
+                        line.color === 'green' && styles.liveStatusGreen,
+                        line.color === 'red' && styles.liveStatusRed,
+                        line.color === 'yellow' && styles.liveStatusYellow,
+                      ]}
+                    >
+                      {line.text}
+                    </Text>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       {/* Footer */}
       <View style={styles.footer}>
         {isPreview ? (
@@ -964,6 +1003,59 @@ const styles = StyleSheet.create({
   },
   snakeCheckboxTextActive: {
     color: '#fff',
+  },
+
+  // ─── Live Status Bar ───────────────────────────────────────────────────────
+  liveStatusBar: {
+    backgroundColor: '#0a0a0a',
+    borderTopWidth: 1,
+    borderTopColor: '#2a2a2a',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    maxHeight: 120,
+  },
+  liveStatusHeader: {
+    color: '#555',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 6,
+  },
+  liveStatusScroll: {
+    flexGrow: 0,
+  },
+  liveStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 4,
+    flexWrap: 'wrap',
+  },
+  liveStatusLabel: {
+    color: '#888',
+    fontSize: 12,
+    fontWeight: '600',
+    marginRight: 6,
+    minWidth: 80,
+  },
+  liveStatusLines: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    flex: 1,
+    gap: 8,
+  },
+  liveStatusText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  liveStatusGreen: {
+    color: '#39FF14',
+  },
+  liveStatusRed: {
+    color: '#ff5555',
+  },
+  liveStatusYellow: {
+    color: '#FFD700',
   },
 
   // Footer

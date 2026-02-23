@@ -2,6 +2,7 @@ import {
   BBBHoleState,
   BingoBangoBongoConfig,
   GameConfig,
+  GameMode,
   GameResult,
   GameSetup,
   MultiGameResults,
@@ -16,6 +17,20 @@ import {
   WolfConfig,
   WolfHoleState,
 } from '../types';
+
+// ─── Live Status Types ──────────────────────────────────────────────────────
+
+export interface LiveStatus {
+  mode: GameMode;
+  label: string;       // short game name
+  lines: LiveStatusLine[];
+}
+
+export interface LiveStatusLine {
+  text: string;        // e.g. "+2 F9", "Bobby 🐍", "3 skins"
+  color: 'green' | 'red' | 'neutral' | 'yellow';
+  playerId?: string;   // which player this line refers to (optional)
+}
 
 // ─── Helper functions ───────────────────────────────────────────────────────
 
@@ -645,4 +660,417 @@ export function calcAllGames(
     games: gameResults,
     combinedNet,
   };
+}
+
+// ─── Live Status Calculation ────────────────────────────────────────────────
+
+function calcLiveScorecard(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): LiveStatus {
+  // Calculate running totals for each player (count only entered scores)
+  const playerTotals = players.map(p => {
+    const entered = scores[p.id].filter(s => s !== null) as number[];
+    const total = entered.reduce((a, b) => a + b, 0);
+    return { id: p.id, name: p.name, total, holes: entered.length };
+  });
+
+  // Sort by total (lowest is best in golf)
+  playerTotals.sort((a, b) => a.total - b.total);
+
+  const lines: LiveStatusLine[] = playerTotals.map((pt, idx) => ({
+    text: `${pt.name}: ${pt.total}`,
+    color: idx === 0 && pt.holes > 0 ? 'green' : 'neutral',
+    playerId: pt.id,
+  }));
+
+  return { mode: 'scorecard', label: '📋 Score', lines };
+}
+
+function calcLiveTaxMan(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): LiveStatus {
+  const lines: LiveStatusLine[] = players.map(p => {
+    const entered = scores[p.id].filter(s => s !== null) as number[];
+    if (entered.length === 0) {
+      return { text: `${p.name} --`, color: 'yellow' as const, playerId: p.id };
+    }
+    const total = entered.reduce((a, b) => a + b, 0);
+    // Project to 18 holes if we have partial data
+    const projected = entered.length < 18 
+      ? Math.round((total / entered.length) * 18)
+      : total;
+    const diff = total - p.taxMan;
+    const sign = diff >= 0 ? '+' : '';
+    const symbol = diff < 0 ? '✓' : '✗';
+    return {
+      text: `${p.name} ${sign}${diff} ${symbol}`,
+      color: diff < 0 ? 'green' : 'red',
+      playerId: p.id,
+    };
+  });
+
+  return { mode: 'taxman', label: '💰 Tax Man', lines };
+}
+
+function calcLiveNassauStroke(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): LiveStatus {
+  const lines: LiveStatusLine[] = [];
+
+  // Front 9 (holes 0-8)
+  const f9Totals: { player: Player; total: number }[] = [];
+  for (const p of players) {
+    let total = 0;
+    let complete = true;
+    for (let i = 0; i < 9; i++) {
+      if (scores[p.id][i] === null) {
+        complete = false;
+        break;
+      }
+      total += scores[p.id][i]!;
+    }
+    if (complete) f9Totals.push({ player: p, total });
+  }
+
+  if (f9Totals.length >= 2) {
+    f9Totals.sort((a, b) => a.total - b.total);
+    const best = f9Totals[0];
+    const second = f9Totals[1];
+    if (best.total === second.total) {
+      lines.push({ text: 'F9: Tied', color: 'neutral' });
+    } else {
+      const diff = second.total - best.total;
+      lines.push({ text: `F9: ${best.player.name} -${diff}`, color: 'green', playerId: best.player.id });
+    }
+  } else {
+    lines.push({ text: 'F9: --', color: 'neutral' });
+  }
+
+  // Back 9 (holes 9-17)
+  const b9Totals: { player: Player; total: number }[] = [];
+  for (const p of players) {
+    let total = 0;
+    let complete = true;
+    for (let i = 9; i < 18; i++) {
+      if (scores[p.id][i] === null) {
+        complete = false;
+        break;
+      }
+      total += scores[p.id][i]!;
+    }
+    if (complete) b9Totals.push({ player: p, total });
+  }
+
+  if (b9Totals.length >= 2) {
+    b9Totals.sort((a, b) => a.total - b.total);
+    const best = b9Totals[0];
+    const second = b9Totals[1];
+    if (best.total === second.total) {
+      lines.push({ text: 'B9: Tied', color: 'neutral' });
+    } else {
+      const diff = second.total - best.total;
+      lines.push({ text: `B9: ${best.player.name} -${diff}`, color: 'green', playerId: best.player.id });
+    }
+  } else {
+    lines.push({ text: 'B9: --', color: 'neutral' });
+  }
+
+  return { mode: 'nassau', label: '🏌️ Nassau', lines };
+}
+
+function calcLiveNassauMatch(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): LiveStatus {
+  const lines: LiveStatusLine[] = [];
+
+  const calcLegStatus = (start: number, end: number, label: string) => {
+    const holesWon: Record<string, number> = {};
+    for (const p of players) holesWon[p.id] = 0;
+
+    for (let hole = start; hole < end; hole++) {
+      // Check if all players have scores for this hole
+      const allScored = players.every(p => scores[p.id][hole] !== null);
+      if (!allScored) continue;
+
+      const holeScores = players.map(p => ({ player: p, score: scores[p.id][hole]! }));
+      const minScore = Math.min(...holeScores.map(h => h.score));
+      const winners = holeScores.filter(h => h.score === minScore);
+
+      if (winners.length === 1) {
+        holesWon[winners[0].player.id]++;
+      }
+    }
+
+    const sorted = players
+      .map(p => ({ player: p, won: holesWon[p.id] }))
+      .sort((a, b) => b.won - a.won);
+
+    if (sorted[0].won === 0) {
+      return { text: `${label}: --`, color: 'neutral' as const };
+    }
+
+    if (sorted[0].won === sorted[1].won) {
+      return { text: `${label}: AS`, color: 'neutral' as const };
+    }
+
+    const diff = sorted[0].won - sorted[1].won;
+    const notation = diff === 1 ? '1UP' : `${diff}UP`;
+    return { 
+      text: `${label}: ${sorted[0].player.name} ${notation}`, 
+      color: 'green' as const,
+      playerId: sorted[0].player.id 
+    };
+  };
+
+  lines.push(calcLegStatus(0, 9, 'F9'));
+  lines.push(calcLegStatus(9, 18, 'B9'));
+
+  return { mode: 'nassau', label: '🏌️ Nassau (Match)', lines };
+}
+
+function calcLiveSkins(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: SkinsConfig
+): LiveStatus {
+  let carryover = 0;
+  const skinsWon: Record<string, number> = {};
+  for (const p of players) skinsWon[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const holeScores: { player: Player; score: number }[] = [];
+    for (const player of players) {
+      const score = scores[player.id][hole];
+      if (score !== null) {
+        holeScores.push({ player, score });
+      }
+    }
+
+    if (holeScores.length < 2) {
+      carryover++;
+      continue;
+    }
+
+    const minScore = Math.min(...holeScores.map(h => h.score));
+    const winners = holeScores.filter(h => h.score === minScore);
+
+    if (winners.length === 1) {
+      skinsWon[winners[0].player.id] += 1 + carryover;
+      carryover = 0;
+    } else {
+      carryover++;
+    }
+  }
+
+  const lines: LiveStatusLine[] = players
+    .filter(p => skinsWon[p.id] > 0)
+    .map(p => ({
+      text: `${p.name} ${skinsWon[p.id]} 🎰`,
+      color: 'green' as const,
+      playerId: p.id,
+    }));
+
+  if (carryover > 0) {
+    lines.push({ text: `carry: ${carryover}`, color: 'yellow' });
+  }
+
+  if (lines.length === 0) {
+    lines.push({ text: 'No skins yet', color: 'neutral' });
+  }
+
+  return { mode: 'skins', label: '🎰 Skins', lines };
+}
+
+function calcLiveWolf(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  wolfHoles: (WolfHoleState | null)[],
+  config: WolfConfig
+): LiveStatus {
+  const net: Record<string, number> = {};
+  for (const p of players) net[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const wolfState = wolfHoles[hole];
+    if (!wolfState) continue;
+
+    const wolf = players.find(p => p.id === wolfState.wolfPlayerId);
+    if (!wolf) continue;
+
+    // Check all players have scores
+    const allScored = players.every(p => scores[p.id][hole] !== null);
+    if (!allScored) continue;
+
+    const wolfScore = scores[wolf.id][hole]!;
+
+    if (wolfState.partnerId === null) {
+      // Lone Wolf
+      const others = players.filter(p => p.id !== wolf.id);
+      const bestOther = Math.min(...others.map(p => scores[p.id][hole]!));
+
+      if (wolfScore < bestOther) {
+        for (const other of others) {
+          net[wolf.id] += config.betPerHole;
+          net[other.id] -= config.betPerHole;
+        }
+      } else if (wolfScore > bestOther) {
+        for (const other of others) {
+          net[wolf.id] -= config.betPerHole * 2;
+          net[other.id] += config.betPerHole * 2;
+        }
+      }
+    } else {
+      // 2v2
+      const partner = players.find(p => p.id === wolfState.partnerId);
+      if (!partner) continue;
+
+      const wolfTeam = [wolf, partner];
+      const otherTeam = players.filter(p => p.id !== wolf.id && p.id !== partner.id);
+
+      const wolfTeamScore = wolfScore + scores[partner.id][hole]!;
+      const otherTeamScore = otherTeam.reduce((sum, p) => sum + scores[p.id][hole]!, 0);
+
+      if (wolfTeamScore < otherTeamScore) {
+        for (const w of wolfTeam) {
+          for (const o of otherTeam) {
+            net[w.id] += config.betPerHole;
+            net[o.id] -= config.betPerHole;
+          }
+        }
+      } else if (wolfTeamScore > otherTeamScore) {
+        for (const o of otherTeam) {
+          for (const w of wolfTeam) {
+            net[o.id] += config.betPerHole;
+            net[w.id] -= config.betPerHole;
+          }
+        }
+      }
+    }
+  }
+
+  const lines: LiveStatusLine[] = players.map(p => {
+    const val = net[p.id];
+    const sign = val >= 0 ? '+' : '';
+    return {
+      text: `${p.name} ${sign}$${val}`,
+      color: val > 0 ? 'green' : val < 0 ? 'red' : 'neutral',
+      playerId: p.id,
+    };
+  });
+
+  return { mode: 'wolf', label: '🐺 Wolf', lines };
+}
+
+function calcLiveBBB(
+  players: Player[],
+  bbbHoles: (BBBHoleState | null)[]
+): LiveStatus {
+  const points: Record<string, number> = {};
+  for (const p of players) points[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = bbbHoles[hole];
+    if (!state) continue;
+    if (state.bingoPlayerId) points[state.bingoPlayerId]++;
+    if (state.bangoPlayerId) points[state.bangoPlayerId]++;
+    if (state.bongoPlayerId) points[state.bongoPlayerId]++;
+  }
+
+  const sorted = players
+    .map(p => ({ player: p, pts: points[p.id] }))
+    .sort((a, b) => b.pts - a.pts);
+
+  const maxPts = sorted[0]?.pts ?? 0;
+
+  const lines: LiveStatusLine[] = sorted.map(s => ({
+    text: `${s.player.name} ${s.pts}pts`,
+    color: s.pts === maxPts && maxPts > 0 ? 'green' : 'neutral',
+    playerId: s.player.id,
+  }));
+
+  return { mode: 'bingo-bango-bongo', label: '🎯 BBB', lines };
+}
+
+function calcLiveSnake(
+  players: Player[],
+  snakeHoles: (SnakeHoleState | null)[]
+): LiveStatus {
+  let currentHolder: string | null = null;
+  let holesHeld = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = snakeHoles[hole];
+    if (!state) continue;
+
+    if (state.threeputters.length > 0) {
+      const newHolder = state.threeputters[state.threeputters.length - 1];
+      if (newHolder !== currentHolder) {
+        currentHolder = newHolder;
+        holesHeld = 1;
+      } else {
+        holesHeld++;
+      }
+    } else if (currentHolder) {
+      holesHeld++;
+    }
+  }
+
+  if (!currentHolder) {
+    return { mode: 'snake', label: '🐍 Snake', lines: [{ text: 'No holder', color: 'neutral' }] };
+  }
+
+  const holder = players.find(p => p.id === currentHolder);
+  return {
+    mode: 'snake',
+    label: '🐍 Snake',
+    lines: [{ text: `🐍 ${holder?.name ?? '?'} (${holesHeld}h)`, color: 'red', playerId: currentHolder }],
+  };
+}
+
+export function calcLiveStatus(
+  setup: GameSetup,
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  wolfHoles: (WolfHoleState | null)[],
+  bbbHoles: (BBBHoleState | null)[],
+  snakeHoles: (SnakeHoleState | null)[]
+): LiveStatus[] {
+  const results: LiveStatus[] = [];
+  const { players, games } = setup;
+
+  for (const game of games) {
+    switch (game.mode) {
+      case 'scorecard':
+        results.push(calcLiveScorecard(players, scores));
+        break;
+      case 'taxman':
+        results.push(calcLiveTaxMan(players, scores));
+        break;
+      case 'nassau':
+        if (game.config.mode === 'match') {
+          results.push(calcLiveNassauMatch(players, scores));
+        } else {
+          results.push(calcLiveNassauStroke(players, scores));
+        }
+        break;
+      case 'skins':
+        results.push(calcLiveSkins(players, scores, game.config));
+        break;
+      case 'wolf':
+        results.push(calcLiveWolf(players, scores, wolfHoles, game.config));
+        break;
+      case 'bingo-bango-bongo':
+        results.push(calcLiveBBB(players, bbbHoles));
+        break;
+      case 'snake':
+        results.push(calcLiveSnake(players, snakeHoles));
+        break;
+    }
+  }
+
+  return results;
 }
