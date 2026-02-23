@@ -349,7 +349,7 @@ export default function SetupScreen() {
                     isDisabled && styles.toggleDisabled,
                   ]}
                   activeOpacity={0.7}
-                  disabled={isDisabled}
+                  disabled={Boolean(isDisabled)}
                 >
                   {isActive && <Text style={styles.toggleCheck}>✓</Text>}
                 </TouchableOpacity>
@@ -394,7 +394,7 @@ export default function SetupScreen() {
           style={[styles.startBtn, activeGames.size === 0 && styles.startBtnDisabled]} 
           onPress={handleStart} 
           activeOpacity={0.8}
-          disabled={activeGames.size === 0}
+          disabled={Boolean(activeGames.size === 0)}
         >
           <Text style={styles.startBtnText}>Start Round →</Text>
         </TouchableOpacity>

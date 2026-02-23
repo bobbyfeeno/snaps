@@ -62,7 +62,8 @@ function hasGame(modes: GameMode[], mode: GameMode): boolean {
 export default function ScoresScreen() {
   const router = useRouter();
   const { preview } = useLocalSearchParams<{ preview?: string }>();
-  const isPreview = preview === 'true' || !gameSetup;
+  // Explicitly convert to boolean to avoid New Architecture type coercion issues
+  const isPreview = Boolean(preview === 'true' || !gameSetup);
   const setup = isPreview ? DEMO_SETUP : gameSetup!;
   const activeGameModes = setup.games.map(g => g.mode);
 
@@ -256,8 +257,8 @@ export default function ScoresScreen() {
 
       {/* Edit modal */}
       <Modal
-        visible={target !== null}
-        transparent
+        visible={Boolean(target !== null)}
+        transparent={true}
         animationType="fade"
         onRequestClose={() => setTarget(null)}
       >
