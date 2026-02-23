@@ -1,3 +1,5 @@
+import { GlassView } from 'expo-glass-effect';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -62,11 +64,28 @@ export default function HomeScreen() {
           shadowOpacity: glowAnim,
         }]}>
           <TouchableOpacity
-            style={styles.newGameButton}
             onPress={() => router.push('/setup')}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
+            style={styles.newGameBtnOuter}
           >
-            <Text style={styles.newGameText}>Start Round</Text>
+            <LinearGradient
+              colors={['#52ff20', '#2dcc08', '#1fa005']}
+              locations={[0, 0.6, 1]}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.newGameButton}
+            >
+              <GlassView
+                style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}
+                glassEffectStyle="regular"
+                colorScheme="dark"
+                tintColor="rgba(57,255,20,0.20)"
+              />
+              <View style={styles.btnSpecular} />
+              <View style={styles.btnEdgeTop} />
+              <View style={styles.btnEdgeBottom} />
+              <Text style={styles.newGameText}>Start Round</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </Animated.View>
       </Animated.View>
@@ -99,18 +118,39 @@ const styles = StyleSheet.create({
     elevation: 12,
     borderRadius: 16,
   },
+  newGameBtnOuter: {
+    width: '100%',
+    borderRadius: 16,
+  },
   newGameButton: {
-    backgroundColor: '#39FF14',
     paddingVertical: 20,
-    paddingHorizontal: 64,
     borderRadius: 16,
     width: '100%',
     alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  btnSpecular: {
+    position: 'absolute',
+    top: 3, left: '15%', right: '15%', height: 8,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 8,
+  },
+  btnEdgeTop: {
+    position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+    backgroundColor: 'rgba(255,255,255,0.40)',
+    borderTopLeftRadius: 16, borderTopRightRadius: 16,
+  },
+  btnEdgeBottom: {
+    position: 'absolute', bottom: 0, left: 0, right: 0, height: 1,
+    backgroundColor: 'rgba(0,0,0,0.30)',
+    borderBottomLeftRadius: 16, borderBottomRightRadius: 16,
   },
   newGameText: {
     fontSize: 22,
     fontWeight: '800',
     color: '#000',
     letterSpacing: 0.5,
+    zIndex: 2,
   },
 });
