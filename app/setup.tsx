@@ -26,6 +26,10 @@ function createPlayer(): Player {
 // Simple global store — no backend, no context needed for this flow
 export let gameSetup: GameSetup | null = null;
 
+export function resetGameSetup() {
+  gameSetup = null;
+}
+
 export default function SetupScreen() {
   const router = useRouter();
   const [players, setPlayers] = useState<Player[]>([createPlayer(), createPlayer()]);

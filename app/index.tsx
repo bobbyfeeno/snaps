@@ -32,6 +32,14 @@ export default function HomeScreen() {
       <Text style={styles.rulesHint}>
         Shoot below your Tax Man to win
       </Text>
+
+      <TouchableOpacity
+        onPress={() => router.push('/scores?preview=true')}
+        style={styles.previewLink}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.previewLinkText}>👀 Preview Scorecard</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -95,6 +103,15 @@ const styles = StyleSheet.create({
   },
   rulesHint: {
     marginTop: 24,
+    fontSize: 14,
+    color: '#5a8a5a',
+    textAlign: 'center',
+  },
+  previewLink: {
+    marginTop: 32,
+    paddingVertical: 12,
+  },
+  previewLinkText: {
     fontSize: 14,
     color: '#5a8a5a',
     textAlign: 'center',

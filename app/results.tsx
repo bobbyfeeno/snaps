@@ -1,8 +1,8 @@
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Payout, PlayerResult } from '../types';
-import { gameResults } from './scores';
-import { gameSetup } from './setup';
+import { gameResults, resetGameResults } from './scores';
+import { gameSetup, resetGameSetup } from './setup';
 
 function buildPayouts(results: PlayerResult[], taxAmount: number): Payout[] {
   const winners = results.filter(r => r.beatTaxMan);
@@ -153,7 +153,11 @@ export default function ResultsScreen() {
       {/* Actions */}
       <TouchableOpacity
         style={styles.newGameBtn}
-        onPress={() => router.replace('/setup')}
+        onPress={() => {
+          resetGameResults();
+          resetGameSetup();
+          router.replace('/setup');
+        }}
         activeOpacity={0.8}
       >
         <Text style={styles.newGameBtnText}>Play Again</Text>
@@ -161,7 +165,11 @@ export default function ResultsScreen() {
 
       <TouchableOpacity
         style={styles.homeBtn}
-        onPress={() => router.replace('/')}
+        onPress={() => {
+          resetGameResults();
+          resetGameSetup();
+          router.replace('/');
+        }}
         activeOpacity={0.7}
       >
         <Text style={styles.homeBtnText}>← Home</Text>

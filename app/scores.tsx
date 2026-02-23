@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Modal,
@@ -14,6 +14,10 @@ import { PlayerResult } from '../types';
 import { gameSetup } from './setup';
 
 export let gameResults: PlayerResult[] | null = null;
+
+export function resetGameResults() {
+  gameResults = null;
+}
 
 const NAME_W = 76;
 const CELL_W = 36;
@@ -31,32 +35,42 @@ function scoreDotStyle(diff: number): object[] {
   return [styles.dotBase, styles.dotPar];
 }
 
+const DEMO_SETUP = {
+  players: [
+    { id: 'p1', name: 'Bobby', taxMan: 85 },
+    { id: 'p2', name: 'Mike', taxMan: 90 },
+    { id: 'p3', name: 'Dave', taxMan: 95 },
+    { id: 'p4', name: 'Chris', taxMan: 92 },
+  ],
+  taxAmount: 10,
+};
+
+const DEMO_SCORES: Record<string, (number | null)[]> = {
+  p1: [4,3,5,4,4,3,4,5,4, 4,4,3,5,4,4,3,4,5],
+  p2: [5,4,5,4,4,4,4,5,4, 5,4,4,5,4,4,4,4,5],
+  p3: [4,4,4,4,5,3,4,5,4, 4,5,3,4,4,5,3,4,5],
+  p4: [4,3,4,5,4,3,5,4,4, 4,3,4,5,4,3,5,4,4],
+};
+
 export default function ScoresScreen() {
   const router = useRouter();
-  const setup = gameSetup;
+  const { preview } = useLocalSearchParams<{ preview?: string }>();
+  const isPreview = preview === 'true' || !gameSetup;
+  const setup = isPreview ? DEMO_SETUP : gameSetup!;
 
-  const [pars, setPars] = useState<number[]>(Array(18).fill(4));
+  const [pars, setPars] = useState<number[]>([4,3,5,4,4,3,4,5,4, 4,4,3,5,4,4,3,4,5]);
   const [scores, setScores] = useState<Record<string, (number | null)[]>>(
-    () =>
-      Object.fromEntries(
-        (setup?.players ?? []).map(p => [p.id, Array(18).fill(null)])
-      )
+    () => isPreview
+      ? DEMO_SCORES
+      : Object.fromEntries(
+          setup.players.map(p => [p.id, Array(18).fill(null)])
+        )
   );
   const [target, setTarget] = useState<EditTarget | null>(null);
   const [inputVal, setInputVal] = useState('');
 
-  if (!setup) {
-    return (
-      <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>No game setup found.</Text>
-        <TouchableOpacity onPress={() => router.replace('/setup')}>
-          <Text style={styles.errorLink}>← Back to Setup</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   function openEdit(t: EditTarget) {
+    if (isPreview) return; // Locked in preview mode
     if (t.kind === 'par') {
       setInputVal(String(pars[t.hole]));
     } else {
@@ -123,6 +137,24 @@ export default function ScoresScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Preview mode banner */}
+      {isPreview && (
+        <View style={styles.previewBanner}>
+          <Text style={styles.previewIcon}>👀</Text>
+          <View style={styles.previewTextContainer}>
+            <Text style={styles.previewTitle}>Preview Mode</Text>
+            <Text style={styles.previewSubtitle}>Sample data — scores are locked</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.previewCTA}
+            onPress={() => router.replace('/setup')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.previewCTAText}>Start Game</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Edit modal */}
       <Modal
         visible={target !== null}
@@ -324,9 +356,19 @@ export default function ScoresScreen() {
 
       {/* Footer */}
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.calcBtn} onPress={handleCalculate} activeOpacity={0.8}>
-          <Text style={styles.calcBtnText}>Calculate Payout →</Text>
-        </TouchableOpacity>
+        {isPreview ? (
+          <TouchableOpacity
+            style={styles.calcBtn}
+            onPress={() => router.replace('/setup')}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.calcBtnText}>Start a Real Game →</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.calcBtn} onPress={handleCalculate} activeOpacity={0.8}>
+            <Text style={styles.calcBtnText}>Calculate Payout →</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   );
@@ -334,6 +376,28 @@ export default function ScoresScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
+
+  // Preview mode banner
+  previewBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1a2f1a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#39FF14',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  previewIcon: { fontSize: 20, marginRight: 10 },
+  previewTextContainer: { flex: 1 },
+  previewTitle: { color: '#39FF14', fontWeight: '700', fontSize: 14 },
+  previewSubtitle: { color: '#5a8a5a', fontSize: 11, marginTop: 1 },
+  previewCTA: {
+    backgroundColor: '#39FF14',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  previewCTAText: { color: '#000', fontWeight: '800', fontSize: 13 },
 
   errorContainer: { flex: 1, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   errorText: { color: '#ff5555', fontSize: 18, marginBottom: 16 },
