@@ -440,11 +440,10 @@ export default function SetupScreen() {
                       onPress={() => setNassauMode('stroke')}
                       activeOpacity={0.7}
                     >
-                      <GlassView
+                      <View
                         style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
                         glassEffectStyle="regular"
                         colorScheme="dark"
-                        tintColor={nassauMode === 'stroke' ? 'rgba(57,255,20,0.15)' : 'rgba(20,20,20,0.25)'}
                       />
                       <Text style={[
                         styles.pillBtnText,
@@ -459,11 +458,10 @@ export default function SetupScreen() {
                       onPress={() => setNassauMode('match')}
                       activeOpacity={0.7}
                     >
-                      <GlassView
+                      <View
                         style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
                         glassEffectStyle="regular"
                         colorScheme="dark"
-                        tintColor={nassauMode === 'match' ? 'rgba(57,255,20,0.15)' : 'rgba(20,20,20,0.25)'}
                       />
                       <Text style={[
                         styles.pillBtnText,
@@ -485,11 +483,10 @@ export default function SetupScreen() {
                           onPress={() => setNassauPress('none')}
                           activeOpacity={0.7}
                         >
-                          <GlassView
+                          <View
                             style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
                             glassEffectStyle="regular"
                             colorScheme="dark"
-                            tintColor={nassauPress === 'none' ? 'rgba(57,255,20,0.15)' : 'rgba(20,20,20,0.25)'}
                           />
                           <Text style={[
                             styles.pillBtnText,
@@ -504,11 +501,10 @@ export default function SetupScreen() {
                           onPress={() => setNassauPress('auto')}
                           activeOpacity={0.7}
                         >
-                          <GlassView
+                          <View
                             style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
                             glassEffectStyle="regular"
                             colorScheme="dark"
-                            tintColor={nassauPress === 'auto' ? 'rgba(57,255,20,0.15)' : 'rgba(20,20,20,0.25)'}
                           />
                           <Text style={[
                             styles.pillBtnText,
@@ -531,11 +527,10 @@ export default function SetupScreen() {
                         onPress={() => setNassauHandicaps(false)}
                         activeOpacity={0.7}
                       >
-                        <GlassView
+                        <View
                           style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
                           glassEffectStyle="regular"
                           colorScheme="dark"
-                          tintColor={!nassauHandicaps ? 'rgba(57,255,20,0.15)' : 'rgba(20,20,20,0.25)'}
                         />
                         <Text style={[
                           styles.pillBtnText,
@@ -550,11 +545,10 @@ export default function SetupScreen() {
                         onPress={() => setNassauHandicaps(true)}
                         activeOpacity={0.7}
                       >
-                        <GlassView
+                        <View
                           style={[StyleSheet.absoluteFill, { borderRadius: 20, overflow: 'hidden' }]}
                           glassEffectStyle="regular"
                           colorScheme="dark"
-                          tintColor={nassauHandicaps ? 'rgba(57,255,20,0.15)' : 'rgba(20,20,20,0.25)'}
                         />
                         <Text style={[
                           styles.pillBtnText,
@@ -581,11 +575,10 @@ export default function SetupScreen() {
                 style={styles.secondaryBtnInner}
               >
                 <View style={styles.secondaryBtnHighlight} />
-                <GlassView
+                <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
                   glassEffectStyle="regular"
                   colorScheme="dark"
-                  tintColor="rgba(40,40,40,0.30)"
                 />
                 <Text style={styles.secondaryBtnText}>Cancel</Text>
               </LinearGradient>
@@ -606,11 +599,10 @@ export default function SetupScreen() {
                 {activeGames.size > 0 && <View style={styles.btnSpecular} />}
                 <View style={styles.btnEdgeTop} />
                 <View style={styles.btnEdgeBottom} />
-                <GlassView
+                <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
                   glassEffectStyle="regular"
                   colorScheme="dark"
-                  tintColor="rgba(57,255,20,0.20)"
                 />
                 <Text style={styles.primaryBtnText}>Next →</Text>
               </LinearGradient>
@@ -642,11 +634,10 @@ export default function SetupScreen() {
                     end={{ x: 0.5, y: 1 }}
                     style={styles.alertBtnGrad}
                   >
-                    <GlassView
+                    <View
                       style={[StyleSheet.absoluteFill, { borderRadius: 12, overflow: 'hidden' }]}
                       glassEffectStyle="regular"
                       colorScheme="dark"
-                      tintColor="rgba(57,255,20,0.20)"
                     />
                     <Text style={styles.alertBtnText}>Got it</Text>
                   </LinearGradient>
@@ -775,11 +766,10 @@ export default function SetupScreen() {
                 style={styles.secondaryBtnInner}
               >
                 <View style={styles.secondaryBtnHighlight} />
-                <GlassView
+                <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
                   glassEffectStyle="regular"
                   colorScheme="dark"
-                  tintColor="rgba(40,40,40,0.30)"
                 />
                 <Text style={styles.secondaryBtnText}>+ Add Player</Text>
               </LinearGradient>
@@ -791,11 +781,10 @@ export default function SetupScreen() {
                 style={styles.secondaryBtnInner}
               >
                 <View style={styles.secondaryBtnHighlight} />
-                <GlassView
+                <View
                   style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
                   glassEffectStyle="regular"
                   colorScheme="dark"
-                  tintColor="rgba(40,40,40,0.30)"
                 />
                 <Text style={styles.secondaryBtnText}>← Back</Text>
               </LinearGradient>
@@ -812,11 +801,10 @@ export default function SetupScreen() {
               <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
-              <GlassView
+              <View
                 style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
                 glassEffectStyle="regular"
                 colorScheme="dark"
-                tintColor="rgba(57,255,20,0.20)"
               />
               <Text style={styles.primaryBtnText}>Start Round →</Text>
             </LinearGradient>
@@ -848,11 +836,10 @@ export default function SetupScreen() {
                   end={{ x: 0.5, y: 1 }}
                   style={styles.alertBtnGrad}
                 >
-                  <GlassView
+                  <View
                     style={[StyleSheet.absoluteFill, { borderRadius: 12, overflow: 'hidden' }]}
                     glassEffectStyle="regular"
                     colorScheme="dark"
-                    tintColor="rgba(57,255,20,0.20)"
                   />
                   <Text style={styles.alertBtnText}>Got it</Text>
                 </LinearGradient>
