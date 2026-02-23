@@ -292,8 +292,13 @@ export default function SetupScreen() {
   function handleStart() {
     // Validate players
     const filledPlayers = players.filter(p => p.name.trim());
-    if (filledPlayers.length < 2) {
-      showAlert('Need More Players', 'Add at least 2 players with names.');
+    const keepScoreOnly = activeGames.size === 1 && activeGames.has('scorecard');
+    const minPlayers = keepScoreOnly ? 1 : 2;
+    if (filledPlayers.length < minPlayers) {
+      showAlert(
+        'Need More Players',
+        keepScoreOnly ? 'Enter your name to start.' : 'Add at least 2 players with names.',
+      );
       return;
     }
 
