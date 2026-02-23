@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, StyleSheet, ViewStyle, StyleProp } from 'react-native';
+import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
+import React from 'react';
+import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
 
 interface BevelCardProps {
   children: React.ReactNode;
@@ -24,6 +25,13 @@ export function BevelCard({ children, style, active = false }: BevelCardProps) {
         <View style={styles.edgeRight} />
         {/* Bottom inner shadow */}
         <View style={styles.edgeBottom} />
+        {/* Native glass overlay */}
+        <GlassView
+          style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}
+          glassEffectStyle="regular"
+          colorScheme="dark"
+          tintColor={active ? 'rgba(57,255,20,0.12)' : 'rgba(20,20,20,0.25)'}
+        />
         {children}
       </LinearGradient>
     </View>
