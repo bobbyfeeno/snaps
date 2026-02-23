@@ -316,7 +316,9 @@ export default function ScoresScreen() {
                 key={player.id}
                 style={[styles.cell, styles.nameCell, { width: NAME_W, height: ROW_H }, i % 2 === 1 && styles.rowAlt]}
               >
-                <Text style={styles.nameText} numberOfLines={1}>{player.name}</Text>
+                <Text style={styles.nameText} numberOfLines={1}>
+                  {hasSnake && getSnakeHolder() === player.id ? '🐍 ' : ''}{player.name}
+                </Text>
                 <Text style={styles.tmText}>TM {player.taxMan}</Text>
               </View>
             ))}
