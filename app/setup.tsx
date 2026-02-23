@@ -1261,6 +1261,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#242424',
     alignItems: 'center',
+    overflow: 'hidden',
   },
   pillBtnActive: {
     backgroundColor: '#39FF14',

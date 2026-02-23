@@ -219,10 +219,15 @@ export default function ResultsScreen() {
             end={{ x: 0.5, y: 1 }}
             style={styles.playAgainGrad}
           >
-            <GlassView style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} glassEffectStyle="regular" colorScheme="dark" tintColor="rgba(57,255,20,0.20)" />
             <View style={styles.btnSpecular} />
             <View style={styles.btnEdgeTop} />
             <View style={styles.btnEdgeBottom} />
+            <GlassView
+              style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
+              glassEffectStyle="regular"
+              colorScheme="dark"
+              tintColor="rgba(57,255,20,0.20)"
+            />
             <Text style={styles.playAgainText}>Play Again</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -238,8 +243,13 @@ export default function ResultsScreen() {
       >
         <LinearGradient colors={['#1e1e1e', '#141414']} style={styles.homeBtn}>
           <View style={styles.cardHighlight} />
-          <GlassView style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} glassEffectStyle="regular" colorScheme="dark" tintColor="rgba(30,30,30,0.30)" />
-          <Text style={[styles.homeBtnText, { zIndex: 2 }]}>← Home</Text>
+          <GlassView
+            style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
+            glassEffectStyle="regular"
+            colorScheme="dark"
+            tintColor="rgba(20,20,20,0.30)"
+          />
+          <Text style={styles.homeBtnText}>← Home</Text>
         </LinearGradient>
       </TouchableOpacity>
     </ScrollView>

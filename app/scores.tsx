@@ -1,5 +1,4 @@
 import { GlassView } from 'expo-glass-effect';
-import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -416,10 +415,15 @@ export default function ScoresScreen() {
                       locations={[0, 0.6, 1]}
                       style={styles.modalConfirmInner}
                     >
-                      <GlassView style={[StyleSheet.absoluteFill, { borderRadius: 12, overflow: 'hidden' }]} glassEffectStyle="regular" colorScheme="dark" tintColor="rgba(57,255,20,0.20)" />
                       <View style={styles.btnSpecular} />
                       <View style={styles.btnEdgeTop} />
                       <View style={styles.btnEdgeBottom} />
+                      <GlassView
+                        style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
+                        glassEffectStyle="regular"
+                        colorScheme="dark"
+                        tintColor="rgba(57,255,20,0.20)"
+                      />
                       <Text style={styles.modalConfirmText}>Save</Text>
                     </LinearGradient>
                   </TouchableOpacity>
@@ -903,10 +907,15 @@ export default function ScoresScreen() {
               end={{ x: 0.5, y: 1 }}
               style={styles.calcBtnGrad}
             >
-              <GlassView style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} glassEffectStyle="regular" colorScheme="dark" tintColor="rgba(57,255,20,0.20)" />
               <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
+              <GlassView
+                style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
+                glassEffectStyle="regular"
+                colorScheme="dark"
+                tintColor="rgba(57,255,20,0.20)"
+              />
               <Text style={styles.calcBtnText}>Calculate Payout →</Text>
             </LinearGradient>
           </TouchableOpacity>
