@@ -45,7 +45,7 @@ export default function HomeScreen() {
           transform: [{ scale: logoAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
         }}>
           <Image
-            source={require('../assets/logo2.jpg')}
+            source={require('../assets/logo.png')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -87,8 +87,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logo: {
-    width: 320,
-    height: 300,
+    width: 340,
+    height: 230,
     marginBottom: 8,
   },
   buttonGlow: {
