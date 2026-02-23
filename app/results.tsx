@@ -55,17 +55,17 @@ export default function ResultsScreen() {
       <View style={styles.summaryBanner}>
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{winners.length}</Text>
-          <Text style={styles.summaryLabel}>Winner{winners.length !== 1 ? 's' : ''}</Text>
+          <Text style={styles.summaryLabel}>WINNER{winners.length !== 1 ? 'S' : ''}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{losers.length}</Text>
-          <Text style={styles.summaryLabel}>Loser{losers.length !== 1 ? 's' : ''}</Text>
+          <Text style={styles.summaryLabel}>LOSER{losers.length !== 1 ? 'S' : ''}</Text>
         </View>
         <View style={styles.summaryDivider} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{formatMoney(totalPot / 2)}</Text>
-          <Text style={styles.summaryLabel}>Total Pot</Text>
+          <Text style={styles.summaryLabel}>TOTAL POT</Text>
         </View>
       </View>
 
@@ -88,14 +88,25 @@ export default function ResultsScreen() {
         <>
           <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Combined Net Totals</Text>
           <Text style={styles.sectionHint}>All games combined</Text>
-          {sortedNet.map(([name, amount]) => (
-            <View key={name} style={styles.totalRow}>
-              <Text style={styles.totalName}>{name}</Text>
-              <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
-                {amount >= 0 ? '+' : ''}{formatMoney(amount)}
-              </Text>
-            </View>
-          ))}
+          {sortedNet.map(([name, amount]) => {
+            const isWinner = amount > 0;
+            const isLoser = amount < 0;
+            return (
+              <View 
+                key={name} 
+                style={[
+                  styles.totalRow,
+                  isWinner && styles.totalRowWinner,
+                  isLoser && styles.totalRowLoser,
+                ]}
+              >
+                <Text style={styles.totalName}>{name}</Text>
+                <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
+                  {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+                </Text>
+              </View>
+            );
+          })}
         </>
       )}
 
@@ -103,20 +114,31 @@ export default function ResultsScreen() {
       {results.games.length === 1 && (
         <>
           <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Net Totals</Text>
-          {sortedNet.map(([name, amount]) => (
-            <View key={name} style={styles.totalRow}>
-              <Text style={styles.totalName}>{name}</Text>
-              <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
-                {amount >= 0 ? '+' : ''}{formatMoney(amount)}
-              </Text>
-            </View>
-          ))}
+          {sortedNet.map(([name, amount]) => {
+            const isWinner = amount > 0;
+            const isLoser = amount < 0;
+            return (
+              <View 
+                key={name} 
+                style={[
+                  styles.totalRow,
+                  isWinner && styles.totalRowWinner,
+                  isLoser && styles.totalRowLoser,
+                ]}
+              >
+                <Text style={styles.totalName}>{name}</Text>
+                <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
+                  {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+                </Text>
+              </View>
+            );
+          })}
         </>
       )}
 
       {/* Actions */}
       <TouchableOpacity
-        style={styles.newGameBtn}
+        style={styles.primaryBtn}
         onPress={() => {
           resetGameResults();
           resetGameSetup();
@@ -124,11 +146,11 @@ export default function ResultsScreen() {
         }}
         activeOpacity={0.8}
       >
-        <Text style={styles.newGameBtnText}>Play Again</Text>
+        <Text style={styles.primaryBtnText}>Play Again</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.homeBtn}
+        style={styles.secondaryBtn}
         onPress={() => {
           resetGameResults();
           resetGameSetup();
@@ -136,7 +158,7 @@ export default function ResultsScreen() {
         }}
         activeOpacity={0.7}
       >
-        <Text style={styles.homeBtnText}>← Home</Text>
+        <Text style={styles.secondaryBtnText}>← Home</Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -161,7 +183,13 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
       {isScorecard && game.leaderboard ? (
         <View style={styles.leaderboardList}>
           {game.leaderboard.map((entry, idx) => (
-            <View key={entry.name} style={styles.leaderboardRow}>
+            <View 
+              key={entry.name} 
+              style={[
+                styles.leaderboardRow,
+                idx === 0 && styles.leaderboardRowFirst,
+              ]}
+            >
               <Text style={[styles.leaderboardRank, idx === 0 && styles.leaderboardRankFirst]}>
                 {entry.rank}
               </Text>
@@ -182,7 +210,7 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
               <View key={name} style={styles.gameNetRow}>
                 <Text style={styles.gameNetName}>{name}</Text>
                 <View style={[styles.gameNetBadge, amount >= 0 ? styles.gameNetBadgePos : styles.gameNetBadgeNeg]}>
-                  <Text style={styles.gameNetText}>
+                  <Text style={[styles.gameNetText, amount >= 0 ? styles.gameNetTextPos : styles.gameNetTextNeg]}>
                     {amount >= 0 ? '+' : ''}{formatMoney(amount)}
                   </Text>
                 </View>
@@ -193,7 +221,7 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
           {/* Payouts for this game */}
           {hasPayouts ? (
             <View style={styles.payoutsContainer}>
-              <Text style={styles.payoutsLabel}>Payouts</Text>
+              <Text style={styles.payoutsLabel}>PAYOUTS</Text>
               {consolidatePayouts(game.payouts).map((p, i) => (
                 <View key={i} style={styles.payoutRow}>
                   <Text style={styles.payoutFrom}>{p.from}</Text>
@@ -236,26 +264,32 @@ function consolidatePayouts(payouts: Payout[]): Payout[] {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#0d1f0d' },
+  scroll: { flex: 1, backgroundColor: '#0a0a0a' },
   content: { padding: 20, paddingBottom: 48 },
 
-  errorContainer: { flex: 1, backgroundColor: '#0d1f0d', alignItems: 'center', justifyContent: 'center' },
-  errorText: { color: '#ff5555', fontSize: 18, marginBottom: 16 },
+  errorContainer: { flex: 1, backgroundColor: '#0a0a0a', alignItems: 'center', justifyContent: 'center' },
+  errorText: { color: '#ff4444', fontSize: 18, marginBottom: 16 },
   errorLink: { color: '#39FF14', fontSize: 16 },
 
   summaryBanner: {
     flexDirection: 'row',
-    backgroundColor: '#162416',
-    borderRadius: 14,
+    backgroundColor: '#161616',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     paddingVertical: 20,
     marginBottom: 16,
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryNum: { fontSize: 28, fontWeight: '800', color: '#39FF14' },
-  summaryLabel: { fontSize: 12, color: '#5a8a5a', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
-  summaryDivider: { width: 1, backgroundColor: '#2a4a2a', marginVertical: 8 },
+  summaryLabel: { 
+    fontSize: 11, 
+    color: '#555', 
+    marginTop: 2, 
+    textTransform: 'uppercase', 
+    letterSpacing: 1.5 
+  },
+  summaryDivider: { width: 1, backgroundColor: '#242424', marginVertical: 8 },
 
   gamesBar: {
     flexDirection: 'row',
@@ -264,15 +298,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   gameChip: {
-    backgroundColor: '#1a2a1a',
+    backgroundColor: '#161616',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
   },
   gameChipText: {
-    color: '#88bb88',
+    color: '#888',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -284,7 +318,7 @@ const styles = StyleSheet.create({
   gameSectionBorder: {
     paddingBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#2a4a2a',
+    borderBottomColor: '#242424',
   },
   gameSectionHeader: {
     marginBottom: 12,
@@ -292,7 +326,7 @@ const styles = StyleSheet.create({
   gameSectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#39FF14',
+    color: '#fff',
   },
 
   gameNetList: {
@@ -304,11 +338,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#162416',
+    backgroundColor: '#161616',
     borderRadius: 10,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
   },
   gameNetName: {
     fontSize: 15,
@@ -316,19 +350,20 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   gameNetBadge: {
-    borderRadius: 6,
-    paddingHorizontal: 10,
+    borderRadius: 12,
+    paddingHorizontal: 12,
     paddingVertical: 4,
-    minWidth: 60,
+    minWidth: 70,
     alignItems: 'center',
   },
-  gameNetBadgePos: { backgroundColor: '#1a3d1a' },
-  gameNetBadgeNeg: { backgroundColor: '#3d1a1a' },
+  gameNetBadgePos: { backgroundColor: '#39FF14' },
+  gameNetBadgeNeg: { backgroundColor: '#ff4444' },
   gameNetText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: '800',
   },
+  gameNetTextPos: { color: '#000' },
+  gameNetTextNeg: { color: '#fff' },
 
   // Scorecard leaderboard
   leaderboardList: {
@@ -339,11 +374,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: '#162416',
+    backgroundColor: '#161616',
     borderRadius: 10,
     marginBottom: 6,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
+  },
+  leaderboardRowFirst: {
+    backgroundColor: '#0f1a0a',
+    borderColor: '#39FF14',
+    borderLeftWidth: 3,
   },
   leaderboardRank: {
     fontSize: 16,
@@ -361,7 +401,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   leaderboardNameFirst: {
-    color: '#39FF14',
+    color: '#fff',
   },
   leaderboardScore: {
     fontSize: 18,
@@ -378,75 +418,92 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   payoutsLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#5a8a5a',
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#666',
     marginBottom: 8,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 1.5,
   },
   payoutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f1f0f',
+    backgroundColor: '#161616',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1a2a1a',
+    borderColor: '#242424',
     padding: 12,
     marginBottom: 6,
   },
-  payoutFrom: { fontSize: 14, fontWeight: '700', color: '#ff6666', flex: 1 },
+  payoutFrom: { fontSize: 14, fontWeight: '700', color: '#ff4444', flex: 1 },
   payoutArrowContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, flex: 1.4, justifyContent: 'center' },
-  payoutLine: { height: 1, flex: 1, backgroundColor: '#2a4a2a' },
+  payoutLine: { height: 1, flex: 1, backgroundColor: '#242424' },
   payoutAmount: { fontSize: 14, fontWeight: '800', color: '#fff', marginHorizontal: 6 },
   payoutArrow: { fontSize: 14, color: '#39FF14', marginLeft: 2 },
   payoutTo: { fontSize: 14, fontWeight: '700', color: '#39FF14', flex: 1, textAlign: 'right' },
 
   noPayoutsCard: {
-    backgroundColor: '#0f1f0f',
+    backgroundColor: '#161616',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#1a2a1a',
+    borderColor: '#242424',
     padding: 14,
     alignItems: 'center',
   },
-  noPayoutsText: { fontSize: 13, color: '#5a8a5a', textAlign: 'center' },
+  noPayoutsText: { fontSize: 13, color: '#555', textAlign: 'center' },
 
-  sectionLabel: { fontSize: 18, fontWeight: '700', color: '#39FF14', marginBottom: 4 },
-  sectionHint: { fontSize: 12, color: '#5a8a5a', marginBottom: 12 },
+  sectionLabel: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
+  sectionHint: { fontSize: 13, color: '#888', marginBottom: 12 },
 
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 14,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: '#1e3a1e',
+    paddingHorizontal: 12,
+    marginBottom: 6,
+    borderRadius: 10,
+    backgroundColor: '#161616',
+    borderWidth: 1,
+    borderColor: '#242424',
+  },
+  totalRowWinner: {
+    backgroundColor: '#0f1a0a',
+    borderLeftWidth: 3,
+    borderLeftColor: '#39FF14',
+  },
+  totalRowLoser: {
+    backgroundColor: '#1a0a0a',
+    borderLeftWidth: 3,
+    borderLeftColor: '#ff4444',
   },
   totalName: { fontSize: 17, color: '#fff', fontWeight: '600' },
   totalAmount: { fontSize: 22, fontWeight: '800' },
   totalPos: { color: '#39FF14' },
-  totalNeg: { color: '#ff6666' },
+  totalNeg: { color: '#ff4444' },
 
-  newGameBtn: {
+  primaryBtn: {
     backgroundColor: '#39FF14',
-    borderRadius: 16,
-    paddingVertical: 20,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
     marginTop: 32,
     shadowColor: '#39FF14',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
     elevation: 8,
   },
-  newGameBtnText: { fontSize: 20, fontWeight: '800', color: '#000' },
+  primaryBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },
 
-  homeBtn: {
+  secondaryBtn: {
+    backgroundColor: '#161616',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 12,
   },
-  homeBtnText: { fontSize: 16, color: '#5a8a5a' },
+  secondaryBtnText: { fontSize: 16, color: '#888' },
 });

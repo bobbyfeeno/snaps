@@ -787,14 +787,14 @@ export default function ScoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: '#0a0a0a' },
   mainScroll: { flex: 1 },
 
   // Preview mode banner
   previewBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a2f1a',
+    backgroundColor: '#161616',
     borderBottomWidth: 1,
     borderBottomColor: '#39FF14',
     paddingHorizontal: 12,
@@ -803,7 +803,7 @@ const styles = StyleSheet.create({
   previewIcon: { fontSize: 20, marginRight: 10 },
   previewTextContainer: { flex: 1 },
   previewTitle: { color: '#39FF14', fontWeight: '700', fontSize: 14 },
-  previewSubtitle: { color: '#5a8a5a', fontSize: 11, marginTop: 1 },
+  previewSubtitle: { color: '#888', fontSize: 11, marginTop: 1 },
   previewCTA: {
     backgroundColor: '#39FF14',
     paddingHorizontal: 14,
@@ -816,44 +816,44 @@ const styles = StyleSheet.create({
 
   stickyCol: { zIndex: 10 },
 
-  rowAlt: { backgroundColor: '#0c0c0c' },
+  rowAlt: { backgroundColor: '#0f0f0f' },
 
   cell: {
     justifyContent: 'center',
     alignItems: 'center',
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderRightWidth: StyleSheet.hairlineWidth,
-    borderColor: '#2a2a2a',
+    borderColor: '#242424',
   },
 
   // Header (hole numbers)
-  hdrCell: { backgroundColor: '#39FF14' },
-  hdrText: { color: '#000', fontWeight: '800', fontSize: 12 },
+  hdrCell: { backgroundColor: '#161616', borderColor: '#242424' },
+  hdrText: { color: '#fff', fontWeight: '700', fontSize: 12 },
 
   // OUT / IN / TOT headers
-  sumHdrCell: { backgroundColor: '#1fcb04' },
-  sumHdrText: { color: '#000', fontWeight: '900', fontSize: 11, letterSpacing: 0.3 },
+  sumHdrCell: { backgroundColor: '#1e1e1e' },
+  sumHdrText: { color: '#39FF14', fontWeight: '800', fontSize: 11, letterSpacing: 0.3 },
 
   // Par label on sticky col
-  parLabelCell: { backgroundColor: '#141414' },
-  parLabelText: { color: '#666', fontWeight: '700', fontSize: 12, letterSpacing: 1 },
+  parLabelCell: { backgroundColor: '#0d0d0d' },
+  parLabelText: { color: '#444', fontWeight: '700', fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase' },
 
   // Player name cells (sticky)
   nameCell: { backgroundColor: '#0d0d0d', paddingHorizontal: 6, alignItems: 'flex-start' },
-  nameText: { color: '#fff', fontWeight: '700', fontSize: 13 },
+  nameText: { color: '#fff', fontWeight: '600', fontSize: 13 },
   tmText: { color: '#39FF14', fontSize: 9, fontWeight: '700', marginTop: 1 },
   hcpText: { color: '#888', fontSize: 9, fontWeight: '600' },
 
   // Par cells
-  parCell: { backgroundColor: '#141414' },
-  parText: { color: '#999', fontSize: 13, fontWeight: '500' },
+  parCell: { backgroundColor: '#0d0d0d' },
+  parText: { color: '#888', fontSize: 13, fontWeight: '500' },
 
   // OUT/IN/TOT value cells
-  sumCell: { backgroundColor: '#111' },
+  sumCell: { backgroundColor: '#0f0f0f' },
   sumText: { color: '#fff', fontWeight: '700', fontSize: 13 },
   totText: { fontWeight: '800' },
   totWin: { color: '#39FF14' },
-  totLose: { color: '#ff5555' },
+  totLose: { color: '#ff4444' },
 
   // Score cells
   scoreCell: { backgroundColor: 'transparent' },
@@ -865,46 +865,46 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  dotPar: { backgroundColor: '#1a1a1a' },
-  dotUnder: { backgroundColor: '#002200', borderWidth: 1.5, borderColor: '#39FF14' },
-  dotBogey: { backgroundColor: '#2a0808', borderWidth: 1, borderColor: '#883333' },
-  dotDouble: { backgroundColor: '#1f0000', borderWidth: 2, borderColor: '#cc2222' },
+  dotPar: { backgroundColor: '#333' },
+  dotUnder: { backgroundColor: '#39FF14' },
+  dotBogey: { backgroundColor: '#ff4444' },
+  dotDouble: { backgroundColor: '#cc2222' },
 
-  scoreText: { fontSize: 12, fontWeight: '700', color: '#ccc' },
-  stUnder: { color: '#39FF14' },
-  stOver: { color: '#ff6666' },
-  emptyDot: { color: '#2a2a2a', fontSize: 18 },
+  scoreText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+  stUnder: { color: '#000' },
+  stOver: { color: '#fff' },
+  emptyDot: { color: '#333', fontSize: 18 },
 
   // Modal
   modalBg: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+    backgroundColor: 'rgba(0,0,0,0.85)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: '#141414',
+    backgroundColor: '#161616',
     borderRadius: 20,
     padding: 24,
     width: 240,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#242424',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.6,
     shadowRadius: 20,
     elevation: 20,
   },
-  modalTitle: { color: '#39FF14', fontWeight: '700', fontSize: 15, marginBottom: 16, letterSpacing: 0.3 },
+  modalTitle: { color: '#fff', fontWeight: '600', fontSize: 15, marginBottom: 16, letterSpacing: 0.3 },
   modalInput: {
-    backgroundColor: '#000',
+    backgroundColor: '#0f0f0f',
     borderWidth: 2,
     borderColor: '#39FF14',
     borderRadius: 14,
     fontSize: 44,
     fontWeight: '800',
-    color: '#fff',
+    color: '#39FF14',
     width: 130,
     textAlign: 'center',
     paddingVertical: 10,
@@ -915,19 +915,24 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 14,
+    backgroundColor: '#161616',
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#2a2a2a',
   },
-  modalCancelText: { color: '#666', fontWeight: '600', fontSize: 15 },
+  modalCancelText: { color: '#888', fontWeight: '600', fontSize: 16 },
   modalConfirm: {
     flex: 1,
     paddingVertical: 14,
     alignItems: 'center',
-    borderRadius: 10,
+    borderRadius: 14,
     backgroundColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
   },
-  modalConfirmText: { color: '#000', fontWeight: '800', fontSize: 15 },
+  modalConfirmText: { color: '#000', fontWeight: '800', fontSize: 16 },
 
   // ─── Game Extras ──────────────────────────────────────────────────────────
   extrasContainer: {
@@ -935,10 +940,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   extrasPanel: {
-    backgroundColor: '#141414',
-    borderRadius: 12,
+    backgroundColor: '#161616',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#242424',
     overflow: 'hidden',
   },
   extrasPanelHeader: {
@@ -947,7 +952,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#1a2a1a',
+    backgroundColor: '#1e1e1e',
   },
   extrasPanelTitle: {
     color: '#39FF14',
@@ -955,7 +960,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   extrasPanelToggle: {
-    color: '#5a8a5a',
+    color: '#555',
     fontSize: 16,
   },
   extrasPanelContent: {
@@ -970,16 +975,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2a2a2a',
+    borderBottomColor: '#242424',
   },
   wolfHoleNum: {
-    color: '#666',
+    color: '#555',
     fontSize: 12,
     fontWeight: '700',
     width: 28,
   },
   wolfLabel: {
-    color: '#5a8a5a',
+    color: '#888',
     fontSize: 11,
     marginRight: 4,
   },
@@ -999,16 +1004,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#0d1f0d',
+    backgroundColor: '#0f0f0f',
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
   },
   wolfPartnerBtnActive: {
     backgroundColor: '#39FF14',
     borderColor: '#39FF14',
   },
   wolfPartnerBtnText: {
-    color: '#5a8a5a',
+    color: '#888',
     fontSize: 10,
     fontWeight: '600',
   },
@@ -1022,27 +1027,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2a2a2a',
+    borderBottomColor: '#242424',
     gap: 6,
   },
   bbbHoleNum: {
-    color: '#666',
+    color: '#555',
     fontSize: 12,
     fontWeight: '700',
     width: 28,
   },
   bbbBtn: {
     flex: 1,
-    backgroundColor: '#0d1f0d',
+    backgroundColor: '#0f0f0f',
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     paddingVertical: 4,
     paddingHorizontal: 6,
     alignItems: 'center',
   },
   bbbBtnLabel: {
-    color: '#5a8a5a',
+    color: '#888',
     fontSize: 9,
     fontWeight: '600',
   },
@@ -1058,16 +1063,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 6,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#2a2a2a',
+    borderBottomColor: '#242424',
   },
   snakeHoleNum: {
-    color: '#666',
+    color: '#555',
     fontSize: 12,
     fontWeight: '700',
     width: 28,
   },
   snakeLabel: {
-    color: '#5a8a5a',
+    color: '#888',
     fontSize: 11,
     marginRight: 8,
   },
@@ -1080,16 +1085,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
-    backgroundColor: '#0d1f0d',
+    backgroundColor: '#0f0f0f',
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
   },
   snakeCheckboxActive: {
-    backgroundColor: '#ff5555',
-    borderColor: '#ff5555',
+    backgroundColor: '#ff4444',
+    borderColor: '#ff4444',
   },
   snakeCheckboxText: {
-    color: '#5a8a5a',
+    color: '#888',
     fontSize: 10,
     fontWeight: '600',
   },
@@ -1099,19 +1104,20 @@ const styles = StyleSheet.create({
 
   // ─── Live Status Bar ───────────────────────────────────────────────────────
   liveStatusBar: {
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#0d0d0d',
     borderTopWidth: 1,
-    borderTopColor: '#2a2a2a',
+    borderTopColor: '#1e1e1e',
     paddingHorizontal: 16,
     paddingVertical: 14,
     maxHeight: 200,
   },
   liveStatusHeader: {
-    color: '#666',
+    color: '#444',
     fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 1.2,
+    letterSpacing: 1.5,
     marginBottom: 10,
+    textTransform: 'uppercase',
   },
   liveStatusScroll: {
     flexGrow: 0,
@@ -1144,7 +1150,7 @@ const styles = StyleSheet.create({
     color: '#39FF14',
   },
   liveStatusRed: {
-    color: '#ff5555',
+    color: '#ff4444',
   },
   liveStatusYellow: {
     color: '#FFD700',
@@ -1155,9 +1161,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
-    backgroundColor: '#000',
+    backgroundColor: '#0a0a0a',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#2a2a2a',
+    borderTopColor: '#242424',
   },
   calcBtn: {
     backgroundColor: '#39FF14',
@@ -1166,8 +1172,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     shadowColor: '#39FF14',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
     elevation: 8,
   },
   calcBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },

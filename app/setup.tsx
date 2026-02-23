@@ -249,6 +249,9 @@ export default function SetupScreen() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Subtle center glow */}
+          <View style={styles.centerGlow} />
+
           {/* Step indicator */}
           <View style={styles.stepIndicator}>
             <View style={[styles.stepDot, styles.stepDotActive]} />
@@ -258,19 +261,19 @@ export default function SetupScreen() {
 
           {/* Players */}
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Players</Text>
-            <Text style={styles.sectionHint}>Name + their Tax Man score</Text>
+            <Text style={styles.sectionTitle}>Players</Text>
+            <Text style={styles.sectionSubtitle}>Name + their Tax Man score</Text>
 
             {players.map((player, idx) => (
               <View key={player.id} style={styles.playerCard}>
                 <View style={styles.playerHeader}>
-                  <Text style={styles.playerNum}>Player {idx + 1}</Text>
+                  <Text style={styles.playerLabel}>PLAYER {idx + 1}</Text>
                   {players.length > 1 && (
                     <TouchableOpacity
                       onPress={() => removePlayer(player.id)}
                       hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                     >
-                      <Text style={styles.removeBtn}>✕</Text>
+                      <Text style={styles.removeBtn}>×</Text>
                     </TouchableOpacity>
                   )}
                 </View>
@@ -279,7 +282,7 @@ export default function SetupScreen() {
                   ref={el => { nameRefs.current[idx] = el; }}
                   style={styles.nameInput}
                   placeholder="Name"
-                  placeholderTextColor="#5a8a5a"
+                  placeholderTextColor="#444"
                   value={player.name}
                   onChangeText={val => updateName(player.id, val)}
                   autoCapitalize="words"
@@ -294,7 +297,7 @@ export default function SetupScreen() {
                     value={player.taxMan > 0 ? String(player.taxMan) : ''}
                     onChangeText={val => updateTaxMan(player.id, val)}
                     keyboardType="number-pad"
-                    placeholderTextColor="#5a8a5a"
+                    placeholderTextColor="#39FF14"
                     placeholder="90"
                     maxLength={3}
                     selectTextOnFocus
@@ -311,7 +314,7 @@ export default function SetupScreen() {
                       value={player.handicap !== undefined ? String(player.handicap) : ''}
                       onChangeText={val => updateHandicap(player.id, val)}
                       keyboardType="number-pad"
-                      placeholderTextColor="#666"
+                      placeholderTextColor="#555"
                       placeholder="0"
                       maxLength={2}
                       selectTextOnFocus
@@ -321,17 +324,19 @@ export default function SetupScreen() {
                 )}
               </View>
             ))}
-
-            {players.length < MAX_PLAYERS && (
-              <TouchableOpacity style={styles.addPlayerBtn} onPress={addPlayer} activeOpacity={0.7}>
-                <Text style={styles.addPlayerText}>+ Add Player</Text>
-              </TouchableOpacity>
-            )}
           </View>
 
-          <TouchableOpacity style={styles.nextBtn} onPress={handleNextStep} activeOpacity={0.8}>
-            <Text style={styles.nextBtnText}>Next →</Text>
-          </TouchableOpacity>
+          {/* Bottom buttons */}
+          <View style={styles.bottomBtns}>
+            {players.length < MAX_PLAYERS && (
+              <TouchableOpacity style={[styles.secondaryBtn, { flex: 1 }]} onPress={addPlayer} activeOpacity={0.7}>
+                <Text style={styles.secondaryBtnText}>+ Add Player</Text>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity style={[styles.primaryBtn, { flex: 1 }]} onPress={handleNextStep} activeOpacity={0.8}>
+              <Text style={styles.primaryBtnText}>Next →</Text>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     );
@@ -349,6 +354,9 @@ export default function SetupScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Subtle center glow */}
+        <View style={styles.centerGlow} />
+
         {/* Step indicator */}
         <View style={styles.stepIndicator}>
           <TouchableOpacity onPress={() => setStep(1)}>
@@ -362,8 +370,8 @@ export default function SetupScreen() {
 
         {/* Header */}
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>Choose Your Games</Text>
-          <Text style={styles.sectionHint}>Stack multiple games — they all run at once</Text>
+          <Text style={styles.sectionTitle}>Choose Your Games</Text>
+          <Text style={styles.sectionSubtitle}>Stack multiple games — they all run at once</Text>
         </View>
 
         {/* Game cards */}
@@ -377,7 +385,8 @@ export default function SetupScreen() {
               key={game.mode} 
               style={[
                 styles.gameCard,
-                isActive && (isScorecard ? styles.gameCardActiveScorecard : styles.gameCardActive),
+                isActive && !isScorecard && styles.gameCardActive,
+                isActive && isScorecard && styles.gameCardActiveScorecard,
                 isDisabled && styles.gameCardDisabled,
               ]}
             >
@@ -386,7 +395,8 @@ export default function SetupScreen() {
                   onPress={() => !isDisabled && toggleGame(game.mode)}
                   style={[
                     styles.toggle,
-                    isActive && (isScorecard ? styles.toggleActiveScorecard : styles.toggleActive),
+                    isActive && !isScorecard && styles.toggleActive,
+                    isActive && isScorecard && styles.toggleActiveScorecard,
                     isDisabled && styles.toggleDisabled,
                   ]}
                   activeOpacity={0.7}
@@ -417,14 +427,14 @@ export default function SetupScreen() {
               {isActive && !isScorecard && game.inputLabel && (
                 <View style={styles.gameAmountRow}>
                   <Text style={styles.gameAmountLabel}>{game.inputLabel}</Text>
-                  <View style={styles.gameAmountInput}>
+                  <View style={styles.gameAmountInputContainer}>
                     <Text style={styles.dollarSign}>$</Text>
                     <TextInput
                       style={styles.amountInput}
                       value={gameAmounts[game.mode]}
                       onChangeText={val => updateGameAmount(game.mode, val)}
                       keyboardType="decimal-pad"
-                      placeholderTextColor="#5a8a5a"
+                      placeholderTextColor="#39FF14"
                       maxLength={6}
                       selectTextOnFocus
                     />
@@ -437,28 +447,28 @@ export default function SetupScreen() {
                 <View style={styles.nassauModeRow}>
                   <TouchableOpacity
                     style={[
-                      styles.nassauModeBtn,
-                      nassauMode === 'stroke' && styles.nassauModeBtnActive,
+                      styles.pillBtn,
+                      nassauMode === 'stroke' && styles.pillBtnActive,
                     ]}
                     onPress={() => setNassauMode('stroke')}
                     activeOpacity={0.7}
                   >
                     <Text style={[
-                      styles.nassauModeBtnText,
-                      nassauMode === 'stroke' && styles.nassauModeBtnTextActive,
+                      styles.pillBtnText,
+                      nassauMode === 'stroke' && styles.pillBtnTextActive,
                     ]}>Stroke Play</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={[
-                      styles.nassauModeBtn,
-                      nassauMode === 'match' && styles.nassauModeBtnActive,
+                      styles.pillBtn,
+                      nassauMode === 'match' && styles.pillBtnActive,
                     ]}
                     onPress={() => setNassauMode('match')}
                     activeOpacity={0.7}
                   >
                     <Text style={[
-                      styles.nassauModeBtnText,
-                      nassauMode === 'match' && styles.nassauModeBtnTextActive,
+                      styles.pillBtnText,
+                      nassauMode === 'match' && styles.pillBtnTextActive,
                     ]}>Match Play</Text>
                   </TouchableOpacity>
                 </View>
@@ -471,28 +481,28 @@ export default function SetupScreen() {
                   <View style={styles.nassauToggleGroup}>
                     <TouchableOpacity
                       style={[
-                        styles.nassauModeBtn,
-                        nassauPress === 'none' && styles.nassauModeBtnActive,
+                        styles.pillBtn,
+                        nassauPress === 'none' && styles.pillBtnActive,
                       ]}
                       onPress={() => setNassauPress('none')}
                       activeOpacity={0.7}
                     >
                       <Text style={[
-                        styles.nassauModeBtnText,
-                        nassauPress === 'none' && styles.nassauModeBtnTextActive,
+                        styles.pillBtnText,
+                        nassauPress === 'none' && styles.pillBtnTextActive,
                       ]}>No Press</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
-                        styles.nassauModeBtn,
-                        nassauPress === 'auto' && styles.nassauModeBtnActive,
+                        styles.pillBtn,
+                        nassauPress === 'auto' && styles.pillBtnActive,
                       ]}
                       onPress={() => setNassauPress('auto')}
                       activeOpacity={0.7}
                     >
                       <Text style={[
-                        styles.nassauModeBtnText,
-                        nassauPress === 'auto' && styles.nassauModeBtnTextActive,
+                        styles.pillBtnText,
+                        nassauPress === 'auto' && styles.pillBtnTextActive,
                       ]}>Auto Press</Text>
                     </TouchableOpacity>
                   </View>
@@ -506,28 +516,28 @@ export default function SetupScreen() {
                   <View style={styles.nassauToggleGroup}>
                     <TouchableOpacity
                       style={[
-                        styles.nassauModeBtn,
-                        !nassauHandicaps && styles.nassauModeBtnActive,
+                        styles.pillBtn,
+                        !nassauHandicaps && styles.pillBtnActive,
                       ]}
                       onPress={() => setNassauHandicaps(false)}
                       activeOpacity={0.7}
                     >
                       <Text style={[
-                        styles.nassauModeBtnText,
-                        !nassauHandicaps && styles.nassauModeBtnTextActive,
+                        styles.pillBtnText,
+                        !nassauHandicaps && styles.pillBtnTextActive,
                       ]}>Off</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={[
-                        styles.nassauModeBtn,
-                        nassauHandicaps && styles.nassauModeBtnActive,
+                        styles.pillBtn,
+                        nassauHandicaps && styles.pillBtnActive,
                       ]}
                       onPress={() => setNassauHandicaps(true)}
                       activeOpacity={0.7}
                     >
                       <Text style={[
-                        styles.nassauModeBtnText,
-                        nassauHandicaps && styles.nassauModeBtnTextActive,
+                        styles.pillBtnText,
+                        nassauHandicaps && styles.pillBtnTextActive,
                       ]}>On</Text>
                     </TouchableOpacity>
                   </View>
@@ -542,27 +552,41 @@ export default function SetupScreen() {
           <Text style={styles.validationHint}>Select at least one game</Text>
         )}
 
-        <TouchableOpacity 
-          style={[styles.startBtn, activeGames.size === 0 && styles.startBtnDisabled]} 
-          onPress={handleStart} 
-          activeOpacity={0.8}
-          disabled={Boolean(activeGames.size === 0)}
-        >
-          <Text style={styles.startBtnText}>Start Round →</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.backBtn} onPress={() => setStep(1)} activeOpacity={0.7}>
-          <Text style={styles.backBtnText}>← Back to Players</Text>
-        </TouchableOpacity>
+        {/* Bottom buttons */}
+        <View style={styles.bottomBtns}>
+          <TouchableOpacity style={[styles.secondaryBtn, { flex: 1 }]} onPress={() => setStep(1)} activeOpacity={0.7}>
+            <Text style={styles.secondaryBtnText}>← Back</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.primaryBtn, { flex: 1 }, activeGames.size === 0 && styles.primaryBtnDisabled]} 
+            onPress={handleStart} 
+            activeOpacity={0.8}
+            disabled={Boolean(activeGames.size === 0)}
+          >
+            <Text style={styles.primaryBtnText}>Start Round →</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0d1f0d' },
+  flex: { flex: 1, backgroundColor: '#0a0a0a' },
   scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
+
+  // Subtle center glow
+  centerGlow: {
+    position: 'absolute',
+    width: 400,
+    height: 400,
+    borderRadius: 200,
+    backgroundColor: '#39FF14',
+    opacity: 0.03,
+    top: '20%',
+    alignSelf: 'center',
+  },
 
   // Step indicator
   stepIndicator: {
@@ -575,15 +599,15 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#162416',
+    backgroundColor: '#161616',
     borderWidth: 2,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     justifyContent: 'center',
     alignItems: 'center',
   },
   stepDotActive: {
     borderColor: '#39FF14',
-    backgroundColor: '#0d2a0d',
+    backgroundColor: '#0a0a0a',
   },
   stepDotComplete: {
     backgroundColor: '#39FF14',
@@ -597,22 +621,22 @@ const styles = StyleSheet.create({
   stepLine: {
     width: 60,
     height: 2,
-    backgroundColor: '#2a4a2a',
+    backgroundColor: '#242424',
   },
   stepLineComplete: {
     backgroundColor: '#39FF14',
   },
 
   section: { marginBottom: 20 },
-  sectionLabel: { fontSize: 20, fontWeight: '700', color: '#39FF14', marginBottom: 4 },
-  sectionHint: { fontSize: 13, color: '#5a8a5a', marginBottom: 14 },
+  sectionTitle: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
+  sectionSubtitle: { fontSize: 13, color: '#888', marginBottom: 14 },
 
   // Player cards (Step 1)
   playerCard: {
-    backgroundColor: '#162416',
-    borderRadius: 14,
+    backgroundColor: '#161616',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     padding: 16,
     marginBottom: 12,
   },
@@ -622,76 +646,108 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 10,
   },
-  playerNum: { fontSize: 13, fontWeight: '600', color: '#5a8a5a', textTransform: 'uppercase', letterSpacing: 1 },
-  removeBtn: { fontSize: 16, color: '#ff5555', fontWeight: '700' },
+  playerLabel: { 
+    fontSize: 11, 
+    fontWeight: '600', 
+    color: '#555', 
+    textTransform: 'uppercase', 
+    letterSpacing: 1.5 
+  },
+  removeBtn: { fontSize: 18, color: '#555', fontWeight: '400' },
 
   nameInput: {
-    backgroundColor: '#0d1f0d',
+    backgroundColor: '#0f0f0f',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#2a2a2a',
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: 18,
+    fontSize: 17,
     color: '#fff',
     marginBottom: 10,
   },
 
   taxManRow: { flexDirection: 'row', alignItems: 'center' },
-  taxManLabel: { fontSize: 15, color: '#88bb88', marginRight: 10 },
+  taxManLabel: { fontSize: 15, color: '#fff', marginRight: 10 },
   taxManInput: {
-    backgroundColor: '#0d1f0d',
-    borderRadius: 8,
-    borderWidth: 1,
+    backgroundColor: '#0f0f0f',
+    borderRadius: 10,
+    borderWidth: 2,
     borderColor: '#39FF14',
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#39FF14',
     width: 72,
     textAlign: 'center',
     marginRight: 10,
   },
-  taxManHint: { fontSize: 12, color: '#5a8a5a', flex: 1 },
+  taxManHint: { fontSize: 12, color: '#555', flex: 1 },
 
-  addPlayerBtn: {
-    borderWidth: 2,
-    borderColor: '#2a4a2a',
-    borderStyle: 'dashed',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 4,
+  // Handicap row
+  handicapRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  handicapLabel: { fontSize: 15, color: '#888', marginRight: 10 },
+  handicapInput: {
+    backgroundColor: '#0f0f0f',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#ccc',
+    width: 60,
+    textAlign: 'center',
+    marginRight: 10,
   },
-  addPlayerText: { fontSize: 17, color: '#39FF14', fontWeight: '600' },
+  handicapHint: { fontSize: 12, color: '#555', flex: 1 },
 
-  nextBtn: {
+  // Bottom buttons
+  bottomBtns: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
+  },
+  primaryBtn: {
     backgroundColor: '#39FF14',
-    borderRadius: 16,
-    paddingVertical: 20,
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 8,
     shadowColor: '#39FF14',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
+    shadowOpacity: 0.35,
+    shadowRadius: 14,
     elevation: 8,
   },
-  nextBtnText: { fontSize: 20, fontWeight: '800', color: '#000' },
+  primaryBtnDisabled: {
+    backgroundColor: '#1a3a0a',
+    shadowOpacity: 0,
+  },
+  primaryBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },
+  secondaryBtn: {
+    backgroundColor: '#161616',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  secondaryBtnText: { fontSize: 16, color: '#888' },
 
   // Game cards (Step 2)
   gameCard: {
-    backgroundColor: '#162416',
-    borderRadius: 14,
+    backgroundColor: '#161616',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     padding: 16,
     marginBottom: 12,
   },
   gameCardActive: {
     borderColor: '#39FF14',
-    backgroundColor: '#0f2a0f',
+    backgroundColor: '#0f1a0a',
   },
   gameCardActiveScorecard: {
     borderColor: '#888',
@@ -710,9 +766,9 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#0d1f0d',
+    backgroundColor: '#0a0a0a',
     borderWidth: 2,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -727,7 +783,7 @@ const styles = StyleSheet.create({
     borderColor: '#888',
   },
   toggleDisabled: {
-    borderColor: '#1a2a1a',
+    borderColor: '#1e1e1e',
   },
   toggleCheck: {
     color: '#000',
@@ -745,26 +801,26 @@ const styles = StyleSheet.create({
   },
   gameName: {
     fontSize: 17,
-    fontWeight: '700',
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 4,
   },
   gameNameDisabled: {
-    color: '#666',
+    color: '#555',
   },
   gameNameScorecard: {
     color: '#ccc',
   },
   gameDesc: {
     fontSize: 13,
-    color: '#88bb88',
+    color: '#888',
     lineHeight: 18,
   },
   gameDescDisabled: {
-    color: '#555',
+    color: '#444',
   },
   gameDescScorecard: {
-    color: '#999',
+    color: '#666',
   },
 
   gameAmountRow: {
@@ -774,18 +830,18 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingTop: 14,
     borderTopWidth: 1,
-    borderTopColor: '#2a4a2a',
+    borderTopColor: '#242424',
   },
   gameAmountLabel: {
     fontSize: 14,
-    color: '#5a8a5a',
+    color: '#666',
   },
-  gameAmountInput: {
+  gameAmountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0d1f0d',
-    borderRadius: 8,
-    borderWidth: 1,
+    backgroundColor: '#0f0f0f',
+    borderRadius: 10,
+    borderWidth: 2,
     borderColor: '#39FF14',
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -797,57 +853,38 @@ const styles = StyleSheet.create({
   },
   amountInput: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#fff',
+    fontWeight: '800',
+    color: '#39FF14',
     width: 60,
     textAlign: 'center',
   },
 
-  // Handicap row (Step 1)
-  handicapRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
-  handicapLabel: { fontSize: 15, color: '#888', marginRight: 10 },
-  handicapInput: {
-    backgroundColor: '#0d1f0d',
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#666',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#ccc',
-    width: 60,
-    textAlign: 'center',
-    marginRight: 10,
-  },
-  handicapHint: { fontSize: 12, color: '#666', flex: 1 },
-
-  // Nassau stroke/match toggle
+  // Nassau mode toggles (pill buttons)
   nassauModeRow: {
     flexDirection: 'row',
     marginTop: 12,
     gap: 8,
   },
-  nassauModeBtn: {
+  pillBtn: {
     flex: 1,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 20,
-    backgroundColor: '#0d1f0d',
+    backgroundColor: '#1e1e1e',
     borderWidth: 1,
-    borderColor: '#2a4a2a',
+    borderColor: '#242424',
     alignItems: 'center',
   },
-  nassauModeBtnActive: {
+  pillBtnActive: {
     backgroundColor: '#39FF14',
     borderColor: '#39FF14',
   },
-  nassauModeBtnText: {
+  pillBtnText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#5a8a5a',
+    color: '#888',
   },
-  nassauModeBtnTextActive: {
+  pillBtnTextActive: {
     color: '#000',
   },
 
@@ -859,11 +896,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#2a4a2a',
+    borderTopColor: '#242424',
   },
   nassauOptionLabel: {
     fontSize: 14,
-    color: '#5a8a5a',
+    color: '#666',
     fontWeight: '600',
   },
   nassauToggleGroup: {
@@ -872,35 +909,10 @@ const styles = StyleSheet.create({
   },
 
   validationHint: {
-    color: '#ff5555',
+    color: '#ff4444',
     fontSize: 14,
     textAlign: 'center',
     marginTop: 8,
     marginBottom: 8,
   },
-
-  startBtn: {
-    backgroundColor: '#39FF14',
-    borderRadius: 16,
-    paddingVertical: 20,
-    alignItems: 'center',
-    marginTop: 16,
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  startBtnDisabled: {
-    backgroundColor: '#1a3a1a',
-    shadowOpacity: 0,
-  },
-  startBtnText: { fontSize: 20, fontWeight: '800', color: '#000' },
-
-  backBtn: {
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  backBtnText: { fontSize: 16, color: '#5a8a5a' },
 });
