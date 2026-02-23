@@ -609,7 +609,12 @@ export default function ScoresScreen() {
         {hasExtras && !isPreview && (
           <View style={styles.extrasContainer}>
             {/* Wolf Panel */}
-            {hasWolf && (
+            {hasWolf && setup.players.length < 3 && (
+              <View style={styles.wolfWarning}>
+                <Text style={styles.wolfWarningText}>⚠️ Wolf requires 3+ players</Text>
+              </View>
+            )}
+            {hasWolf && setup.players.length >= 3 && (
               <LinearGradient
                 colors={['#212121', '#141414']}
                 style={styles.extrasPanel}
@@ -1154,6 +1159,23 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     paddingHorizontal: 10,
     paddingVertical: 8,
+  },
+
+  // Wolf warning (when < 3 players)
+  wolfWarning: {
+    padding: 12,
+    backgroundColor: '#1a1200',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#554400',
+    marginVertical: 8,
+    marginHorizontal: 16,
+    alignItems: 'center',
+  },
+  wolfWarningText: {
+    color: '#aa8800',
+    fontSize: 13,
+    fontWeight: '600',
   },
 
   // Wolf panel styles
