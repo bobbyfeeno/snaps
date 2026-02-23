@@ -1,3 +1,5 @@
+import { GlassView } from 'expo-glass-effect';
+import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -355,6 +357,12 @@ export default function ScoresScreen() {
               colors={['#44ff18', '#28cc08']}
               style={styles.previewCTAInner}
             >
+              <GlassView
+                style={[StyleSheet.absoluteFill, { borderRadius: 8, overflow: 'hidden' }]}
+                glassEffectStyle="regular"
+                colorScheme="dark"
+                tintColor="rgba(57,255,20,0.20)"
+              />
               <Text style={styles.previewCTAText}>Start Game</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -393,6 +401,12 @@ export default function ScoresScreen() {
                       colors={['#1e1e1e', '#141414']}
                       style={styles.modalCancelInner}
                     >
+                      <GlassView
+                        style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
+                        glassEffectStyle="regular"
+                        colorScheme="dark"
+                        tintColor="rgba(40,40,40,0.30)"
+                      />
                       <Text style={styles.modalCancelText}>Cancel</Text>
                     </LinearGradient>
                   </TouchableOpacity>
@@ -402,6 +416,7 @@ export default function ScoresScreen() {
                       locations={[0, 0.6, 1]}
                       style={styles.modalConfirmInner}
                     >
+                      <GlassView style={[StyleSheet.absoluteFill, { borderRadius: 12, overflow: 'hidden' }]} glassEffectStyle="regular" colorScheme="dark" tintColor="rgba(57,255,20,0.20)" />
                       <View style={styles.btnSpecular} />
                       <View style={styles.btnEdgeTop} />
                       <View style={styles.btnEdgeBottom} />
@@ -549,6 +564,12 @@ export default function ScoresScreen() {
                           onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
                           style={[styles.cell, styles.scoreCell, { width: CELL_W, backgroundColor: i % 2 === 0 ? '#0a0a0a' : '#0c0c0c' }]}
                         >
+                          <GlassView
+                            style={StyleSheet.absoluteFill}
+                            glassEffectStyle="regular"
+                            colorScheme="dark"
+                            tintColor="rgba(20,20,20,0.20)"
+                          />
                           {v !== null ? (
                             <View style={scoreDotStyle(diff) as object}>
                               <Text style={[styles.scoreText, diff < 0 && styles.stUnder, diff > 0 && styles.stOver]}>
@@ -573,6 +594,12 @@ export default function ScoresScreen() {
                           onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
                           style={[styles.cell, styles.scoreCell, { width: CELL_W, backgroundColor: i % 2 === 0 ? '#0a0a0a' : '#0c0c0c' }]}
                         >
+                          <GlassView
+                            style={StyleSheet.absoluteFill}
+                            glassEffectStyle="regular"
+                            colorScheme="dark"
+                            tintColor="rgba(20,20,20,0.20)"
+                          />
                           {v !== null ? (
                             <View style={scoreDotStyle(diff) as object}>
                               <Text style={[styles.scoreText, diff < 0 && styles.stUnder, diff > 0 && styles.stOver]}>
@@ -858,6 +885,12 @@ export default function ScoresScreen() {
               <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
+              <GlassView
+                style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
+                glassEffectStyle="regular"
+                colorScheme="dark"
+                tintColor="rgba(57,255,20,0.20)"
+              />
               <Text style={styles.calcBtnText}>Start a Real Game →</Text>
             </LinearGradient>
           </TouchableOpacity>
@@ -870,6 +903,7 @@ export default function ScoresScreen() {
               end={{ x: 0.5, y: 1 }}
               style={styles.calcBtnGrad}
             >
+              <GlassView style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]} glassEffectStyle="regular" colorScheme="dark" tintColor="rgba(57,255,20,0.20)" />
               <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
