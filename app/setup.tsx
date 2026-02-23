@@ -1,4 +1,3 @@
-import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -102,22 +101,20 @@ const GAME_DEFS: GameDef[] = [
 // Shared green active state — all selected icons use brand neon green
 const ACTIVE_COLORS: [string, string, string] = ['#0A4000', '#1AAA00', '#3EFF18'];
 const ACTIVE_SHADOW = '#39FF14';
-const ACTIVE_TINT = 'rgba(57, 255, 20, 0.28)';
 
 const ICON_DEFS: Record<string, {
   emoji: string;
   activeColors: [string, string, string];
   inactiveColors: [string, string, string];
   shadowColor: string;
-  glassTint: string;
 }> = {
-  scorecard:        { emoji: '📊', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
-  taxman:           { emoji: '💰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
-  nassau:           { emoji: '🏆', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
-  skins:            { emoji: '💵', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
-  wolf:             { emoji: '🐺', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
-  'bingo-bango-bongo': { emoji: '🎯', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
-  snake:            { emoji: '🐍', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW, glassTint: ACTIVE_TINT },
+  scorecard:        { emoji: '📊', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  taxman:           { emoji: '💰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  nassau:           { emoji: '🏆', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  skins:            { emoji: '💵', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  wolf:             { emoji: '🐺', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  'bingo-bango-bongo': { emoji: '🎯', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  snake:            { emoji: '🐍', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -178,14 +175,6 @@ function GameIcon({ game, isActive, onPress }: {
 
           {/* === LAYER 6: Top edge highlight === */}
           <View style={styles.iconTopEdge} />
-
-          {/* === LAYER 7: Native glass (iOS 26+) === */}
-          <GlassView
-            style={[StyleSheet.absoluteFill, { borderRadius: 22, overflow: 'hidden' }]}
-            glassEffectStyle="regular"
-            colorScheme="dark"
-            tintColor={isActive ? def.glassTint : 'rgba(5,5,5,0.15)'}
-          />
 
           {/* === Emoji (floats above all layers) === */}
           <Text style={styles.gameIconEmoji}>{def.emoji}</Text>
