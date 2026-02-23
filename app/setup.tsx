@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
@@ -249,14 +250,22 @@ export default function SetupScreen() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Subtle center glow */}
-          <View style={styles.centerGlow} />
+          {/* Radial center glow */}
+          <View style={styles.centerGlow} pointerEvents="none" />
 
           {/* Step indicator */}
           <View style={styles.stepIndicator}>
-            <View style={[styles.stepDot, styles.stepDotActive]} />
+            <LinearGradient
+              colors={['#44ff18', '#28cc08']}
+              style={styles.stepDotActive}
+            >
+              <View style={styles.stepDotHighlight} />
+            </LinearGradient>
             <View style={styles.stepLine} />
-            <View style={styles.stepDot} />
+            <LinearGradient
+              colors={['#1a1a1a', '#111111']}
+              style={styles.stepDot}
+            />
           </View>
 
           {/* Players */}
@@ -265,7 +274,12 @@ export default function SetupScreen() {
             <Text style={styles.sectionSubtitle}>Name + their Tax Man score</Text>
 
             {players.map((player, idx) => (
-              <View key={player.id} style={styles.playerCard}>
+              <LinearGradient
+                key={player.id}
+                colors={['#212121', '#141414']}
+                style={styles.playerCard}
+              >
+                <View style={styles.cardHighlight} />
                 <View style={styles.playerHeader}>
                   <Text style={styles.playerLabel}>PLAYER {idx + 1}</Text>
                   {players.length > 1 && (
@@ -322,19 +336,32 @@ export default function SetupScreen() {
                     <Text style={styles.handicapHint}>(0-36)</Text>
                   </View>
                 )}
-              </View>
+              </LinearGradient>
             ))}
           </View>
 
           {/* Bottom buttons */}
           <View style={styles.bottomBtns}>
             {players.length < MAX_PLAYERS && (
-              <TouchableOpacity style={[styles.secondaryBtn, { flex: 1 }]} onPress={addPlayer} activeOpacity={0.7}>
-                <Text style={styles.secondaryBtnText}>+ Add Player</Text>
+              <TouchableOpacity style={styles.secondaryBtnOuter} onPress={addPlayer} activeOpacity={0.7}>
+                <LinearGradient
+                  colors={['#1e1e1e', '#141414']}
+                  style={styles.secondaryBtnInner}
+                >
+                  <View style={styles.secondaryBtnHighlight} />
+                  <Text style={styles.secondaryBtnText}>+ Add Player</Text>
+                </LinearGradient>
               </TouchableOpacity>
             )}
-            <TouchableOpacity style={[styles.primaryBtn, { flex: 1 }]} onPress={handleNextStep} activeOpacity={0.8}>
-              <Text style={styles.primaryBtnText}>Next →</Text>
+            <TouchableOpacity style={styles.primaryBtnOuter} onPress={handleNextStep} activeOpacity={0.85}>
+              <LinearGradient
+                colors={['#44ff18', '#28cc08']}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.primaryBtnInner}
+              >
+                <Text style={styles.primaryBtnText}>Next →</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -354,18 +381,26 @@ export default function SetupScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Subtle center glow */}
-        <View style={styles.centerGlow} />
+        {/* Radial center glow */}
+        <View style={styles.centerGlow} pointerEvents="none" />
 
         {/* Step indicator */}
         <View style={styles.stepIndicator}>
           <TouchableOpacity onPress={() => setStep(1)}>
-            <View style={[styles.stepDot, styles.stepDotComplete]}>
+            <LinearGradient
+              colors={['#44ff18', '#28cc08']}
+              style={styles.stepDotComplete}
+            >
               <Text style={styles.stepCheck}>✓</Text>
-            </View>
+            </LinearGradient>
           </TouchableOpacity>
           <View style={[styles.stepLine, styles.stepLineComplete]} />
-          <View style={[styles.stepDot, styles.stepDotActive]} />
+          <LinearGradient
+            colors={['#44ff18', '#28cc08']}
+            style={styles.stepDotActive}
+          >
+            <View style={styles.stepDotHighlight} />
+          </LinearGradient>
         </View>
 
         {/* Header */}
@@ -380,9 +415,20 @@ export default function SetupScreen() {
           const isDisabled = game.minPlayers !== undefined && players.length < game.minPlayers;
           const isScorecard = game.mode === 'scorecard';
           
+          const cardColors = isActive && !isScorecard 
+            ? ['#172210', '#0d1508'] as const
+            : isActive && isScorecard
+            ? ['#1a1a1a', '#111111'] as const
+            : ['#1a1a1a', '#111111'] as const;
+          
+          const highlightColor = isActive && !isScorecard 
+            ? 'rgba(57,255,20,0.15)' 
+            : 'rgba(255,255,255,0.07)';
+          
           return (
-            <View 
-              key={game.mode} 
+            <LinearGradient
+              key={game.mode}
+              colors={cardColors}
               style={[
                 styles.gameCard,
                 isActive && !isScorecard && styles.gameCardActive,
@@ -390,6 +436,7 @@ export default function SetupScreen() {
                 isDisabled && styles.gameCardDisabled,
               ]}
             >
+              <View style={[styles.cardHighlight, { backgroundColor: highlightColor }]} />
               <View style={styles.gameHeader}>
                 <TouchableOpacity
                   onPress={() => !isDisabled && toggleGame(game.mode)}
@@ -543,7 +590,7 @@ export default function SetupScreen() {
                   </View>
                 </View>
               )}
-            </View>
+            </LinearGradient>
           );
         })}
 
@@ -554,16 +601,29 @@ export default function SetupScreen() {
 
         {/* Bottom buttons */}
         <View style={styles.bottomBtns}>
-          <TouchableOpacity style={[styles.secondaryBtn, { flex: 1 }]} onPress={() => setStep(1)} activeOpacity={0.7}>
-            <Text style={styles.secondaryBtnText}>← Back</Text>
+          <TouchableOpacity style={styles.secondaryBtnOuter} onPress={() => setStep(1)} activeOpacity={0.7}>
+            <LinearGradient
+              colors={['#1e1e1e', '#141414']}
+              style={styles.secondaryBtnInner}
+            >
+              <View style={styles.secondaryBtnHighlight} />
+              <Text style={styles.secondaryBtnText}>← Back</Text>
+            </LinearGradient>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.primaryBtn, { flex: 1 }, activeGames.size === 0 && styles.primaryBtnDisabled]} 
+            style={[styles.primaryBtnOuter, activeGames.size === 0 && styles.primaryBtnDisabled]} 
             onPress={handleStart} 
-            activeOpacity={0.8}
+            activeOpacity={0.85}
             disabled={Boolean(activeGames.size === 0)}
           >
-            <Text style={styles.primaryBtnText}>Start Round →</Text>
+            <LinearGradient
+              colors={activeGames.size === 0 ? ['#1a3a0a', '#0f2006'] : ['#44ff18', '#28cc08']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.primaryBtnInner}
+            >
+              <Text style={styles.primaryBtnText}>Start Round →</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -572,20 +632,36 @@ export default function SetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#0a0a0a' },
+  flex: { flex: 1, backgroundColor: '#060606' },
   scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
 
-  // Subtle center glow
+  // Radial center glow
   centerGlow: {
     position: 'absolute',
-    width: 400,
-    height: 400,
-    borderRadius: 200,
+    width: 500,
+    height: 500,
+    borderRadius: 250,
     backgroundColor: '#39FF14',
-    opacity: 0.03,
-    top: '20%',
+    opacity: 0.025,
+    top: -50,
     alignSelf: 'center',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 120,
+  },
+
+  // Card highlight (top edge)
+  cardHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
   },
 
   // Step indicator
@@ -599,19 +675,40 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: '#161616',
-    borderWidth: 2,
-    borderColor: '#242424',
     justifyContent: 'center',
     alignItems: 'center',
   },
   stepDotActive: {
-    borderColor: '#39FF14',
-    backgroundColor: '#0a0a0a',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  stepDotHighlight: {
+    position: 'absolute',
+    top: 2,
+    left: 4,
+    right: 4,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
   stepDotComplete: {
-    backgroundColor: '#39FF14',
-    borderColor: '#39FF14',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
   },
   stepCheck: {
     color: '#000',
@@ -633,12 +730,15 @@ const styles = StyleSheet.create({
 
   // Player cards (Step 1)
   playerCard: {
-    backgroundColor: '#161616',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#242424',
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   playerHeader: {
     flexDirection: 'row',
@@ -656,21 +756,26 @@ const styles = StyleSheet.create({
   removeBtn: { fontSize: 18, color: '#555', fontWeight: '400' },
 
   nameInput: {
-    backgroundColor: '#0f0f0f',
+    backgroundColor: '#080808',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#1a1a1a',
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 17,
     color: '#fff',
     marginBottom: 10,
+    // Inset shadow simulation
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
   },
 
   taxManRow: { flexDirection: 'row', alignItems: 'center' },
   taxManLabel: { fontSize: 15, color: '#fff', marginRight: 10 },
   taxManInput: {
-    backgroundColor: '#0f0f0f',
+    backgroundColor: '#050a03',
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#39FF14',
@@ -682,6 +787,12 @@ const styles = StyleSheet.create({
     width: 72,
     textAlign: 'center',
     marginRight: 10,
+    // Glow
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 6,
   },
   taxManHint: { fontSize: 12, color: '#555', flex: 1 },
 
@@ -689,10 +800,10 @@ const styles = StyleSheet.create({
   handicapRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
   handicapLabel: { fontSize: 15, color: '#888', marginRight: 10 },
   handicapInput: {
-    backgroundColor: '#0f0f0f',
+    backgroundColor: '#080808',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#1a1a1a',
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 20,
@@ -710,48 +821,79 @@ const styles = StyleSheet.create({
     gap: 12,
     marginTop: 24,
   },
-  primaryBtn: {
-    backgroundColor: '#39FF14',
+  primaryBtnOuter: {
+    flex: 1,
     borderRadius: 14,
-    paddingVertical: 18,
-    alignItems: 'center',
     shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 12,
   },
   primaryBtnDisabled: {
-    backgroundColor: '#1a3a0a',
     shadowOpacity: 0,
   },
-  primaryBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },
-  secondaryBtn: {
-    backgroundColor: '#161616',
+  primaryBtnInner: {
     borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
     paddingVertical: 18,
     alignItems: 'center',
+    borderWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.25)',
+    borderLeftColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: 'rgba(0,0,0,0.2)',
+  },
+  primaryBtnText: { fontSize: 18, fontWeight: '900', color: '#000', letterSpacing: 0.3 },
+  
+  secondaryBtnOuter: {
+    flex: 1,
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  secondaryBtnInner: {
+    borderRadius: 14,
+    paddingVertical: 18,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
+    borderColor: '#2a2a2a',
+    overflow: 'hidden',
+  },
+  secondaryBtnHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.06)',
   },
   secondaryBtnText: { fontSize: 16, color: '#888' },
 
   // Game cards (Step 2)
   gameCard: {
-    backgroundColor: '#161616',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#242424',
     padding: 16,
     marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   gameCardActive: {
+    borderWidth: 1,
     borderColor: '#39FF14',
-    backgroundColor: '#0f1a0a',
+    shadowColor: '#39FF14',
+    shadowOpacity: 0.25,
   },
   gameCardActiveScorecard: {
+    borderWidth: 1,
     borderColor: '#888',
-    backgroundColor: '#1a1a1a',
   },
   gameCardDisabled: {
     opacity: 0.5,
@@ -777,6 +919,10 @@ const styles = StyleSheet.create({
   toggleActive: {
     backgroundColor: '#39FF14',
     borderColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
   },
   toggleActiveScorecard: {
     backgroundColor: '#888',
@@ -839,12 +985,16 @@ const styles = StyleSheet.create({
   gameAmountInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0f0f0f',
+    backgroundColor: '#050a03',
     borderRadius: 10,
     borderWidth: 2,
     borderColor: '#39FF14',
     paddingHorizontal: 12,
     paddingVertical: 8,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
   },
   dollarSign: {
     fontSize: 18,

@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { GameMode, GameResult, LeaderboardEntry, Payout } from '../types';
@@ -51,8 +52,12 @@ export default function ResultsScreen() {
 
   return (
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+      {/* Top-center glow overlay */}
+      <View pointerEvents="none" style={styles.topGlow} />
+
       {/* Summary banner */}
-      <View style={styles.summaryBanner}>
+      <LinearGradient colors={['#212121', '#141414']} style={styles.summaryBanner}>
+        <View style={styles.cardHighlight} />
         <View style={styles.summaryItem}>
           <Text style={styles.summaryNum}>{winners.length}</Text>
           <Text style={styles.summaryLabel}>WINNER{winners.length !== 1 ? 'S' : ''}</Text>
@@ -67,14 +72,14 @@ export default function ResultsScreen() {
           <Text style={styles.summaryNum}>{formatMoney(totalPot / 2)}</Text>
           <Text style={styles.summaryLabel}>TOTAL POT</Text>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* Active games indicator */}
       <View style={styles.gamesBar}>
         {results.games.map(g => (
-          <View key={g.mode} style={styles.gameChip}>
+          <LinearGradient key={g.mode} colors={['#1a1a1a', '#111111']} style={styles.gameChip}>
             <Text style={styles.gameChipText}>{getGameEmoji(g.mode)} {g.label}</Text>
-          </View>
+          </LinearGradient>
         ))}
       </View>
 
@@ -86,25 +91,47 @@ export default function ResultsScreen() {
       {/* Combined Net Totals */}
       {results.games.length > 1 && (
         <>
-          <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Combined Net Totals</Text>
-          <Text style={styles.sectionHint}>All games combined</Text>
+          <LinearGradient colors={['#1a1a1a', '#111111']} style={styles.sectionHeader}>
+            <View style={styles.cardHighlight} />
+            <Text style={styles.sectionLabel}>Combined Net Totals</Text>
+            <Text style={styles.sectionHint}>All games combined</Text>
+          </LinearGradient>
           {sortedNet.map(([name, amount]) => {
             const isWinner = amount > 0;
             const isLoser = amount < 0;
-            return (
-              <View 
+            return isWinner ? (
+              <LinearGradient 
                 key={name} 
-                style={[
-                  styles.totalRow,
-                  isWinner && styles.totalRowWinner,
-                  isLoser && styles.totalRowLoser,
-                ]}
+                colors={['#172210', '#0d1508']} 
+                style={[styles.totalRow, styles.totalRowWinner]}
               >
                 <Text style={styles.totalName}>{name}</Text>
-                <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
-                  {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+                <Text style={[styles.totalAmount, styles.totalPos]}>
+                  +{formatMoney(amount)}
                 </Text>
-              </View>
+              </LinearGradient>
+            ) : isLoser ? (
+              <LinearGradient 
+                key={name} 
+                colors={['#1a0808', '#110505']} 
+                style={[styles.totalRow, styles.totalRowLoser]}
+              >
+                <Text style={styles.totalName}>{name}</Text>
+                <Text style={[styles.totalAmount, styles.totalNeg]}>
+                  {formatMoney(amount)}
+                </Text>
+              </LinearGradient>
+            ) : (
+              <LinearGradient 
+                key={name} 
+                colors={['#1c1c1c', '#121212']} 
+                style={styles.totalRow}
+              >
+                <Text style={styles.totalName}>{name}</Text>
+                <Text style={[styles.totalAmount, { color: '#888' }]}>
+                  {formatMoney(amount)}
+                </Text>
+              </LinearGradient>
             );
           })}
         </>
@@ -113,52 +140,84 @@ export default function ResultsScreen() {
       {/* If only one game, show net totals for that game */}
       {results.games.length === 1 && (
         <>
-          <Text style={[styles.sectionLabel, { marginTop: 28 }]}>Net Totals</Text>
+          <LinearGradient colors={['#1a1a1a', '#111111']} style={styles.sectionHeader}>
+            <View style={styles.cardHighlight} />
+            <Text style={styles.sectionLabel}>Net Totals</Text>
+          </LinearGradient>
           {sortedNet.map(([name, amount]) => {
             const isWinner = amount > 0;
             const isLoser = amount < 0;
-            return (
-              <View 
+            return isWinner ? (
+              <LinearGradient 
                 key={name} 
-                style={[
-                  styles.totalRow,
-                  isWinner && styles.totalRowWinner,
-                  isLoser && styles.totalRowLoser,
-                ]}
+                colors={['#172210', '#0d1508']} 
+                style={[styles.totalRow, styles.totalRowWinner]}
               >
                 <Text style={styles.totalName}>{name}</Text>
-                <Text style={[styles.totalAmount, amount >= 0 ? styles.totalPos : styles.totalNeg]}>
-                  {amount >= 0 ? '+' : ''}{formatMoney(amount)}
+                <Text style={[styles.totalAmount, styles.totalPos]}>
+                  +{formatMoney(amount)}
                 </Text>
-              </View>
+              </LinearGradient>
+            ) : isLoser ? (
+              <LinearGradient 
+                key={name} 
+                colors={['#1a0808', '#110505']} 
+                style={[styles.totalRow, styles.totalRowLoser]}
+              >
+                <Text style={styles.totalName}>{name}</Text>
+                <Text style={[styles.totalAmount, styles.totalNeg]}>
+                  {formatMoney(amount)}
+                </Text>
+              </LinearGradient>
+            ) : (
+              <LinearGradient 
+                key={name} 
+                colors={['#1c1c1c', '#121212']} 
+                style={styles.totalRow}
+              >
+                <Text style={styles.totalName}>{name}</Text>
+                <Text style={[styles.totalAmount, { color: '#888' }]}>
+                  {formatMoney(amount)}
+                </Text>
+              </LinearGradient>
             );
           })}
         </>
       )}
 
       {/* Actions */}
-      <TouchableOpacity
-        style={styles.primaryBtn}
-        onPress={() => {
-          resetGameResults();
-          resetGameSetup();
-          router.replace('/setup');
-        }}
-        activeOpacity={0.8}
-      >
-        <Text style={styles.primaryBtnText}>Play Again</Text>
-      </TouchableOpacity>
+      <View style={styles.playAgainOuter}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => {
+            resetGameResults();
+            resetGameSetup();
+            router.replace('/setup');
+          }}
+        >
+          <LinearGradient
+            colors={['#44ff18', '#28cc08']}
+            start={{ x: 0.5, y: 0 }}
+            end={{ x: 0.5, y: 1 }}
+            style={styles.playAgainInner}
+          >
+            <Text style={styles.playAgainText}>Play Again</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
-        style={styles.secondaryBtn}
+        activeOpacity={0.7}
         onPress={() => {
           resetGameResults();
           resetGameSetup();
           router.replace('/');
         }}
-        activeOpacity={0.7}
       >
-        <Text style={styles.secondaryBtnText}>← Home</Text>
+        <LinearGradient colors={['#1e1e1e', '#141414']} style={styles.homeBtn}>
+          <View style={styles.cardHighlight} />
+          <Text style={styles.homeBtnText}>← Home</Text>
+        </LinearGradient>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -173,33 +232,45 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
 
   return (
     <View style={[styles.gameSection, !isLast && styles.gameSectionBorder]}>
-      <View style={styles.gameSectionHeader}>
+      <LinearGradient colors={['#1a1a1a', '#111111']} style={styles.gameSectionHeader}>
+        <View style={styles.cardHighlight} />
         <Text style={styles.gameSectionTitle}>
           {getGameEmoji(game.mode)} {game.label}
         </Text>
-      </View>
+      </LinearGradient>
 
       {/* Scorecard: show leaderboard instead of net standings */}
       {isScorecard && game.leaderboard ? (
         <View style={styles.leaderboardList}>
           {game.leaderboard.map((entry, idx) => (
-            <View 
-              key={entry.name} 
-              style={[
-                styles.leaderboardRow,
-                idx === 0 && styles.leaderboardRowFirst,
-              ]}
-            >
-              <Text style={[styles.leaderboardRank, idx === 0 && styles.leaderboardRankFirst]}>
-                {entry.rank}
-              </Text>
-              <Text style={[styles.leaderboardName, idx === 0 && styles.leaderboardNameFirst]}>
-                {entry.name}
-              </Text>
-              <Text style={[styles.leaderboardScore, idx === 0 && styles.leaderboardScoreFirst]}>
-                {entry.total}
-              </Text>
-            </View>
+            idx === 0 ? (
+              <LinearGradient 
+                key={entry.name} 
+                colors={['#172210', '#0d1508']} 
+                style={[styles.leaderboardRow, styles.leaderboardRowFirst]}
+              >
+                <Text style={[styles.leaderboardRank, styles.leaderboardRankFirst]}>
+                  {entry.rank}
+                </Text>
+                <Text style={[styles.leaderboardName, styles.leaderboardNameFirst]}>
+                  {entry.name}
+                </Text>
+                <Text style={[styles.leaderboardScore, styles.leaderboardScoreFirst]}>
+                  {entry.total}
+                </Text>
+              </LinearGradient>
+            ) : (
+              <LinearGradient 
+                key={entry.name} 
+                colors={['#1c1c1c', '#121212']} 
+                style={styles.leaderboardRow}
+              >
+                <View style={styles.cardHighlight} />
+                <Text style={styles.leaderboardRank}>{entry.rank}</Text>
+                <Text style={styles.leaderboardName}>{entry.name}</Text>
+                <Text style={styles.leaderboardScore}>{entry.total}</Text>
+              </LinearGradient>
+            )
           ))}
         </View>
       ) : (
@@ -207,14 +278,33 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
           {/* Net standings for this game */}
           <View style={styles.gameNetList}>
             {sortedNet.map(([name, amount]) => (
-              <View key={name} style={styles.gameNetRow}>
+              <LinearGradient 
+                key={name} 
+                colors={['#1c1c1c', '#121212']} 
+                style={styles.gameNetRow}
+              >
+                <View style={styles.cardHighlight} />
                 <Text style={styles.gameNetName}>{name}</Text>
-                <View style={[styles.gameNetBadge, amount >= 0 ? styles.gameNetBadgePos : styles.gameNetBadgeNeg]}>
-                  <Text style={[styles.gameNetText, amount >= 0 ? styles.gameNetTextPos : styles.gameNetTextNeg]}>
-                    {amount >= 0 ? '+' : ''}{formatMoney(amount)}
-                  </Text>
-                </View>
-              </View>
+                {amount >= 0 ? (
+                  <LinearGradient 
+                    colors={['#1a3a0a', '#0f2006']} 
+                    style={[styles.gameNetBadge, styles.gameNetBadgePos]}
+                  >
+                    <Text style={[styles.gameNetText, styles.gameNetTextPos]}>
+                      +{formatMoney(amount)}
+                    </Text>
+                  </LinearGradient>
+                ) : (
+                  <LinearGradient 
+                    colors={['#3a0a0a', '#200606']} 
+                    style={[styles.gameNetBadge, styles.gameNetBadgeNeg]}
+                  >
+                    <Text style={[styles.gameNetText, styles.gameNetTextNeg]}>
+                      {formatMoney(amount)}
+                    </Text>
+                  </LinearGradient>
+                )}
+              </LinearGradient>
             ))}
           </View>
 
@@ -223,7 +313,12 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
             <View style={styles.payoutsContainer}>
               <Text style={styles.payoutsLabel}>PAYOUTS</Text>
               {consolidatePayouts(game.payouts).map((p, i) => (
-                <View key={i} style={styles.payoutRow}>
+                <LinearGradient 
+                  key={i} 
+                  colors={['#1c1c1c', '#121212']} 
+                  style={styles.payoutRow}
+                >
+                  <View style={styles.cardHighlight} />
                   <Text style={styles.payoutFrom}>{p.from}</Text>
                   <View style={styles.payoutArrowContainer}>
                     <View style={styles.payoutLine} />
@@ -232,13 +327,14 @@ function GameResultSection({ game, isLast }: { game: GameResult; isLast: boolean
                     <Text style={styles.payoutArrow}>→</Text>
                   </View>
                   <Text style={styles.payoutTo}>{p.to}</Text>
-                </View>
+                </LinearGradient>
               ))}
             </View>
           ) : (
-            <View style={styles.noPayoutsCard}>
+            <LinearGradient colors={['#1c1c1c', '#121212']} style={styles.noPayoutsCard}>
+              <View style={styles.cardHighlight} />
               <Text style={styles.noPayoutsText}>No payouts for this game</Text>
-            </View>
+            </LinearGradient>
           )}
         </>
       )}
@@ -264,21 +360,52 @@ function consolidatePayouts(payouts: Payout[]): Payout[] {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#0a0a0a' },
+  scroll: { flex: 1, backgroundColor: '#060606' },
   content: { padding: 20, paddingBottom: 48 },
 
-  errorContainer: { flex: 1, backgroundColor: '#0a0a0a', alignItems: 'center', justifyContent: 'center' },
+  topGlow: {
+    position: 'absolute',
+    width: 500,
+    height: 500,
+    borderRadius: 250,
+    backgroundColor: '#39FF14',
+    opacity: 0.025,
+    top: -50,
+    alignSelf: 'center',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 120,
+  },
+
+  errorContainer: { flex: 1, backgroundColor: '#060606', alignItems: 'center', justifyContent: 'center' },
   errorText: { color: '#ff4444', fontSize: 18, marginBottom: 16 },
   errorLink: { color: '#39FF14', fontSize: 16 },
 
+  cardHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+
   summaryBanner: {
     flexDirection: 'row',
-    backgroundColor: '#161616',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#242424',
     paddingVertical: 20,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   summaryItem: { flex: 1, alignItems: 'center' },
   summaryNum: { fontSize: 28, fontWeight: '800', color: '#39FF14' },
@@ -298,7 +425,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   gameChip: {
-    backgroundColor: '#161616',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -322,6 +448,14 @@ const styles = StyleSheet.create({
   },
   gameSectionHeader: {
     marginBottom: 12,
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   gameSectionTitle: {
     fontSize: 18,
@@ -338,11 +472,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: '#161616',
     borderRadius: 10,
     marginBottom: 6,
     borderWidth: 1,
     borderColor: '#242424',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   gameNetName: {
     fontSize: 15,
@@ -355,15 +494,24 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     minWidth: 70,
     alignItems: 'center',
+    borderWidth: 1,
   },
-  gameNetBadgePos: { backgroundColor: '#39FF14' },
-  gameNetBadgeNeg: { backgroundColor: '#ff4444' },
+  gameNetBadgePos: { 
+    borderColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  gameNetBadgeNeg: { 
+    borderColor: '#ff4444',
+  },
   gameNetText: {
     fontSize: 14,
     fontWeight: '800',
   },
-  gameNetTextPos: { color: '#000' },
-  gameNetTextNeg: { color: '#fff' },
+  gameNetTextPos: { color: '#39FF14' },
+  gameNetTextNeg: { color: '#ff4444' },
 
   // Scorecard leaderboard
   leaderboardList: {
@@ -374,16 +522,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
-    backgroundColor: '#161616',
     borderRadius: 10,
     marginBottom: 6,
     borderWidth: 1,
     borderColor: '#242424',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   leaderboardRowFirst: {
-    backgroundColor: '#0f1a0a',
-    borderColor: '#39FF14',
     borderLeftWidth: 3,
+    borderLeftColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   leaderboardRank: {
     fontSize: 16,
@@ -428,12 +584,17 @@ const styles = StyleSheet.create({
   payoutRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#161616',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#242424',
     padding: 12,
     marginBottom: 6,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   payoutFrom: { fontSize: 14, fontWeight: '700', color: '#ff4444', flex: 1 },
   payoutArrowContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, flex: 1.4, justifyContent: 'center' },
@@ -443,17 +604,34 @@ const styles = StyleSheet.create({
   payoutTo: { fontSize: 14, fontWeight: '700', color: '#39FF14', flex: 1, textAlign: 'right' },
 
   noPayoutsCard: {
-    backgroundColor: '#161616',
     borderRadius: 10,
     borderWidth: 1,
     borderColor: '#242424',
     padding: 14,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
   },
   noPayoutsText: { fontSize: 13, color: '#555', textAlign: 'center' },
 
+  sectionHeader: {
+    marginTop: 28,
+    marginBottom: 12,
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
+  },
   sectionLabel: { fontSize: 22, fontWeight: '700', color: '#fff', marginBottom: 4 },
-  sectionHint: { fontSize: 13, color: '#888', marginBottom: 12 },
+  sectionHint: { fontSize: 13, color: '#888' },
 
   totalRow: {
     flexDirection: 'row',
@@ -463,17 +641,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     marginBottom: 6,
     borderRadius: 10,
-    backgroundColor: '#161616',
     borderWidth: 1,
     borderColor: '#242424',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
   },
   totalRowWinner: {
-    backgroundColor: '#0f1a0a',
     borderLeftWidth: 3,
     borderLeftColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
   },
   totalRowLoser: {
-    backgroundColor: '#1a0a0a',
     borderLeftWidth: 3,
     borderLeftColor: '#ff4444',
   },
@@ -482,28 +666,35 @@ const styles = StyleSheet.create({
   totalPos: { color: '#39FF14' },
   totalNeg: { color: '#ff4444' },
 
-  primaryBtn: {
-    backgroundColor: '#39FF14',
+  playAgainOuter: {
+    borderRadius: 14,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 12,
+    marginTop: 32,
+    marginBottom: 12,
+  },
+  playAgainInner: {
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 32,
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 8,
+    borderWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.25)',
+    borderLeftColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: 'rgba(0,0,0,0.2)',
   },
-  primaryBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },
+  playAgainText: { color: '#000', fontWeight: '900', fontSize: 18 },
 
-  secondaryBtn: {
-    backgroundColor: '#161616',
+  homeBtn: {
     borderRadius: 14,
     borderWidth: 1,
     borderColor: '#2a2a2a',
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 12,
+    overflow: 'hidden',
   },
-  secondaryBtnText: { fontSize: 16, color: '#888' },
+  homeBtnText: { fontSize: 16, color: '#888' },
 });

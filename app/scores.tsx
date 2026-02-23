@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
@@ -329,22 +330,34 @@ export default function ScoresScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Radial center glow */}
+      <View style={styles.centerGlow} pointerEvents="none" />
+
       {/* Preview mode banner */}
       {isPreview && (
-        <View style={styles.previewBanner}>
+        <LinearGradient
+          colors={['#1e1e1e', '#141414']}
+          style={styles.previewBanner}
+        >
+          <View style={styles.cardHighlight} />
           <Text style={styles.previewIcon}>👀</Text>
           <View style={styles.previewTextContainer}>
             <Text style={styles.previewTitle}>Preview Mode</Text>
             <Text style={styles.previewSubtitle}>Sample data — scores are locked</Text>
           </View>
           <TouchableOpacity
-            style={styles.previewCTA}
+            style={styles.previewCTAOuter}
             onPress={() => router.replace('/setup')}
             activeOpacity={0.8}
           >
-            <Text style={styles.previewCTAText}>Start Game</Text>
+            <LinearGradient
+              colors={['#44ff18', '#28cc08']}
+              style={styles.previewCTAInner}
+            >
+              <Text style={styles.previewCTAText}>Start Game</Text>
+            </LinearGradient>
           </TouchableOpacity>
-        </View>
+        </LinearGradient>
       )}
 
       {/* Edit modal */}
@@ -359,26 +372,42 @@ export default function ScoresScreen() {
           onPress={confirmEdit}
           activeOpacity={1}
         >
-          <TouchableOpacity style={styles.modalCard} activeOpacity={1} onPress={() => {}}>
-            <Text style={styles.modalTitle}>{modalLabel}</Text>
-            <TextInput
-              style={styles.modalInput}
-              value={inputVal}
-              onChangeText={setInputVal}
-              keyboardType="number-pad"
-              autoFocus
-              maxLength={2}
-              selectTextOnFocus
-              onSubmitEditing={confirmEdit}
-            />
-            <View style={styles.modalBtns}>
-              <TouchableOpacity style={styles.modalCancel} onPress={() => setTarget(null)}>
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalConfirm} onPress={confirmEdit}>
-                <Text style={styles.modalConfirmText}>Save</Text>
-              </TouchableOpacity>
-            </View>
+          <TouchableOpacity activeOpacity={1} onPress={() => {}}>
+            <LinearGradient
+              colors={['#222222', '#161616']}
+              style={styles.modalCard}
+            >
+              <View style={styles.cardHighlight} />
+              <Text style={styles.modalTitle}>{modalLabel}</Text>
+              <TextInput
+                style={styles.modalInput}
+                value={inputVal}
+                onChangeText={setInputVal}
+                keyboardType="number-pad"
+                autoFocus
+                maxLength={2}
+                selectTextOnFocus
+                onSubmitEditing={confirmEdit}
+              />
+              <View style={styles.modalBtns}>
+                <TouchableOpacity style={styles.modalCancelOuter} onPress={() => setTarget(null)}>
+                  <LinearGradient
+                    colors={['#1e1e1e', '#141414']}
+                    style={styles.modalCancelInner}
+                  >
+                    <Text style={styles.modalCancelText}>Cancel</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalConfirmOuter} onPress={confirmEdit}>
+                  <LinearGradient
+                    colors={['#44ff18', '#28cc08']}
+                    style={styles.modalConfirmInner}
+                  >
+                    <Text style={styles.modalConfirmText}>Save</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -389,17 +418,21 @@ export default function ScoresScreen() {
           {/* ── Sticky left column ── */}
           <View style={styles.stickyCol}>
             {/* Header cell */}
-            <View style={[styles.cell, styles.hdrCell, { width: NAME_W, height: ROW_H }]}>
+            <LinearGradient
+              colors={['#1e1e1e', '#141414']}
+              style={[styles.cell, styles.hdrCell, { width: NAME_W, height: ROW_H }]}
+            >
               <Text style={styles.hdrText}>NAME</Text>
-            </View>
+            </LinearGradient>
             {/* Par label */}
             <View style={[styles.cell, styles.parLabelCell, { width: NAME_W, height: ROW_H }]}>
               <Text style={styles.parLabelText}>PAR</Text>
             </View>
             {/* Player name cells */}
             {setup.players.map((player, i) => (
-              <View
+              <LinearGradient
                 key={player.id}
+                colors={['#141414', '#0d0d0d']}
                 style={[styles.cell, styles.nameCell, { width: NAME_W, height: ROW_H }, i % 2 === 1 && styles.rowAlt]}
               >
                 <Text style={styles.nameText} numberOfLines={1}>
@@ -409,7 +442,7 @@ export default function ScoresScreen() {
                 {useHandicaps && player.handicap !== undefined && (
                   <Text style={styles.hcpText}>HCP {player.handicap}</Text>
                 )}
-              </View>
+              </LinearGradient>
             ))}
           </View>
 
@@ -419,24 +452,41 @@ export default function ScoresScreen() {
               {/* Header row */}
               <View style={{ flexDirection: 'row', height: ROW_H }}>
                 {[0,1,2,3,4,5,6,7,8].map(i => (
-                  <View key={i} style={[styles.cell, styles.hdrCell, { width: CELL_W }]}>
+                  <LinearGradient
+                    key={i}
+                    colors={['#1e1e1e', '#141414']}
+                    style={[styles.cell, styles.hdrCell, { width: CELL_W }]}
+                  >
                     <Text style={styles.hdrText}>{i + 1}</Text>
-                  </View>
+                  </LinearGradient>
                 ))}
-                <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
+                <LinearGradient
+                  colors={['#1e1e1e', '#141414']}
+                  style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}
+                >
                   <Text style={styles.sumHdrText}>OUT</Text>
-                </View>
+                </LinearGradient>
                 {[9,10,11,12,13,14,15,16,17].map(i => (
-                  <View key={i} style={[styles.cell, styles.hdrCell, { width: CELL_W }]}>
+                  <LinearGradient
+                    key={i}
+                    colors={['#1e1e1e', '#141414']}
+                    style={[styles.cell, styles.hdrCell, { width: CELL_W }]}
+                  >
                     <Text style={styles.hdrText}>{i + 1}</Text>
-                  </View>
+                  </LinearGradient>
                 ))}
-                <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
+                <LinearGradient
+                  colors={['#1e1e1e', '#141414']}
+                  style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}
+                >
                   <Text style={styles.sumHdrText}>IN</Text>
-                </View>
-                <View style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}>
+                </LinearGradient>
+                <LinearGradient
+                  colors={['#1e1e1e', '#141414']}
+                  style={[styles.cell, styles.sumHdrCell, { width: SUM_W }]}
+                >
                   <Text style={styles.sumHdrText}>TOT</Text>
-                </View>
+                </LinearGradient>
               </View>
 
               {/* Par row */}
@@ -494,7 +544,7 @@ export default function ScoresScreen() {
                         <TouchableOpacity
                           key={i}
                           onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
-                          style={[styles.cell, styles.scoreCell, { width: CELL_W }]}
+                          style={[styles.cell, styles.scoreCell, { width: CELL_W, backgroundColor: i % 2 === 0 ? '#0a0a0a' : '#0c0c0c' }]}
                         >
                           {v !== null ? (
                             <View style={scoreDotStyle(diff) as object}>
@@ -518,7 +568,7 @@ export default function ScoresScreen() {
                         <TouchableOpacity
                           key={i}
                           onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
-                          style={[styles.cell, styles.scoreCell, { width: CELL_W }]}
+                          style={[styles.cell, styles.scoreCell, { width: CELL_W, backgroundColor: i % 2 === 0 ? '#0a0a0a' : '#0c0c0c' }]}
                         >
                           {v !== null ? (
                             <View style={scoreDotStyle(diff) as object}>
@@ -557,7 +607,11 @@ export default function ScoresScreen() {
           <View style={styles.extrasContainer}>
             {/* Wolf Panel */}
             {hasWolf && (
-              <View style={styles.extrasPanel}>
+              <LinearGradient
+                colors={['#212121', '#141414']}
+                style={styles.extrasPanel}
+              >
+                <View style={styles.cardHighlight} />
                 <TouchableOpacity 
                   style={styles.extrasPanelHeader}
                   onPress={() => setWolfExpanded(!wolfExpanded)}
@@ -617,12 +671,16 @@ export default function ScoresScreen() {
                     })}
                   </ScrollView>
                 )}
-              </View>
+              </LinearGradient>
             )}
 
             {/* BBB Panel */}
             {hasBBB && (
-              <View style={styles.extrasPanel}>
+              <LinearGradient
+                colors={['#212121', '#141414']}
+                style={styles.extrasPanel}
+              >
+                <View style={styles.cardHighlight} />
                 <TouchableOpacity 
                   style={styles.extrasPanelHeader}
                   onPress={() => setBbbExpanded(!bbbExpanded)}
@@ -675,12 +733,16 @@ export default function ScoresScreen() {
                     })}
                   </ScrollView>
                 )}
-              </View>
+              </LinearGradient>
             )}
 
             {/* Snake Panel */}
             {hasSnake && (
-              <View style={styles.extrasPanel}>
+              <LinearGradient
+                colors={['#212121', '#141414']}
+                style={styles.extrasPanel}
+              >
+                <View style={styles.cardHighlight} />
                 <TouchableOpacity 
                   style={styles.extrasPanelHeader}
                   onPress={() => setSnakeExpanded(!snakeExpanded)}
@@ -727,7 +789,7 @@ export default function ScoresScreen() {
                     })}
                   </ScrollView>
                 )}
-              </View>
+              </LinearGradient>
             )}
           </View>
         )}
@@ -735,7 +797,11 @@ export default function ScoresScreen() {
 
       {/* ─── Live Game Status Bar ─────────────────────────────────────────────── */}
       {!isPreview && liveStatus.length > 0 && (
-        <View style={styles.liveStatusBar}>
+        <LinearGradient
+          colors={['#0f0f0f', '#080808']}
+          style={styles.liveStatusBar}
+        >
+          <View style={styles.liveStatusHighlight} />
           <Text style={styles.liveStatusHeader}>ACTIVE GAMES</Text>
           <ScrollView 
             style={styles.liveStatusScroll} 
@@ -763,22 +829,36 @@ export default function ScoresScreen() {
               </View>
             ))}
           </ScrollView>
-        </View>
+        </LinearGradient>
       )}
 
       {/* Footer */}
       <View style={styles.footer}>
         {isPreview ? (
           <TouchableOpacity
-            style={styles.calcBtn}
+            style={styles.calcBtnOuter}
             onPress={() => router.replace('/setup')}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Text style={styles.calcBtnText}>Start a Real Game →</Text>
+            <LinearGradient
+              colors={['#44ff18', '#28cc08']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.calcBtnInner}
+            >
+              <Text style={styles.calcBtnText}>Start a Real Game →</Text>
+            </LinearGradient>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.calcBtn} onPress={handleCalculate} activeOpacity={0.8}>
-            <Text style={styles.calcBtnText}>Calculate Payout →</Text>
+          <TouchableOpacity style={styles.calcBtnOuter} onPress={handleCalculate} activeOpacity={0.85}>
+            <LinearGradient
+              colors={['#44ff18', '#28cc08']}
+              start={{ x: 0.5, y: 0 }}
+              end={{ x: 0.5, y: 1 }}
+              style={styles.calcBtnInner}
+            >
+              <Text style={styles.calcBtnText}>Calculate Payout →</Text>
+            </LinearGradient>
           </TouchableOpacity>
         )}
       </View>
@@ -787,25 +867,61 @@ export default function ScoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0a0a0a' },
+  container: { flex: 1, backgroundColor: '#060606' },
   mainScroll: { flex: 1 },
+
+  // Radial center glow
+  centerGlow: {
+    position: 'absolute',
+    width: 500,
+    height: 500,
+    borderRadius: 250,
+    backgroundColor: '#39FF14',
+    opacity: 0.025,
+    top: -50,
+    alignSelf: 'center',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 120,
+    zIndex: 0,
+  },
+
+  // Card highlight (top edge)
+  cardHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.07)',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    zIndex: 1,
+  },
 
   // Preview mode banner
   previewBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#161616',
     borderBottomWidth: 1,
     borderBottomColor: '#39FF14',
     paddingHorizontal: 12,
     paddingVertical: 10,
+    overflow: 'hidden',
   },
   previewIcon: { fontSize: 20, marginRight: 10 },
   previewTextContainer: { flex: 1 },
   previewTitle: { color: '#39FF14', fontWeight: '700', fontSize: 14 },
   previewSubtitle: { color: '#888', fontSize: 11, marginTop: 1 },
-  previewCTA: {
-    backgroundColor: '#39FF14',
+  previewCTAOuter: {
+    borderRadius: 8,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+  },
+  previewCTAInner: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
@@ -827,25 +943,25 @@ const styles = StyleSheet.create({
   },
 
   // Header (hole numbers)
-  hdrCell: { backgroundColor: '#161616', borderColor: '#242424' },
+  hdrCell: { borderColor: '#242424' },
   hdrText: { color: '#fff', fontWeight: '700', fontSize: 12 },
 
   // OUT / IN / TOT headers
-  sumHdrCell: { backgroundColor: '#1e1e1e' },
+  sumHdrCell: {},
   sumHdrText: { color: '#39FF14', fontWeight: '800', fontSize: 11, letterSpacing: 0.3 },
 
   // Par label on sticky col
-  parLabelCell: { backgroundColor: '#0d0d0d' },
+  parLabelCell: { backgroundColor: '#161616' },
   parLabelText: { color: '#444', fontWeight: '700', fontSize: 11, letterSpacing: 1.5, textTransform: 'uppercase' },
 
   // Player name cells (sticky)
-  nameCell: { backgroundColor: '#0d0d0d', paddingHorizontal: 6, alignItems: 'flex-start' },
+  nameCell: { paddingHorizontal: 6, alignItems: 'flex-start', borderRightWidth: 1, borderRightColor: '#1e1e1e' },
   nameText: { color: '#fff', fontWeight: '600', fontSize: 13 },
   tmText: { color: '#39FF14', fontSize: 9, fontWeight: '700', marginTop: 1 },
   hcpText: { color: '#888', fontSize: 9, fontWeight: '600' },
 
   // Par cells
-  parCell: { backgroundColor: '#0d0d0d' },
+  parCell: { backgroundColor: '#161616' },
   parText: { color: '#888', fontSize: 13, fontWeight: '500' },
 
   // OUT/IN/TOT value cells
@@ -856,7 +972,7 @@ const styles = StyleSheet.create({
   totLose: { color: '#ff4444' },
 
   // Score cells
-  scoreCell: { backgroundColor: 'transparent' },
+  scoreCell: {},
 
   dotBase: {
     width: 28,
@@ -866,9 +982,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dotPar: { backgroundColor: '#333' },
-  dotUnder: { backgroundColor: '#39FF14' },
-  dotBogey: { backgroundColor: '#ff4444' },
-  dotDouble: { backgroundColor: '#cc2222' },
+  dotUnder: { 
+    backgroundColor: '#39FF14',
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 4,
+  },
+  dotBogey: { 
+    backgroundColor: '#ff4444',
+    shadowColor: '#ff4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+  },
+  dotDouble: { 
+    backgroundColor: '#cc2222',
+    shadowColor: '#cc2222',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3,
+  },
 
   scoreText: { fontSize: 12, fontWeight: '700', color: '#fff' },
   stUnder: { color: '#000' },
@@ -883,22 +1017,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalCard: {
-    backgroundColor: '#161616',
     borderRadius: 20,
     padding: 24,
     width: 240,
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#242424',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.6,
     shadowRadius: 20,
     elevation: 20,
+    overflow: 'hidden',
   },
   modalTitle: { color: '#fff', fontWeight: '600', fontSize: 15, marginBottom: 16, letterSpacing: 0.3 },
   modalInput: {
-    backgroundColor: '#0f0f0f',
+    backgroundColor: '#080808',
     borderWidth: 2,
     borderColor: '#39FF14',
     borderRadius: 14,
@@ -909,28 +1041,46 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 10,
     marginBottom: 20,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
   },
   modalBtns: { flexDirection: 'row', gap: 10, width: '100%' },
-  modalCancel: {
+  modalCancelOuter: {
     flex: 1,
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 6,
+  },
+  modalCancelInner: {
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 14,
-    backgroundColor: '#161616',
     borderWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.08)',
     borderColor: '#2a2a2a',
   },
   modalCancelText: { color: '#888', fontWeight: '600', fontSize: 16 },
-  modalConfirm: {
+  modalConfirmOuter: {
     flex: 1,
+    borderRadius: 14,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
+  },
+  modalConfirmInner: {
     paddingVertical: 14,
     alignItems: 'center',
     borderRadius: 14,
-    backgroundColor: '#39FF14',
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
+    borderWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.25)',
+    borderLeftColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: 'rgba(0,0,0,0.2)',
   },
   modalConfirmText: { color: '#000', fontWeight: '800', fontSize: 16 },
 
@@ -940,11 +1090,13 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   extrasPanel: {
-    backgroundColor: '#161616',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#242424',
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.6,
+    shadowRadius: 12,
+    elevation: 8,
   },
   extrasPanelHeader: {
     flexDirection: 'row',
@@ -952,7 +1104,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#1e1e1e',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
   extrasPanelTitle: {
     color: '#39FF14',
@@ -1104,12 +1256,20 @@ const styles = StyleSheet.create({
 
   // ─── Live Status Bar ───────────────────────────────────────────────────────
   liveStatusBar: {
-    backgroundColor: '#0d0d0d',
     borderTopWidth: 1,
-    borderTopColor: '#1e1e1e',
+    borderTopColor: 'rgba(255,255,255,0.04)',
     paddingHorizontal: 16,
     paddingVertical: 14,
     maxHeight: 200,
+    overflow: 'hidden',
+  },
+  liveStatusHighlight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.04)',
   },
   liveStatusHeader: {
     color: '#444',
@@ -1161,20 +1321,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#060606',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#242424',
   },
-  calcBtn: {
-    backgroundColor: '#39FF14',
+  calcBtnOuter: {
+    borderRadius: 14,
+    shadowColor: '#39FF14',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  calcBtnInner: {
     borderRadius: 14,
     paddingVertical: 18,
     alignItems: 'center',
-    shadowColor: '#39FF14',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 14,
-    elevation: 8,
+    borderWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.25)',
+    borderLeftColor: 'rgba(255,255,255,0.1)',
+    borderRightColor: 'rgba(255,255,255,0.05)',
+    borderBottomColor: 'rgba(0,0,0,0.2)',
   },
-  calcBtnText: { fontSize: 18, fontWeight: '800', color: '#000' },
+  calcBtnText: { fontSize: 18, fontWeight: '900', color: '#000', letterSpacing: 0.3 },
 });
