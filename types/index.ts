@@ -12,6 +12,7 @@ export interface TaxManConfig {
 
 export interface NassauConfig {
   betAmount: number; // $ per leg (front 9, back 9, full 18 = 3 possible payouts)
+  mode: 'stroke' | 'match'; // stroke = total score per leg, match = hole-by-hole wins
 }
 
 export interface SkinsConfig {

@@ -103,6 +103,7 @@ export default function SetupScreen() {
     'bingo-bango-bongo': '1',
     snake: '10',
   });
+  const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
 
   // ─── Step 1: Player Management ────────────────────────────────────────────
 
@@ -193,7 +194,7 @@ export default function SetupScreen() {
           games.push({ mode: 'taxman', config: { taxAmount: amount } });
           break;
         case 'nassau':
-          games.push({ mode: 'nassau', config: { betAmount: amount } });
+          games.push({ mode: 'nassau', config: { betAmount: amount, mode: nassauMode } });
           break;
         case 'skins':
           games.push({ mode: 'skins', config: { betPerSkin: amount } });
@@ -379,6 +380,38 @@ export default function SetupScreen() {
                       selectTextOnFocus
                     />
                   </View>
+                </View>
+              )}
+              
+              {/* Nassau stroke/match play toggle */}
+              {isActive && game.mode === 'nassau' && (
+                <View style={styles.nassauModeRow}>
+                  <TouchableOpacity
+                    style={[
+                      styles.nassauModeBtn,
+                      nassauMode === 'stroke' && styles.nassauModeBtnActive,
+                    ]}
+                    onPress={() => setNassauMode('stroke')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.nassauModeBtnText,
+                      nassauMode === 'stroke' && styles.nassauModeBtnTextActive,
+                    ]}>Stroke Play</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.nassauModeBtn,
+                      nassauMode === 'match' && styles.nassauModeBtnActive,
+                    ]}
+                    onPress={() => setNassauMode('match')}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[
+                      styles.nassauModeBtnText,
+                      nassauMode === 'match' && styles.nassauModeBtnTextActive,
+                    ]}>Match Play</Text>
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -630,6 +663,35 @@ const styles = StyleSheet.create({
     color: '#fff',
     width: 60,
     textAlign: 'center',
+  },
+
+  // Nassau stroke/match toggle
+  nassauModeRow: {
+    flexDirection: 'row',
+    marginTop: 12,
+    gap: 8,
+  },
+  nassauModeBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    backgroundColor: '#0d1f0d',
+    borderWidth: 1,
+    borderColor: '#2a4a2a',
+    alignItems: 'center',
+  },
+  nassauModeBtnActive: {
+    backgroundColor: '#39FF14',
+    borderColor: '#39FF14',
+  },
+  nassauModeBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#5a8a5a',
+  },
+  nassauModeBtnTextActive: {
+    color: '#000',
   },
 
   validationHint: {

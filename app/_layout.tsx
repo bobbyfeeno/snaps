@@ -9,8 +9,7 @@ export default function RootLayout() {
         screenOptions={{
           headerStyle: { backgroundColor: '#0d1f0d' },
           headerTintColor: '#39FF14',
-          headerTitleStyle: { fontWeight: 'bold', color: '#fff' },
-          contentStyle: { backgroundColor: '#0d1f0d' },
+          headerTitleStyle: { fontWeight: '700', color: '#fff' },
           animation: 'slide_from_right',
         }}
       >

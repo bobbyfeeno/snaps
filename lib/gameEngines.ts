@@ -84,11 +84,11 @@ export function calcTaxMan(
 
 // ─── Nassau ─────────────────────────────────────────────────────────────────
 
-export function calcNassau(
+function calcNassauStroke(
   players: Player[],
   scores: Record<string, (number | null)[]>,
   config: NassauConfig
-): GameResult {
+): { payouts: Payout[]; net: Record<string, number> } {
   const payouts: Payout[] = [];
   const net = initNet(players);
 
@@ -135,9 +135,107 @@ export function calcNassau(
     }
   }
 
+  return { payouts, net };
+}
+
+function calcNassauMatch(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: NassauConfig
+): { payouts: Payout[]; net: Record<string, number> } {
+  const payouts: Payout[] = [];
+  const net = initNet(players);
+
+  const legs: { name: string; start: number; end: number }[] = [
+    { name: 'Front 9', start: 0, end: 9 },
+    { name: 'Back 9', start: 9, end: 18 },
+    { name: 'Full 18', start: 0, end: 18 },
+  ];
+
+  for (const leg of legs) {
+    // Count holes won per player for this leg
+    const holesWon: Record<string, number> = {};
+    for (const p of players) {
+      holesWon[p.id] = 0;
+    }
+
+    for (let hole = leg.start; hole < leg.end; hole++) {
+      // Get scores for this hole (only players with non-null scores)
+      const holeScores: { player: Player; score: number }[] = [];
+      
+      for (const player of players) {
+        const score = scores[player.id][hole];
+        if (score !== null) {
+          holeScores.push({ player, score });
+        }
+      }
+
+      if (holeScores.length < 2) continue; // Need at least 2 players with scores
+
+      // Find lowest score for this hole
+      const minScore = Math.min(...holeScores.map(h => h.score));
+      const holeWinners = holeScores.filter(h => h.score === minScore);
+
+      // Single winner takes the hole; ties = halved (no hole winner)
+      if (holeWinners.length === 1) {
+        holesWon[holeWinners[0].player.id]++;
+      }
+    }
+
+    // Find who won the most holes in this leg
+    const participatingPlayers = players.filter(p => {
+      // Player participated if they have at least one non-null score in this leg
+      for (let h = leg.start; h < leg.end; h++) {
+        if (scores[p.id][h] !== null) return true;
+      }
+      return false;
+    });
+
+    if (participatingPlayers.length < 2) continue;
+
+    const maxHolesWon = Math.max(...participatingPlayers.map(p => holesWon[p.id]));
+    if (maxHolesWon === 0) continue; // No holes won = no payout
+
+    const legWinners = participatingPlayers.filter(p => holesWon[p.id] === maxHolesWon);
+
+    // If tied on holes won = push (no payout for this leg)
+    if (legWinners.length > 1) continue;
+
+    const winner = legWinners[0];
+
+    // Winner receives betAmount from each other participating player
+    for (const other of participatingPlayers) {
+      if (other.id !== winner.id) {
+        payouts.push({
+          from: other.name,
+          to: winner.name,
+          amount: config.betAmount,
+          game: 'nassau',
+        });
+        net[other.name] -= config.betAmount;
+        net[winner.name] += config.betAmount;
+      }
+    }
+  }
+
+  return { payouts, net };
+}
+
+export function calcNassau(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: NassauConfig
+): GameResult {
+  // Default to stroke play for backwards compatibility
+  const mode = config.mode ?? 'stroke';
+  
+  const { payouts, net } = mode === 'match'
+    ? calcNassauMatch(players, scores, config)
+    : calcNassauStroke(players, scores, config);
+
   return {
     mode: 'nassau',
-    label: 'Nassau',
+    label: mode === 'match' ? 'Nassau (Match)' : 'Nassau',
     payouts,
     net,
   };
