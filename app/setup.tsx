@@ -124,7 +124,7 @@ export default function SetupScreen() {
   function handleNextStep() {
     // Validation: at least one game selected
     if (activeGames.size === 0) {
-      Alert.alert('No Games Selected', 'Select at least one game to play.');
+      setTimeout(() => Alert.alert('No Games Selected', 'Select at least one game to play.'), 50);
       return;
     }
 
@@ -187,20 +187,22 @@ export default function SetupScreen() {
     // Validate players
     const filledPlayers = players.filter(p => p.name.trim());
     if (filledPlayers.length < 2) {
-      Alert.alert('Need More Players', 'Add at least 2 players with names.');
+      setTimeout(() => Alert.alert('Need More Players', 'Add at least 2 players with names.'), 50);
       return;
     }
 
     for (const p of filledPlayers) {
       if (hasTaxMan && (p.taxMan <= 0 || p.taxMan > 200)) {
-        Alert.alert('Invalid Tax Man', `"${p.name}" needs a valid Tax Man score (1–200).`);
+        setTimeout(() => Alert.alert('Invalid Tax Man', `"${p.name}" needs a valid Tax Man score (1–200).`), 50);
         return;
       }
     }
 
     // Check Wolf player requirement
     if (activeGames.has('wolf') && filledPlayers.length < 3) {
-      Alert.alert('Wolf Game Selected', '3 or more players must be added for the Wolf game.');
+      setTimeout(() => {
+        Alert.alert('Wolf Game Selected', '3 or more players must be added for the Wolf game.');
+      }, 50);
       return;
     }
 
@@ -210,7 +212,7 @@ export default function SetupScreen() {
       const amount = parseFloat(gameAmounts[mode]);
       if (isNaN(amount) || amount <= 0) {
         const gameName = GAME_DEFS.find(g => g.mode === mode)?.name ?? mode;
-        Alert.alert('Invalid Amount', `Enter a valid dollar amount for ${gameName}.`);
+        setTimeout(() => Alert.alert('Invalid Amount', `Enter a valid dollar amount for ${gameName}.`), 50);
         return;
       }
     }
