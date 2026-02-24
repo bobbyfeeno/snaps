@@ -16,6 +16,7 @@ import {
   SnakeConfig,
   SnakeHoleState,
   TaxManConfig,
+  VegasConfig,
   WolfConfig,
   WolfHoleState,
 } from '../types';
@@ -709,6 +710,109 @@ export function calcSnake(
   };
 }
 
+// ─── Vegas ───────────────────────────────────────────────────────────────────
+
+/** Concatenated team score: high digit first by default; low first if either player made par or better. */
+function vegasTeamNumber(s1: number, s2: number, par: number, forceHigh = false): number {
+  const lo = Math.min(s1, s2);
+  const hi = Math.max(s1, s2);
+  const hasDouble = s1 >= 10 || s2 >= 10;
+
+  if (hasDouble) {
+    // Double-digit always goes second (high first maintained)
+    return parseInt(`${hi}${lo}`, 10);
+  }
+
+  const eitherParOrBetter = !forceHigh && (s1 <= par || s2 <= par);
+  if (eitherParOrBetter) {
+    return lo * 10 + hi; // low first = better (reward for par/birdie)
+  }
+  return hi * 10 + lo; // high first = default / penalty
+}
+
+export function calcVegas(
+  players: Player[],
+  allScores: Record<string, (number | null)[]>,
+  pars: number[],
+  config: VegasConfig,
+  hammerMultipliers?: number[]
+): GameResult {
+  const { betPerPoint, flipBird, useHammer, teamA, teamB } = config;
+  const net = initNet(players);
+
+  const teamAPlayers = players.filter(p => teamA.includes(p.id));
+  const teamBPlayers = players.filter(p => teamB.includes(p.id));
+
+  if (teamAPlayers.length < 1 || teamBPlayers.length < 1) {
+    return { mode: 'vegas', label: 'Vegas', payouts: [], net };
+  }
+
+  let teamANetPoints = 0;
+  let teamBNetPoints = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const aScores = teamAPlayers.map(p => allScores[p.id]?.[hole] ?? null);
+    const bScores = teamBPlayers.map(p => allScores[p.id]?.[hole] ?? null);
+
+    if (aScores.some(s => s === null) || bScores.some(s => s === null)) continue;
+
+    const as = aScores as number[];
+    const bs = bScores as number[];
+    const par = pars[hole];
+
+    const aBirdie = as.some(s => s <= par - 1);
+    const bBirdie = bs.some(s => s <= par - 1);
+
+    // Compute base team numbers
+    let numA = vegasTeamNumber(as[0], as[1] ?? as[0], par);
+    let numB = vegasTeamNumber(bs[0], bs[1] ?? bs[0], par);
+
+    // Birdie flip: winning birdie team forces opponent to high-first (worse score)
+    if (flipBird) {
+      if (aBirdie && !bBirdie) {
+        numB = vegasTeamNumber(bs[0], bs[1] ?? bs[0], par, true); // force B high-first
+      } else if (bBirdie && !aBirdie) {
+        numA = vegasTeamNumber(as[0], as[1] ?? as[0], par, true); // force A high-first
+      }
+      // Both birdie → cancel (no flip)
+    }
+
+    const diff = Math.abs(numA - numB);
+    const multiplier = useHammer ? (hammerMultipliers?.[hole] ?? 1) : 1;
+    const points = diff * multiplier;
+
+    if (numA < numB) {
+      teamANetPoints += points;
+      teamBNetPoints -= points;
+    } else if (numB < numA) {
+      teamBNetPoints += points;
+      teamANetPoints -= points;
+    }
+    // equal → no points
+  }
+
+  const payouts: Payout[] = [];
+  const payout = Math.round(Math.abs(teamANetPoints) * betPerPoint * 100) / 100;
+
+  if (payout > 0) {
+    const winners = teamANetPoints > 0 ? teamAPlayers : teamBPlayers;
+    const losers  = teamANetPoints > 0 ? teamBPlayers : teamAPlayers;
+    const share = payout / Math.max(winners.length, 1);
+
+    for (const w of winners) {
+      for (const l of losers) {
+        payouts.push({ from: l.name, to: w.name, amount: share, game: 'vegas' });
+      }
+      net[w.name] = (net[w.name] ?? 0) + share * losers.length;
+    }
+    for (const l of losers) {
+      net[l.name] = (net[l.name] ?? 0) - share * winners.length;
+    }
+  }
+
+  return { mode: 'vegas', label: 'Vegas', payouts, net };
+}
+
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
 export function calcAllGames(
@@ -749,6 +853,9 @@ export function calcAllGames(
         break;
       case 'scorecard':
         result = calcScorecard(players, scores);
+        break;
+      case 'vegas':
+        result = calcVegas(players, scores, extras.pars ?? Array(18).fill(4), game.config, extras.hammerMultipliers ?? []);
         break;
     }
 
@@ -1198,6 +1305,23 @@ export function calcLiveStatus(
       case 'snake':
         results.push(calcLiveSnake(players, snakeHoles));
         break;
+      case 'vegas': {
+        // Simple live status: show running team point totals
+        const vegasCfg = game.config;
+        const teamAPlayers = players.filter(p => vegasCfg.teamA.includes(p.id));
+        const teamBPlayers = players.filter(p => vegasCfg.teamB.includes(p.id));
+        const teamAName = teamAPlayers.map(p => p.name.split(' ')[0]).join('/');
+        const teamBName = teamBPlayers.map(p => p.name.split(' ')[0]).join('/');
+        results.push({
+          mode: 'vegas',
+          label: 'Vegas',
+          lines: [
+            { text: `${teamAName} vs ${teamBName}`, color: 'neutral' },
+            { text: 'In progress', color: 'neutral' },
+          ],
+        });
+        break;
+      }
     }
   }
 

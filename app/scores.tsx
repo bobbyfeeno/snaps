@@ -1,4 +1,3 @@
-import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
@@ -14,7 +13,7 @@ import {
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
-import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, SnakeHoleState, WolfHoleState } from '../types';
+import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -103,6 +102,18 @@ export default function ScoresScreen() {
       threeputters: [],
     }))
   );
+
+  // ─── Hammer multipliers (per-hole, for Vegas/Nassau with Hammer enabled) ────
+  const [hammerMultipliers, setHammerMultipliers] = useState<number[]>(() => Array(18).fill(1));
+
+  function cycleHammer(hole: number) {
+    setHammerMultipliers(prev => {
+      const next = [...prev];
+      const cur = next[hole];
+      next[hole] = cur >= 8 ? 1 : cur * 2;
+      return next;
+    });
+  }
 
   // ─── Press state (Nassau match play auto-press) ───────────────────────────
   const [pressMatches, setPressMatches] = useState<PressMatch[]>([]);
@@ -312,6 +323,8 @@ export default function ScoresScreen() {
       bbb: bbbHoles,
       snake: snakeHoles,
       pressMatches: pressMatches,
+      hammerMultipliers: hammerMultipliers,
+      pars: pars,
     };
     
     multiGameResults = calcAllGames(setup, scores, extras);
@@ -327,6 +340,10 @@ export default function ScoresScreen() {
 
   const hasWolf = hasGame(activeGameModes, 'wolf');
   const hasBBB = hasGame(activeGameModes, 'bingo-bango-bongo');
+  const hasHammer = setup.games.some(g =>
+    (g.mode === 'vegas' && (g.config as VegasConfig).useHammer) ||
+    (g.mode === 'nassau' && (g.config as NassauConfig).useHammer)
+  );
   const hasSnake = hasGame(activeGameModes, 'snake');
   const hasExtras = hasWolf || hasBBB || hasSnake;
 
@@ -356,11 +373,8 @@ export default function ScoresScreen() {
               colors={['#44ff18', '#28cc08']}
               style={styles.previewCTAInner}
             >
-              <GlassView
+              <View
                 style={[StyleSheet.absoluteFill, { borderRadius: 8, overflow: 'hidden' }]}
-                glassEffectStyle="regular"
-                colorScheme="dark"
-                tintColor="rgba(57,255,20,0.20)"
               />
               <Text style={styles.previewCTAText}>Start Game</Text>
             </LinearGradient>
@@ -400,11 +414,8 @@ export default function ScoresScreen() {
                       colors={['#1e1e1e', '#141414']}
                       style={styles.modalCancelInner}
                     >
-                      <GlassView
+                      <View
                         style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                        glassEffectStyle="regular"
-                        colorScheme="dark"
-                        tintColor="rgba(40,40,40,0.30)"
                       />
                       <Text style={styles.modalCancelText}>Cancel</Text>
                     </LinearGradient>
@@ -418,11 +429,8 @@ export default function ScoresScreen() {
                       <View style={styles.btnSpecular} />
                       <View style={styles.btnEdgeTop} />
                       <View style={styles.btnEdgeBottom} />
-                      <GlassView
+                      <View
                         style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                        glassEffectStyle="regular"
-                        colorScheme="dark"
-                        tintColor="rgba(57,255,20,0.20)"
                       />
                       <Text style={styles.modalConfirmText}>Save</Text>
                     </LinearGradient>
@@ -542,6 +550,37 @@ export default function ScoresScreen() {
                 </View>
               </View>
 
+              {/* Hammer row (shown when any active game has Hammer enabled) */}
+              {hasHammer && (
+                <View style={{ flexDirection: 'row', height: ROW_H, backgroundColor: '#0a0a0a' }}>
+                  {[0,1,2,3,4,5,6,7,8].map(i => (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() => cycleHammer(i)}
+                      style={[styles.cell, styles.hammerCell, { width: CELL_W }]}
+                    >
+                      <Text style={[styles.hammerText, hammerMultipliers[i] > 1 && styles.hammerTextActive]}>
+                        ×{hammerMultipliers[i]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  <View style={[styles.cell, styles.hammerCell, { width: SUM_W }]} />
+                  {[9,10,11,12,13,14,15,16,17].map(i => (
+                    <TouchableOpacity
+                      key={i}
+                      onPress={() => cycleHammer(i)}
+                      style={[styles.cell, styles.hammerCell, { width: CELL_W }]}
+                    >
+                      <Text style={[styles.hammerText, hammerMultipliers[i] > 1 && styles.hammerTextActive]}>
+                        ×{hammerMultipliers[i]}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                  <View style={[styles.cell, styles.hammerCell, { width: SUM_W }]} />
+                  <View style={[styles.cell, styles.hammerCell, { width: SUM_W }]} />
+                </View>
+              )}
+
               {/* Player rows */}
               {setup.players.map((player, pi) => {
                 const s = scores[player.id];
@@ -568,11 +607,8 @@ export default function ScoresScreen() {
                           onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
                           style={[styles.cell, styles.scoreCell, { width: CELL_W, backgroundColor: i % 2 === 0 ? '#0a0a0a' : '#0c0c0c' }]}
                         >
-                          <GlassView
+                          <View
                             style={StyleSheet.absoluteFill}
-                            glassEffectStyle="regular"
-                            colorScheme="dark"
-                            tintColor="rgba(20,20,20,0.20)"
                           />
                           {v !== null ? (
                             <View style={scoreDotStyle(diff) as object}>
@@ -598,11 +634,8 @@ export default function ScoresScreen() {
                           onPress={() => openEdit({ kind: 'score', playerId: player.id, hole: i })}
                           style={[styles.cell, styles.scoreCell, { width: CELL_W, backgroundColor: i % 2 === 0 ? '#0a0a0a' : '#0c0c0c' }]}
                         >
-                          <GlassView
+                          <View
                             style={StyleSheet.absoluteFill}
-                            glassEffectStyle="regular"
-                            colorScheme="dark"
-                            tintColor="rgba(20,20,20,0.20)"
                           />
                           {v !== null ? (
                             <View style={scoreDotStyle(diff) as object}>
@@ -889,11 +922,8 @@ export default function ScoresScreen() {
               <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
-              <GlassView
+              <View
                 style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                glassEffectStyle="regular"
-                colorScheme="dark"
-                tintColor="rgba(57,255,20,0.20)"
               />
               <Text style={styles.calcBtnText}>Start a Real Game →</Text>
             </LinearGradient>
@@ -910,11 +940,8 @@ export default function ScoresScreen() {
               <View style={styles.btnSpecular} />
               <View style={styles.btnEdgeTop} />
               <View style={styles.btnEdgeBottom} />
-              <GlassView
+              <View
                 style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-                glassEffectStyle="regular"
-                colorScheme="dark"
-                tintColor="rgba(57,255,20,0.20)"
               />
               <Text style={styles.calcBtnText}>Calculate Payout →</Text>
             </LinearGradient>
@@ -1053,6 +1080,9 @@ const styles = StyleSheet.create({
   // Par cells
   parCell: { backgroundColor: '#161616' },
   parText: { color: '#888', fontSize: 13, fontWeight: '500' },
+  hammerCell: { backgroundColor: '#070707' },
+  hammerText: { color: '#333', fontSize: 11, fontWeight: '700' },
+  hammerTextActive: { color: '#39FF14' },
 
   // OUT/IN/TOT value cells
   sumCell: { backgroundColor: '#0f0f0f' },

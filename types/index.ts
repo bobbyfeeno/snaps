@@ -16,6 +16,15 @@ export interface NassauConfig {
   mode: 'stroke' | 'match'; // stroke = total score per leg, match = hole-by-hole wins
   press: 'none' | 'auto'; // 'auto' = auto-press when 2 down (match play only)
   useHandicaps: boolean; // apply handicap strokes per hole
+  useHammer?: boolean;   // hammer doubling modifier
+}
+
+export interface VegasConfig {
+  betPerPoint: number;  // $ per point difference
+  flipBird: boolean;    // birdie team flips opponent's score high-first
+  useHammer: boolean;   // hammer doubling modifier
+  teamA: string[];      // player IDs on Team A
+  teamB: string[];      // player IDs on Team B
 }
 
 export interface SkinsConfig {
@@ -43,7 +52,8 @@ export type GameConfig =
   | { mode: 'wolf'; config: WolfConfig }
   | { mode: 'bingo-bango-bongo'; config: BingoBangoBongoConfig }
   | { mode: 'snake'; config: SnakeConfig }
-  | { mode: 'scorecard'; config: ScorecardConfig };
+  | { mode: 'scorecard'; config: ScorecardConfig }
+  | { mode: 'vegas'; config: VegasConfig };
 
 export type GameMode = GameConfig['mode'];
 
@@ -97,6 +107,8 @@ export interface GameExtras {
   bbb?: (BBBHoleState | null)[];
   snake?: (SnakeHoleState | null)[];
   pressMatches?: PressMatch[];
+  hammerMultipliers?: number[]; // per-hole hammer multipliers (1, 2, 4, 8...)
+  pars?: number[];              // par values per hole (for Vegas calculation)
 }
 
 // ─── Results ────────────────────────────────────────────────────────────────

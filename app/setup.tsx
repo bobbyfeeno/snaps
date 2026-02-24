@@ -94,6 +94,14 @@ const GAME_DEFS: GameDef[] = [
     inputLabel: 'Snake amount $',
     defaultAmount: 10,
   },
+  {
+    mode: 'vegas',
+    name: 'Vegas',
+    description: '2v2 teams. Combine scores each hole — lowest number wins the diff.',
+    inputLabel: '$ per point',
+    defaultAmount: 1,
+    minPlayers: 4,
+  },
 ];
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
@@ -115,6 +123,7 @@ const ICON_DEFS: Record<string, {
   wolf:             { emoji: '🐺', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   'bingo-bango-bongo': { emoji: '🎯', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   snake:            { emoji: '🐍', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  vegas:            { emoji: '🎰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -211,10 +220,17 @@ export default function SetupScreen() {
     wolf: '2',
     'bingo-bango-bongo': '1',
     snake: '10',
+    vegas: '1',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
   const [nassauHandicaps, setNassauHandicaps] = useState(false);
+  const [nassauHammer, setNassauHammer] = useState(false);
+  // Vegas options
+  const [vegasFlipBird, setVegasFlipBird] = useState(true);
+  const [vegasHammer, setVegasHammer] = useState(false);
+  // Team assignment: player ID → 'A' | 'B'
+  const [teamAssignment, setTeamAssignment] = useState<Record<string, 'A' | 'B'>>({});
 
   // Custom alert modal state
   const [alertMsg, setAlertMsg] = useState<{ title: string; body: string } | null>(null);
@@ -315,6 +331,20 @@ export default function SetupScreen() {
       return;
     }
 
+    // Check Vegas player requirement
+    if (activeGames.has('vegas') && filledPlayers.length < 4) {
+      showAlert('Vegas Selected', 'Vegas requires exactly 4 players — 2 per team.');
+      return;
+    }
+    if (activeGames.has('vegas')) {
+      const teamAIds = filledPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'A').map(p => p.id);
+      const teamBIds = filledPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'B').map(p => p.id);
+      if (teamAIds.length < 1 || teamBIds.length < 1) {
+        showAlert('Team Assignment', 'Assign at least 1 player to each team for Vegas.');
+        return;
+      }
+    }
+
     // Validate all active game amounts (skip scorecard since it has no amount)
     for (const mode of activeGames) {
       if (mode === 'scorecard') continue; // scorecard has no bet amount
@@ -341,7 +371,7 @@ export default function SetupScreen() {
           games.push({ mode: 'taxman', config: { taxAmount: amount } });
           break;
         case 'nassau':
-          games.push({ mode: 'nassau', config: { betAmount: amount, mode: nassauMode, press: nassauPress, useHandicaps: nassauHandicaps } });
+          games.push({ mode: 'nassau', config: { betAmount: amount, mode: nassauMode, press: nassauPress, useHandicaps: nassauHandicaps, useHammer: nassauHammer } });
           break;
         case 'skins':
           games.push({ mode: 'skins', config: { betPerSkin: amount } });
@@ -355,6 +385,12 @@ export default function SetupScreen() {
         case 'snake':
           games.push({ mode: 'snake', config: { snakeAmount: amount } });
           break;
+        case 'vegas': {
+          const teamAIds = finalPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'A').map(p => p.id);
+          const teamBIds = finalPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'B').map(p => p.id);
+          games.push({ mode: 'vegas', config: { betPerPoint: amount, flipBird: vegasFlipBird, useHammer: vegasHammer, teamA: teamAIds, teamB: teamBIds } });
+          break;
+        }
       }
     }
 
@@ -547,6 +583,73 @@ export default function SetupScreen() {
                           styles.pillBtnText,
                           nassauHandicaps && styles.pillBtnTextActive,
                         ]}>On</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  {/* Hammer toggle (Nassau) */}
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>🔨 Hammer</Text>
+                    <View style={styles.nassauToggleGroup}>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, !nassauHammer && styles.pillBtnActive]}
+                        onPress={() => setNassauHammer(false)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillBtnText, !nassauHammer && styles.pillBtnTextActive]}>Off</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, nassauHammer && styles.pillBtnActive]}
+                        onPress={() => setNassauHammer(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillBtnText, nassauHammer && styles.pillBtnTextActive]}>On</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Vegas-specific options */}
+              {activeGames.has('vegas') && (
+                <View style={styles.nassauOpts}>
+                  {/* Flip the Bird */}
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>🐦 Flip the Bird</Text>
+                    <View style={styles.nassauToggleGroup}>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, !vegasFlipBird && styles.pillBtnActive]}
+                        onPress={() => setVegasFlipBird(false)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillBtnText, !vegasFlipBird && styles.pillBtnTextActive]}>Off</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, vegasFlipBird && styles.pillBtnActive]}
+                        onPress={() => setVegasFlipBird(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillBtnText, vegasFlipBird && styles.pillBtnTextActive]}>On</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {/* Vegas Hammer */}
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>🔨 Hammer</Text>
+                    <View style={styles.nassauToggleGroup}>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, !vegasHammer && styles.pillBtnActive]}
+                        onPress={() => setVegasHammer(false)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillBtnText, !vegasHammer && styles.pillBtnTextActive]}>Off</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, vegasHammer && styles.pillBtnActive]}
+                        onPress={() => setVegasHammer(true)}
+                        activeOpacity={0.7}
+                      >
+                        <Text style={[styles.pillBtnText, vegasHammer && styles.pillBtnTextActive]}>On</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -743,6 +846,38 @@ export default function SetupScreen() {
             </BevelCard>
           ))}
         </View>
+
+        {/* Vegas Team Assignment */}
+        {activeGames.has('vegas') && players.filter(p => p.name.trim()).length >= 2 && (
+          <BevelCard style={styles.configPanel}>
+            <View style={styles.cardHighlight} />
+            <Text style={styles.teamSectionLabel}>TEAMS</Text>
+            {players.filter(p => p.name.trim()).map((player) => {
+              const team = teamAssignment[player.id] ?? 'A';
+              return (
+                <View key={player.id} style={styles.teamRow}>
+                  <Text style={styles.teamPlayerName}>{player.name}</Text>
+                  <View style={styles.nassauToggleGroup}>
+                    <TouchableOpacity
+                      style={[styles.pillBtn, team === 'A' && styles.pillBtnActive]}
+                      onPress={() => setTeamAssignment(prev => ({ ...prev, [player.id]: 'A' }))}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.pillBtnText, team === 'A' && styles.pillBtnTextActive]}>Team A</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.pillBtn, team === 'B' && styles.pillBtnActive]}
+                      onPress={() => setTeamAssignment(prev => ({ ...prev, [player.id]: 'B' }))}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.pillBtnText, team === 'B' && styles.pillBtnTextActive]}>Team B</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              );
+            })}
+          </BevelCard>
+        )}
 
         {/* Bottom buttons */}
         <View style={styles.bottomBtns}>
@@ -1309,6 +1444,30 @@ const styles = StyleSheet.create({
   nassauToggleGroup: {
     flexDirection: 'row',
     gap: 10,
+  },
+
+  // Vegas team assignment
+  teamSectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#555',
+    letterSpacing: 1.5,
+    textTransform: 'uppercase',
+    marginBottom: 14,
+  },
+  teamRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
+  },
+  teamPlayerName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ddd',
+    flex: 1,
   },
 
   validationHint: {
