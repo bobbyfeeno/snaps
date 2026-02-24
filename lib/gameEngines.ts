@@ -1,5 +1,6 @@
 import {
   BBBHoleState,
+  BestBallConfig,
   BingoBangoBongoConfig,
   GameConfig,
   GameExtras,
@@ -813,6 +814,99 @@ export function calcVegas(
   return { mode: 'vegas', label: 'Vegas', payouts, net };
 }
 
+// ─── Best Ball ───────────────────────────────────────────────────────────────
+
+export function calcBestBall(
+  players: Player[],
+  allScores: Record<string, (number | null)[]>,
+  config: BestBallConfig
+): GameResult {
+  const { mode, betAmount, teamA, teamB } = config;
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  const teamAPlayers = players.filter(p => teamA.includes(p.id));
+  const teamBPlayers = players.filter(p => teamB.includes(p.id));
+
+  if (teamAPlayers.length < 1 || teamBPlayers.length < 1) {
+    return { mode: 'best-ball', label: 'Best Ball', payouts: [], net };
+  }
+
+  if (mode === 'stroke') {
+    // Best ball total over 18: take lowest score per hole per team, sum them
+    let totalA = 0;
+    let totalB = 0;
+    let holesComplete = 0;
+
+    for (let hole = 0; hole < 18; hole++) {
+      const aScores = teamAPlayers.map(p => allScores[p.id]?.[hole]).filter((s): s is number => s !== null && s !== undefined);
+      const bScores = teamBPlayers.map(p => allScores[p.id]?.[hole]).filter((s): s is number => s !== null && s !== undefined);
+      if (aScores.length === 0 || bScores.length === 0) continue;
+      totalA += Math.min(...aScores);
+      totalB += Math.min(...bScores);
+      holesComplete++;
+    }
+
+    if (holesComplete === 0) return { mode: 'best-ball', label: 'Best Ball', payouts: [], net };
+
+    const diff = Math.abs(totalA - totalB);
+    const payout = Math.round(diff * betAmount * 100) / 100;
+
+    if (payout > 0) {
+      const winners = totalA < totalB ? teamAPlayers : teamBPlayers;
+      const losers  = totalA < totalB ? teamBPlayers : teamAPlayers;
+      const share = Math.round((payout / Math.max(winners.length, 1)) * 100) / 100;
+
+      for (const w of winners) {
+        for (const l of losers) {
+          payouts.push({ from: l.name, to: w.name, amount: share, game: 'best-ball' });
+        }
+        net[w.name] = (net[w.name] ?? 0) + share * losers.length;
+      }
+      for (const l of losers) {
+        net[l.name] = (net[l.name] ?? 0) - share * winners.length;
+      }
+    }
+
+  } else {
+    // Match play: hole-by-hole, best score wins; betAmount per hole won
+    let holesA = 0;
+    let holesB = 0;
+
+    for (let hole = 0; hole < 18; hole++) {
+      const aScores = teamAPlayers.map(p => allScores[p.id]?.[hole]).filter((s): s is number => s !== null && s !== undefined);
+      const bScores = teamBPlayers.map(p => allScores[p.id]?.[hole]).filter((s): s is number => s !== null && s !== undefined);
+      if (aScores.length === 0 || bScores.length === 0) continue;
+      const bestA = Math.min(...aScores);
+      const bestB = Math.min(...bScores);
+      if (bestA < bestB) holesA++;
+      else if (bestB < bestA) holesB++;
+      // tie: no hole awarded
+    }
+
+    const diff = Math.abs(holesA - holesB);
+    const payout = Math.round(diff * betAmount * 100) / 100;
+
+    if (payout > 0) {
+      const winners = holesA > holesB ? teamAPlayers : teamBPlayers;
+      const losers  = holesA > holesB ? teamBPlayers : teamAPlayers;
+      const share = Math.round((payout / Math.max(winners.length, 1)) * 100) / 100;
+
+      for (const w of winners) {
+        for (const l of losers) {
+          payouts.push({ from: l.name, to: w.name, amount: share, game: 'best-ball' });
+        }
+        net[w.name] = (net[w.name] ?? 0) + share * losers.length;
+      }
+      for (const l of losers) {
+        net[l.name] = (net[l.name] ?? 0) - share * winners.length;
+      }
+    }
+  }
+
+  return { mode: 'best-ball', label: 'Best Ball', payouts, net };
+}
+
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
 export function calcAllGames(
@@ -856,6 +950,9 @@ export function calcAllGames(
         break;
       case 'vegas':
         result = calcVegas(players, scores, extras.pars ?? Array(18).fill(4), game.config, extras.hammerMultipliers ?? []);
+        break;
+      case 'best-ball':
+        result = calcBestBall(players, scores, game.config);
         break;
     }
 
@@ -1306,7 +1403,6 @@ export function calcLiveStatus(
         results.push(calcLiveSnake(players, snakeHoles));
         break;
       case 'vegas': {
-        // Simple live status: show running team point totals
         const vegasCfg = game.config;
         const teamAPlayers = players.filter(p => vegasCfg.teamA.includes(p.id));
         const teamBPlayers = players.filter(p => vegasCfg.teamB.includes(p.id));
@@ -1320,6 +1416,35 @@ export function calcLiveStatus(
             { text: 'In progress', color: 'neutral' },
           ],
         });
+        break;
+      }
+      case 'best-ball': {
+        const bbCfg = game.config;
+        const teamAPlayers = players.filter(p => bbCfg.teamA.includes(p.id));
+        const teamBPlayers = players.filter(p => bbCfg.teamB.includes(p.id));
+        const teamAName = teamAPlayers.map(p => p.name.split(' ')[0]).join('/');
+        const teamBName = teamBPlayers.map(p => p.name.split(' ')[0]).join('/');
+
+        // Live: calculate running best ball scores
+        let runningA = 0; let runningB = 0; let holesA = 0; let holesB = 0;
+        for (let h = 0; h < 18; h++) {
+          const aS = teamAPlayers.map(p => scores[p.id]?.[h]).filter((s): s is number => s !== null && s !== undefined);
+          const bS = teamBPlayers.map(p => scores[p.id]?.[h]).filter((s): s is number => s !== null && s !== undefined);
+          if (aS.length === 0 || bS.length === 0) continue;
+          const bestA = Math.min(...aS); const bestB = Math.min(...bS);
+          runningA += bestA; runningB += bestB;
+          if (bestA < bestB) holesA++; else if (bestB < bestA) holesB++;
+        }
+
+        const lines: LiveStatusLine[] = [];
+        if (bbCfg.mode === 'stroke') {
+          const diff = runningA - runningB;
+          lines.push({ text: diff === 0 ? `${teamAName} tied ${teamBName}` : diff < 0 ? `${teamAName} −${Math.abs(diff)}` : `${teamBName} −${Math.abs(diff)}`, color: diff === 0 ? 'neutral' : diff < 0 ? 'green' : 'red' });
+        } else {
+          const diff = holesA - holesB;
+          lines.push({ text: diff === 0 ? `All Square` : diff > 0 ? `${teamAName} +${diff} holes` : `${teamBName} +${Math.abs(diff)} holes`, color: diff === 0 ? 'neutral' : 'green' });
+        }
+        results.push({ mode: 'best-ball', label: 'Best Ball', lines });
         break;
       }
     }

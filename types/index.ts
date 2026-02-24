@@ -27,6 +27,13 @@ export interface VegasConfig {
   teamB: string[];      // player IDs on Team B
 }
 
+export interface BestBallConfig {
+  mode: 'stroke' | 'match'; // stroke = total best-ball over 18, match = hole-by-hole
+  betAmount: number;         // stroke: $ per stroke diff | match: $ per hole won
+  teamA: string[];
+  teamB: string[];
+}
+
 export interface SkinsConfig {
   betPerSkin: number; // $ value of each skin
 }
@@ -53,7 +60,8 @@ export type GameConfig =
   | { mode: 'bingo-bango-bongo'; config: BingoBangoBongoConfig }
   | { mode: 'snake'; config: SnakeConfig }
   | { mode: 'scorecard'; config: ScorecardConfig }
-  | { mode: 'vegas'; config: VegasConfig };
+  | { mode: 'vegas'; config: VegasConfig }
+  | { mode: 'best-ball'; config: BestBallConfig };
 
 export type GameMode = GameConfig['mode'];
 

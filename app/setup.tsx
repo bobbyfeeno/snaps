@@ -13,7 +13,7 @@ import {
   View,
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
-import { GameConfig, GameMode, GameSetup, NassauConfig, Player } from '../types';
+import { BestBallConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -102,6 +102,14 @@ const GAME_DEFS: GameDef[] = [
     defaultAmount: 1,
     minPlayers: 4,
   },
+  {
+    mode: 'best-ball',
+    name: 'Best Ball',
+    description: '2v2 teams. Each team takes their best score per hole.',
+    inputLabel: '$ per hole / stroke',
+    defaultAmount: 5,
+    minPlayers: 4,
+  },
 ];
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
@@ -124,6 +132,7 @@ const ICON_DEFS: Record<string, {
   'bingo-bango-bongo': { emoji: '🎯', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   snake:            { emoji: '🐍', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   vegas:            { emoji: '🎰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  'best-ball':      { emoji: '⚔️', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -221,6 +230,7 @@ export default function SetupScreen() {
     'bingo-bango-bongo': '1',
     snake: '10',
     vegas: '1',
+    'best-ball': '5',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
@@ -229,7 +239,9 @@ export default function SetupScreen() {
   // Vegas options
   const [vegasFlipBird, setVegasFlipBird] = useState(true);
   const [vegasHammer, setVegasHammer] = useState(false);
-  // Team assignment: player ID → 'A' | 'B'
+  // Best Ball options
+  const [bestBallMode, setBestBallMode] = useState<'stroke' | 'match'>('stroke');
+  // Team assignment: player ID → 'A' | 'B' (shared by Vegas + Best Ball)
   const [teamAssignment, setTeamAssignment] = useState<Record<string, 'A' | 'B'>>({});
 
   // Custom alert modal state
@@ -345,6 +357,20 @@ export default function SetupScreen() {
       }
     }
 
+    // Check Best Ball player requirement
+    if (activeGames.has('best-ball') && filledPlayers.length < 4) {
+      showAlert('Best Ball Selected', 'Best Ball requires at least 4 players — 2 per team.');
+      return;
+    }
+    if (activeGames.has('best-ball')) {
+      const teamAIds = filledPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'A').map(p => p.id);
+      const teamBIds = filledPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'B').map(p => p.id);
+      if (teamAIds.length < 1 || teamBIds.length < 1) {
+        showAlert('Team Assignment', 'Assign at least 1 player to each team for Best Ball.');
+        return;
+      }
+    }
+
     // Validate all active game amounts (skip scorecard since it has no amount)
     for (const mode of activeGames) {
       if (mode === 'scorecard') continue; // scorecard has no bet amount
@@ -389,6 +415,12 @@ export default function SetupScreen() {
           const teamAIds = finalPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'A').map(p => p.id);
           const teamBIds = finalPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'B').map(p => p.id);
           games.push({ mode: 'vegas', config: { betPerPoint: amount, flipBird: vegasFlipBird, useHammer: vegasHammer, teamA: teamAIds, teamB: teamBIds } });
+          break;
+        }
+        case 'best-ball': {
+          const teamAIds = finalPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'A').map(p => p.id);
+          const teamBIds = finalPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'B').map(p => p.id);
+          games.push({ mode: 'best-ball', config: { mode: bestBallMode, betAmount: amount, teamA: teamAIds, teamB: teamBIds } });
           break;
         }
       }
@@ -606,6 +638,33 @@ export default function SetupScreen() {
                         <Text style={[styles.pillBtnText, nassauHammer && styles.pillBtnTextActive]}>On</Text>
                       </TouchableOpacity>
                     </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Best Ball options */}
+              {activeGames.has('best-ball') && (
+                <View style={styles.nassauOpts}>
+                  <View style={styles.nassauModeRow}>
+                    <TouchableOpacity
+                      style={[styles.pillBtn, bestBallMode === 'stroke' && styles.pillBtnActive]}
+                      onPress={() => setBestBallMode('stroke')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.pillBtnText, bestBallMode === 'stroke' && styles.pillBtnTextActive]}>Stroke Play</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[styles.pillBtn, bestBallMode === 'match' && styles.pillBtnActive]}
+                      onPress={() => setBestBallMode('match')}
+                      activeOpacity={0.7}
+                    >
+                      <Text style={[styles.pillBtnText, bestBallMode === 'match' && styles.pillBtnTextActive]}>Match Play</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <View style={[styles.nassauOptionRow, { marginTop: 8, paddingTop: 8 }]}>
+                    <Text style={[styles.nassauOptionLabel, { color: '#555', fontSize: 13 }]}>
+                      {bestBallMode === 'stroke' ? '$ per stroke difference' : '$ per hole won'}
+                    </Text>
                   </View>
                 </View>
               )}
@@ -847,8 +906,8 @@ export default function SetupScreen() {
           ))}
         </View>
 
-        {/* Vegas Team Assignment */}
-        {activeGames.has('vegas') && players.filter(p => p.name.trim()).length >= 2 && (
+        {/* Team Assignment (Vegas + Best Ball) */}
+        {(activeGames.has('vegas') || activeGames.has('best-ball')) && players.filter(p => p.name.trim()).length >= 2 && (
           <BevelCard style={styles.configPanel}>
             <View style={styles.cardHighlight} />
             <Text style={styles.teamSectionLabel}>TEAMS</Text>
