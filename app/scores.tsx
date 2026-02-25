@@ -382,13 +382,6 @@ export default function ScoresScreen() {
         </LinearGradient>
       )}
 
-      {/* Course name banner */}
-      {!isPreview && setup.courseName ? (
-        <View style={styles.courseBanner}>
-          <Text style={styles.courseBannerText}>📍 {setup.courseName}</Text>
-        </View>
-      ) : null}
-
       {/* Edit modal */}
       <Modal
         visible={Boolean(target !== null)}
@@ -1025,20 +1018,6 @@ const styles = StyleSheet.create({
   },
 
   // Preview mode banner
-  courseBanner: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: '#0a1a06',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1a2e10',
-    alignItems: 'center',
-  },
-  courseBannerText: {
-    color: '#39FF14',
-    fontSize: 13,
-    fontWeight: '700',
-    letterSpacing: 0.3,
-  },
   previewBanner: {
     flexDirection: 'row',
     alignItems: 'center',

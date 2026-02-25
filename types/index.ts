@@ -70,7 +70,6 @@ export type GameMode = GameConfig['mode'];
 export interface GameSetup {
   players: Player[];
   games: GameConfig[]; // at least 1 game must be selected
-  courseName?: string; // detected or manually entered course name
 }
 
 // ─── Per-hole tracking (stored in scores.tsx state) ─────────────────────────

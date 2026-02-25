@@ -1,4 +1,3 @@
-import * as Location from 'expo-location';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -17,54 +16,6 @@ import { BevelCard } from '../components/BevelCard';
 import { BestBallConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player } from '../types';
 
 const MAX_PLAYERS = 6;
-
-// ─── Course detection ────────────────────────────────────────────────────────
-
-interface NearbyGolfCourse {
-  id: string;
-  name: string;
-  distanceM: number;
-}
-
-function haversineMeters(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000;
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) * Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-}
-
-async function fetchNearbyCourses(lat: number, lon: number): Promise<NearbyGolfCourse[]> {
-  const query = `
-    [out:json][timeout:15];
-    (
-      way["leisure"="golf_course"](around:4000,${lat},${lon});
-      relation["leisure"="golf_course"](around:4000,${lat},${lon});
-    );
-    out center tags;
-  `;
-  const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Overpass API error');
-  const data = await res.json();
-  return (data.elements as Record<string, unknown>[])
-    .filter(el => (el.tags as Record<string, string>)?.name)
-    .map(el => {
-      const tags = el.tags as Record<string, string>;
-      const center = el.center as { lat: number; lon: number } | undefined;
-      const cLat = center?.lat ?? (el.lat as number) ?? lat;
-      const cLon = center?.lon ?? (el.lon as number) ?? lon;
-      return {
-        id: String(el.id),
-        name: tags.name,
-        distanceM: Math.round(haversineMeters(lat, lon, cLat, cLon)),
-      };
-    })
-    .sort((a, b) => a.distanceM - b.distanceM)
-    .slice(0, 6);
-}
 
 function generateId() {
   return Math.random().toString(36).slice(2, 9);
@@ -296,35 +247,6 @@ export default function SetupScreen() {
   // Custom alert modal state
   const [alertMsg, setAlertMsg] = useState<{ title: string; body: string } | null>(null);
 
-  // ─── Course detection state ────────────────────────────────────────────────
-  const [courseName, setCourseName] = useState('');
-  const [courseDetectState, setCourseDetectState] = useState<'idle' | 'loading' | 'found' | 'none' | 'error'>('idle');
-  const [nearbyCourses, setNearbyCourses] = useState<NearbyGolfCourse[]>([]);
-
-  async function detectCourse() {
-    setCourseDetectState('loading');
-    setNearbyCourses([]);
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        setCourseDetectState('error');
-        return;
-      }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      const courses = await fetchNearbyCourses(loc.coords.latitude, loc.coords.longitude);
-      if (courses.length === 0) {
-        setCourseDetectState('none');
-      } else {
-        setNearbyCourses(courses);
-        setCourseDetectState('found');
-        // Auto-select the closest one
-        setCourseName(courses[0].name);
-      }
-    } catch {
-      setCourseDetectState('error');
-    }
-  }
-
   function showAlert(title: string, body: string) {
     setAlertMsg({ title, body });
   }
@@ -504,7 +426,7 @@ export default function SetupScreen() {
       }
     }
 
-    gameSetup = { players: finalPlayers, games, courseName: courseName.trim() || undefined };
+    gameSetup = { players: finalPlayers, games };
     router.push('/scores');
   }
 
@@ -544,63 +466,6 @@ export default function SetupScreen() {
             <Text style={styles.sectionTitle}>Games</Text>
             <Text style={styles.sectionSubtitle}>Pick your games for this round</Text>
           </View>
-
-          {/* Course Detection */}
-          <BevelCard style={styles.courseCard}>
-            <View style={styles.cardHighlight} />
-            <View style={styles.courseRow}>
-              <Text style={styles.courseLabel}>📍 Course</Text>
-              {courseDetectState !== 'loading' && (
-                <TouchableOpacity onPress={detectCourse} style={styles.detectBtn} activeOpacity={0.7}>
-                  <Text style={styles.detectBtnText}>
-                    {courseDetectState === 'idle' ? 'Detect' : 'Re-detect'}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              {courseDetectState === 'loading' && (
-                <Text style={styles.detectingText}>Detecting…</Text>
-              )}
-            </View>
-
-            {/* Course name input */}
-            <TextInput
-              style={styles.courseInput}
-              value={courseName}
-              onChangeText={setCourseName}
-              placeholder="Course name (optional)"
-              placeholderTextColor="#333"
-            />
-
-            {/* Nearby course list (when found) */}
-            {courseDetectState === 'found' && nearbyCourses.length > 1 && (
-              <View style={styles.courseList}>
-                {nearbyCourses.map(c => (
-                  <TouchableOpacity
-                    key={c.id}
-                    style={[styles.courseItem, courseName === c.name && styles.courseItemActive]}
-                    onPress={() => setCourseName(c.name)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={[styles.courseItemName, courseName === c.name && styles.courseItemNameActive]}>
-                      {c.name}
-                    </Text>
-                    <Text style={styles.courseItemDist}>
-                      {c.distanceM < 1000 ? `${c.distanceM}m` : `${(c.distanceM / 1000).toFixed(1)}km`}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-
-            {courseDetectState === 'none' && (
-              <Text style={styles.courseHint}>No courses found nearby. Enter manually above.</Text>
-            )}
-            {courseDetectState === 'error' && (
-              <Text style={[styles.courseHint, { color: '#ff5555' }]}>
-                Location unavailable. Enter course name manually.
-              </Text>
-            )}
-          </BevelCard>
 
           {/* Icon Grid */}
           <View style={styles.iconGrid}>
@@ -1361,97 +1226,6 @@ const styles = StyleSheet.create({
   },
   gameIconLabelActive: {
     color: '#fff',
-  },
-
-  // Course detection card
-  courseCard: {
-    marginBottom: 20,
-    padding: 16,
-  },
-  courseRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  courseLabel: {
-    color: '#aaa',
-    fontSize: 14,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  detectBtn: {
-    backgroundColor: '#1a1a1a',
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-  },
-  detectBtnText: {
-    color: '#39FF14',
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  detectingText: {
-    color: '#555',
-    fontSize: 13,
-    fontStyle: 'italic',
-  },
-  courseInput: {
-    backgroundColor: '#060606',
-    borderRadius: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0,0,0,0.95)',
-    borderLeftWidth: 1,
-    borderLeftColor: 'rgba(0,0,0,0.6)',
-    borderRightWidth: 1,
-    borderRightColor: 'rgba(255,255,255,0.03)',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.06)',
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: '#fff',
-  },
-  courseList: {
-    marginTop: 10,
-    gap: 6,
-  },
-  courseItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    backgroundColor: '#111',
-    borderWidth: 1,
-    borderColor: '#1e1e1e',
-  },
-  courseItemActive: {
-    borderColor: '#39FF14',
-    backgroundColor: '#0d1f06',
-  },
-  courseItemName: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: '600',
-    flex: 1,
-  },
-  courseItemNameActive: {
-    color: '#39FF14',
-  },
-  courseItemDist: {
-    color: '#444',
-    fontSize: 12,
-    marginLeft: 8,
-  },
-  courseHint: {
-    color: '#555',
-    fontSize: 13,
-    marginTop: 8,
-    fontStyle: 'italic',
   },
 
   // Config panel
