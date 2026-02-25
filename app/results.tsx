@@ -1,7 +1,6 @@
-import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { GameMode, GameResult, LeaderboardEntry, Payout } from '../types';
 import { multiGameResults, resetGameResults } from './scores';
@@ -53,7 +52,9 @@ export default function ResultsScreen() {
   const sortedNet = Object.entries(results.combinedNet).sort((a, b) => b[1] - a[1]);
 
   return (
-    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+    <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
+      <View style={styles.bgOverlay} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       {/* Top-center glow overlay */}
       <View pointerEvents="none" style={styles.topGlow} />
 
@@ -222,11 +223,8 @@ export default function ResultsScreen() {
             <View style={styles.btnSpecular} />
             <View style={styles.btnEdgeTop} />
             <View style={styles.btnEdgeBottom} />
-            <GlassView
+            <View
               style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-              glassEffectStyle="regular"
-              colorScheme="dark"
-              tintColor="rgba(57,255,20,0.20)"
             />
             <Text style={styles.playAgainText}>Play Again</Text>
           </LinearGradient>
@@ -243,16 +241,14 @@ export default function ResultsScreen() {
       >
         <LinearGradient colors={['#1e1e1e', '#141414']} style={styles.homeBtn}>
           <View style={styles.cardHighlight} />
-          <GlassView
+          <View
             style={[StyleSheet.absoluteFill, { borderRadius: 14, overflow: 'hidden' }]}
-            glassEffectStyle="regular"
-            colorScheme="dark"
-            tintColor="rgba(20,20,20,0.30)"
           />
           <Text style={styles.homeBtnText}>← Home</Text>
         </LinearGradient>
       </TouchableOpacity>
-    </ScrollView>
+      </ScrollView>
+    </ImageBackground>
   );
 }
 
@@ -393,7 +389,9 @@ function consolidatePayouts(payouts: Payout[]): Payout[] {
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1, backgroundColor: '#050505' },
+  bgFull: { flex: 1 },
+  bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
+  scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
 
   topGlow: {

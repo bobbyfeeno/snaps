@@ -1,27 +1,23 @@
-import { GlassView } from 'expo-glass-effect';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function HomeScreen() {
   const router = useRouter();
 
-  // Animation values
   const logoAnim = useRef(new Animated.Value(0)).current;
   const buttonAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
     Animated.sequence([
-      // 1. Logo fades + scales in
       Animated.timing(logoAnim, {
         toValue: 1,
         duration: 600,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      // 2. Button slides up
       Animated.timing(buttonAnim, {
         toValue: 1,
         duration: 400,
@@ -29,7 +25,6 @@ export default function HomeScreen() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // 4. After everything is in, start glow pulse loop on button
       Animated.loop(
         Animated.sequence([
           Animated.timing(glowAnim, { toValue: 0.9, duration: 1000, useNativeDriver: false }),
@@ -40,88 +35,86 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.brandingContainer}>
+    <ImageBackground
+      source={require('../assets/bg.png')}
+      style={styles.bg}
+      resizeMode="cover"
+    >
+      <View style={styles.overlay} />
+      <View style={styles.container}>
+        <View style={styles.brandingContainer}>
+          <Animated.View style={{
+            opacity: logoAnim,
+            transform: [{ scale: logoAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
+          }}>
+            <Image
+              source={require('../assets/logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </Animated.View>
+        </View>
+
         <Animated.View style={{
-          opacity: logoAnim,
-          transform: [{ scale: logoAnim.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
+          opacity: buttonAnim,
+          transform: [{ translateY: buttonAnim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
+          width: '100%',
         }}>
-          <Image
-            source={require('../assets/logo.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </Animated.View>
-
-      </View>
-
-      <Animated.View style={{
-        opacity: buttonAnim,
-        transform: [{ translateY: buttonAnim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] }) }],
-        width: '100%',
-      }}>
-        <Animated.View style={[styles.buttonGlow, {
-          shadowOpacity: glowAnim,
-        }]}>
-          <TouchableOpacity
-            onPress={() => router.push('/setup')}
-            activeOpacity={0.85}
-            style={styles.newGameBtnOuter}
-          >
-            <LinearGradient
-              colors={['#60ff28', '#3ddc10', '#28a808', '#1a7005']}
-              locations={[0, 0.35, 0.7, 1]}
-              start={{ x: 0.5, y: 0 }}
-              end={{ x: 0.5, y: 1 }}
-              style={styles.newGameButton}
+          <Animated.View style={[styles.buttonGlow, { shadowOpacity: glowAnim }]}>
+            <TouchableOpacity
+              onPress={() => router.push('/setup')}
+              activeOpacity={0.85}
+              style={styles.newGameBtnOuter}
             >
-              {/* Side lighting */}
               <LinearGradient
-                colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.0)', 'rgba(0,0,0,0.15)']}
-                locations={[0, 0.4, 1]}
-                start={{ x: 0, y: 0.5 }}
-                end={{ x: 1, y: 0.5 }}
-                style={StyleSheet.absoluteFill}
-              />
-              {/* Primary specular — wide soft oval at top */}
-              <LinearGradient
-                colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0.0)']}
-                locations={[0, 0.4, 1]}
+                colors={['#60ff28', '#3ddc10', '#28a808', '#1a7005']}
+                locations={[0, 0.35, 0.7, 1]}
                 start={{ x: 0.5, y: 0 }}
                 end={{ x: 0.5, y: 1 }}
-                style={styles.btnSpecularGrad}
-              />
-              {/* Secondary specular dot */}
-              <View style={styles.btnSpecularDot} />
-              {/* Bottom shadow */}
-              <LinearGradient
-                colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)']}
-                start={{ x: 0.5, y: 0 }}
-                end={{ x: 0.5, y: 1 }}
-                style={styles.btnBottomShadow}
-              />
-              {/* Top edge */}
-              <View style={styles.btnTopEdge} />
-              {/* Glass */}
-              <GlassView
-                style={[StyleSheet.absoluteFill, { borderRadius: 16, overflow: 'hidden' }]}
-                glassEffectStyle="regular"
-                colorScheme="dark"
-                tintColor="rgba(57,255,20,0.18)"
-              />
-              <Text style={styles.newGameText}>Start Round</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+                style={styles.newGameButton}
+              >
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.12)', 'rgba(255,255,255,0.0)', 'rgba(0,0,0,0.15)']}
+                  locations={[0, 0.4, 1]}
+                  start={{ x: 0, y: 0.5 }}
+                  end={{ x: 1, y: 0.5 }}
+                  style={StyleSheet.absoluteFill}
+                />
+                <LinearGradient
+                  colors={['rgba(255,255,255,0.55)', 'rgba(255,255,255,0.15)', 'rgba(255,255,255,0.0)']}
+                  locations={[0, 0.4, 1]}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.btnSpecularGrad}
+                />
+                <View style={styles.btnSpecularDot} />
+                <LinearGradient
+                  colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)']}
+                  start={{ x: 0.5, y: 0 }}
+                  end={{ x: 0.5, y: 1 }}
+                  style={styles.btnBottomShadow}
+                />
+                <View style={styles.btnTopEdge} />
+                <Text style={styles.newGameText}>Start Round</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
         </Animated.View>
-      </Animated.View>
-    </View>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  bg: {
+    flex: 1,
+  },
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.52)',
+  },
   container: {
     flex: 1,
-    backgroundColor: '#000',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,

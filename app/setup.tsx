@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
+  ImageBackground,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -434,10 +435,12 @@ export default function SetupScreen() {
 
   if (step === 1) {
     return (
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
+      <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
+        <View style={styles.bgOverlay} />
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.content}
@@ -795,17 +798,20 @@ export default function SetupScreen() {
             </View>
           </Modal>
         )}
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ImageBackground>
     );
   }
 
   // ─── Render Step 2: Players ───────────────────────────────────────────────
 
   return (
-    <KeyboardAvoidingView
-      style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
+      <View style={styles.bgOverlay} />
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -1021,12 +1027,15 @@ export default function SetupScreen() {
           </View>
         </Modal>
       )}
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: '#050505' },
+  bgFull: { flex: 1 },
+  bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.58)' },
+  flex: { flex: 1 },
   scroll: { flex: 1 },
   content: { padding: 20, paddingBottom: 48 },
 

@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
+  ImageBackground,
   Modal,
   Platform,
   ScrollView,
@@ -348,7 +349,9 @@ export default function ScoresScreen() {
   const hasExtras = hasWolf || hasBBB || hasSnake;
 
   return (
-    <View style={styles.container}>
+    <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
+      <View style={styles.bgOverlay} />
+      <View style={styles.container}>
       {/* Radial center glow */}
       <View style={styles.centerGlow} pointerEvents="none" />
 
@@ -949,11 +952,14 @@ export default function ScoresScreen() {
         )}
       </View>
     </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#050505' },
+  bgFull: { flex: 1 },
+  bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
+  container: { flex: 1 },
   mainScroll: { flex: 1 },
 
   // Radial center glow
