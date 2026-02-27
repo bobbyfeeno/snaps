@@ -445,7 +445,7 @@ export default function ScoresScreen() {
         </TouchableOpacity>
       </Modal>
 
-      <ScrollView style={styles.mainScroll} bounces={false}>
+      <ScrollView style={styles.mainScroll} contentContainerStyle={styles.mainScrollContent} bounces={false}>
         {/* Scorecard grid */}
         <View style={styles.grid}>
           {/* ── Sticky left column ── */}
@@ -481,7 +481,7 @@ export default function ScoresScreen() {
 
           {/* ── Horizontally scrollable columns ── */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} style={{ flex: 1 }}>
-            <View>
+            <View style={{ backgroundColor: '#0a0a0a' }}>
               {/* Header row */}
               <View style={{ flexDirection: 'row', height: ROW_H }}>
                 {[0,1,2,3,4,5,6,7,8].map(i => (
@@ -957,10 +957,11 @@ export default function ScoresScreen() {
 }
 
 const styles = StyleSheet.create({
-  bgFull: { flex: 1 },
+  bgFull: { flex: 1, width: '100%' },
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
   container: { flex: 1, width: '100%' },
   mainScroll: { flex: 1, width: '100%' },
+  mainScrollContent: { flexGrow: 1, width: '100%' },
 
   // Radial center glow
   centerGlow: {
