@@ -1283,6 +1283,7 @@ const styles = StyleSheet.create({
   },
   nassauOpts: {
     marginTop: 12,
+    paddingBottom: 16,
   },
 
   // Player cards (Step 1)
