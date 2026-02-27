@@ -259,6 +259,14 @@ export default function SetupScreen() {
     }
   }, [step]);
 
+  // Scroll to bottom after a new player card fully renders
+  useEffect(() => {
+    if (step === 2 && players.length > 2) {
+      const t = setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 150);
+      return () => clearTimeout(t);
+    }
+  }, [players.length, step]);
+
   function quickAddPlayer(sp: SavedPlayer) {
     // Find first empty slot
     const emptySlot = players.find(p => p.name === '');
@@ -304,8 +312,6 @@ export default function SetupScreen() {
   function addPlayer() {
     if (players.length < MAX_PLAYERS) {
       setPlayers(prev => [...prev, createPlayer()]);
-      setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 100);
-      setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 350);
     }
   }
 
