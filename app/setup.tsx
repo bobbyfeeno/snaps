@@ -1471,6 +1471,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 16,
     gap: 10,
+    paddingHorizontal: 16,
   },
   pillBtn: {
     flex: 1,
