@@ -20,6 +20,11 @@ interface GameRule {
 
 const GAMES: GameRule[] = [
   {
+    emoji: '📋',
+    name: 'Keep Score',
+    rules: `Standard golf scorecard. Track every player's score hole-by-hole with no side bets attached. Combine it with any other game mode for a full picture of the round.`,
+  },
+  {
     emoji: '💰',
     name: 'Tax Man',
     rules: `Each player sets a Tax Man number — their personal target score for 18 holes.\n\nIf you shoot ABOVE your number, you pay every player who shot BELOW their number.\n\nIf you shoot BELOW your number, you collect from every player who shot ABOVE theirs.\n\nThe lower your number, the harder it is to beat — but the bigger the payday when you do.`,
@@ -48,11 +53,6 @@ const GAMES: GameRule[] = [
     emoji: '🐍',
     name: 'Snake',
     rules: `The last player to 3-putt holds the snake 🐍. You're stuck with it until someone else 3-putts — then it passes to them. Whoever holds the snake at the end of the round pays every other player the snake bet.\n\nNever 3-putt? Never touch the snake. 3-putt on 18? Ouch.`,
-  },
-  {
-    emoji: '📋',
-    name: 'Keep Score',
-    rules: `Standard golf scorecard. Track every player's score hole-by-hole with no side bets attached. Combine it with any other game mode for a full picture of the round.`,
   },
   {
     emoji: '🎰',
@@ -106,10 +106,11 @@ export default function RulesScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {GAMES.map(game => (
+        {GAMES.map((game, index) => (
           <View key={game.name} style={styles.card}>
             <TouchableOpacity onPress={() => toggle(game.name)} activeOpacity={0.75}>
               <View style={styles.rowHeader}>
+                <Text style={styles.number}>{index + 1}</Text>
                 <Text style={styles.emoji}>{game.emoji}</Text>
                 <Text style={styles.name}>{game.name}</Text>
                 <Text style={styles.chevron}>
@@ -165,6 +166,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 16,
     paddingHorizontal: 16,
+  },
+  number: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#444',
+    width: 20,
+    marginRight: 8,
+    textAlign: 'right',
   },
   emoji: {
     fontSize: 28,
