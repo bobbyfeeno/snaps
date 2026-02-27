@@ -220,6 +220,7 @@ export default function SetupScreen() {
   const [step, setStep] = useState<1 | 2>(1);
   const [players, setPlayers] = useState<Player[]>([createPlayer(), createPlayer()]);
   const nameRefs = useRef<(TextInput | null)[]>([]);
+  const stepTwoScrollRef = useRef<ScrollView>(null);
   
   // Game selection state
   const [activeGames, setActiveGames] = useState<Set<GameMode>>(new Set(['scorecard']));
@@ -303,6 +304,7 @@ export default function SetupScreen() {
   function addPlayer() {
     if (players.length < MAX_PLAYERS) {
       setPlayers(prev => [...prev, createPlayer()]);
+      setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 80);
     }
   }
 
@@ -848,6 +850,7 @@ export default function SetupScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
       <ScrollView
+        ref={stepTwoScrollRef}
         style={styles.scroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -1092,7 +1095,7 @@ const styles = StyleSheet.create({
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.58)' },
   flex: { flex: 1, width: '100%' },
   scroll: { flex: 1, width: '100%' },
-  content: { padding: 20, paddingBottom: 48, width: '100%' },
+  content: { padding: 20, paddingBottom: 200, width: '100%' },
 
   // Radial center glow
   centerGlow: {
