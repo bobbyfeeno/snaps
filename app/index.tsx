@@ -108,6 +108,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   bg: {
     flex: 1,
+    width: '100%',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
@@ -115,6 +116,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
+    width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,

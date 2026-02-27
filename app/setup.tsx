@@ -1033,11 +1033,11 @@ export default function SetupScreen() {
 }
 
 const styles = StyleSheet.create({
-  bgFull: { flex: 1 },
+  bgFull: { flex: 1, width: '100%' },
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.58)' },
-  flex: { flex: 1 },
-  scroll: { flex: 1 },
-  content: { padding: 20, paddingBottom: 48 },
+  flex: { flex: 1, width: '100%' },
+  scroll: { flex: 1, width: '100%' },
+  content: { padding: 20, paddingBottom: 48, flexGrow: 1, width: '100%' },
 
   // Radial center glow
   centerGlow: {
