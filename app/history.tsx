@@ -73,7 +73,7 @@ export default function HistoryScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()} activeOpacity={0.7}>
-            <Text style={styles.backBtn}>← History</Text>
+            <Text style={styles.backBtn}>← Past Rounds</Text>
           </TouchableOpacity>
         </View>
 
