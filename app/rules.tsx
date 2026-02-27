@@ -22,7 +22,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '💰',
     name: 'Tax Man',
-    rules: `Each player sets a Tax Man number — their target score for 18 holes. Shoot BELOW your number and everyone pays you the difference × the bet. Shoot ABOVE and you pay each player the difference × the bet. The lower your number, the bigger the swing when you beat it.`,
+    rules: `Each player sets a Tax Man number — their personal target score for 18 holes.\n\nIf you shoot ABOVE your number, you pay every player who shot BELOW their number.\n\nIf you shoot BELOW your number, you collect from every player who shot ABOVE theirs.\n\nThe lower your number, the harder it is to beat — but the bigger the payday when you do.`,
   },
   {
     emoji: '🏌️',
