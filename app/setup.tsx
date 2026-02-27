@@ -304,7 +304,8 @@ export default function SetupScreen() {
   function addPlayer() {
     if (players.length < MAX_PLAYERS) {
       setPlayers(prev => [...prev, createPlayer()]);
-      setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 80);
+      setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 100);
+      setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 350);
     }
   }
 
