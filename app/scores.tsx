@@ -975,7 +975,7 @@ const styles = StyleSheet.create({
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
   container: { flex: 1, width: '100%' },
   mainScroll: { flex: 1, width: '100%' },
-  mainScrollContent: { flexGrow: 1, width: '100%' },
+  mainScrollContent: { width: '100%' },
 
   // Radial center glow
   centerGlow: {

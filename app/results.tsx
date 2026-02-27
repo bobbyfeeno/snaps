@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   bgFull: { flex: 1, width: '100%' },
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
   scroll: { flex: 1, width: '100%' },
-  content: { padding: 20, paddingBottom: 48, flexGrow: 1, width: '100%' },
+  content: { padding: 20, paddingBottom: 48, width: '100%' },
 
   topGlow: {
     position: 'absolute',
