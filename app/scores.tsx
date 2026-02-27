@@ -480,7 +480,7 @@ export default function ScoresScreen() {
           </View>
 
           {/* ── Horizontally scrollable columns ── */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} bounces={false} style={{ flex: 1 }}>
             <View>
               {/* Header row */}
               <View style={{ flexDirection: 'row', height: ROW_H }}>
@@ -959,8 +959,8 @@ export default function ScoresScreen() {
 const styles = StyleSheet.create({
   bgFull: { flex: 1 },
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.62)' },
-  container: { flex: 1 },
-  mainScroll: { flex: 1 },
+  container: { flex: 1, width: '100%' },
+  mainScroll: { flex: 1, width: '100%' },
 
   // Radial center glow
   centerGlow: {
@@ -1051,7 +1051,7 @@ const styles = StyleSheet.create({
   },
   previewCTAText: { color: '#000', fontWeight: '800', fontSize: 13 },
 
-  grid: { flexDirection: 'row' },
+  grid: { flexDirection: 'row', width: '100%' },
 
   stickyCol: { zIndex: 10 },
 
@@ -1460,6 +1460,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#050505',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: '#242424',
+    width: '100%',
   },
   calcBtnOuter: {
     borderRadius: 14,
