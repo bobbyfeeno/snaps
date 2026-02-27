@@ -725,6 +725,17 @@ export default function SetupScreen() {
             <Text style={styles.validationHint}>Select at least one game</Text>
           )}
 
+          {/* Learn the Games link */}
+          <TouchableOpacity
+            style={{ alignItems: 'center', paddingVertical: 12 }}
+            onPress={() => router.push('/rules')}
+            activeOpacity={0.7}
+          >
+            <Text style={{ color: '#39FF14', fontSize: 14, fontWeight: '600' }}>
+              📖  Learn the Games
+            </Text>
+          </TouchableOpacity>
+
           {/* Bottom buttons */}
           <View style={styles.bottomBtns}>
             <TouchableOpacity style={styles.secondaryBtnOuter} onPress={() => router.back()} activeOpacity={0.7}>
