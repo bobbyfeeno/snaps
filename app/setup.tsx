@@ -1104,7 +1104,7 @@ const styles = StyleSheet.create({
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.58)' },
   flex: { flex: 1, width: '100%' },
   scroll: { flex: 1, width: '100%' },
-  content: { padding: 20, paddingBottom: 200, width: '100%' },
+  content: { padding: 20, paddingBottom: Platform.select({ web: 340, default: 200 }), width: '100%' },
 
   // Radial center glow
   centerGlow: {
