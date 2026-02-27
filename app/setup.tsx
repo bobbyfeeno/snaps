@@ -259,13 +259,8 @@ export default function SetupScreen() {
     }
   }, [step]);
 
-  // Scroll to bottom after a new player card fully renders
-  useEffect(() => {
-    if (step === 2 && players.length > 2) {
-      const t = setTimeout(() => stepTwoScrollRef.current?.scrollToEnd({ animated: true }), 150);
-      return () => clearTimeout(t);
-    }
-  }, [players.length, step]);
+  // Track previous player count for scroll-on-add behavior
+  const prevPlayerCountRef = useRef(players.length);
 
   function quickAddPlayer(sp: SavedPlayer) {
     // Find first empty slot
@@ -861,6 +856,13 @@ export default function SetupScreen() {
         style={styles.scroll}
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+        onContentSizeChange={() => {
+          // Scroll to bottom when a new player is added
+          if (players.length > prevPlayerCountRef.current && players.length > 2) {
+            stepTwoScrollRef.current?.scrollToEnd({ animated: true });
+          }
+          prevPlayerCountRef.current = players.length;
+        }}
       >
         {/* Radial center glow */}
         <View style={styles.centerGlow} pointerEvents="none" />
