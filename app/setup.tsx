@@ -465,9 +465,14 @@ export default function SetupScreen() {
           </View>
 
           {/* Header */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Games</Text>
-            <Text style={styles.sectionSubtitle}>Pick your games for this round</Text>
+          <View style={[styles.section, { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }]}>
+            <View>
+              <Text style={styles.sectionTitle}>Games</Text>
+              <Text style={styles.sectionSubtitle}>Pick your games for this round</Text>
+            </View>
+            <TouchableOpacity onPress={() => router.push('/rules')} activeOpacity={0.7} style={{ paddingTop: 4 }}>
+              <Text style={{ color: '#39FF14', fontSize: 13, fontWeight: '600' }}>📖 Rules</Text>
+            </TouchableOpacity>
           </View>
 
           {/* Icon Grid */}
@@ -724,17 +729,6 @@ export default function SetupScreen() {
           {activeGames.size === 0 && (
             <Text style={styles.validationHint}>Select at least one game</Text>
           )}
-
-          {/* Learn the Games link */}
-          <TouchableOpacity
-            style={{ alignItems: 'center', paddingVertical: 12 }}
-            onPress={() => router.push('/rules')}
-            activeOpacity={0.7}
-          >
-            <Text style={{ color: '#39FF14', fontSize: 14, fontWeight: '600' }}>
-              📖  Learn the Games
-            </Text>
-          </TouchableOpacity>
 
           {/* Bottom buttons */}
           <View style={styles.bottomBtns}>
