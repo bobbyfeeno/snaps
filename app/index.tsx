@@ -99,6 +99,24 @@ export default function HomeScreen() {
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
+
+          {/* History + Players buttons */}
+          <View style={styles.secondaryBtnsRow}>
+            <TouchableOpacity
+              style={styles.secondaryBtn}
+              onPress={() => router.push('/history')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.secondaryBtnText}>📜 History</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.secondaryBtn}
+              onPress={() => router.push('/players')}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.secondaryBtnText}>👥 Players</Text>
+            </TouchableOpacity>
+          </View>
         </Animated.View>
       </View>
     </ImageBackground>
@@ -195,5 +213,25 @@ const styles = StyleSheet.create({
     color: '#000',
     letterSpacing: 0.5,
     zIndex: 2,
+  },
+  secondaryBtnsRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 16,
+    width: '100%',
+  },
+  secondaryBtn: {
+    flex: 1,
+    backgroundColor: '#141414',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+  },
+  secondaryBtnText: {
+    color: '#aaa',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });

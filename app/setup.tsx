@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ImageBackground,
   KeyboardAvoidingView,
@@ -14,7 +14,8 @@ import {
   View,
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
-import { BestBallConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player } from '../types';
+import { getSavedPlayers } from '../lib/storage';
+import { BestBallConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player, SavedPlayer } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -247,6 +248,35 @@ export default function SetupScreen() {
 
   // Custom alert modal state
   const [alertMsg, setAlertMsg] = useState<{ title: string; body: string } | null>(null);
+
+  // Saved players state
+  const [savedPlayers, setSavedPlayers] = useState<SavedPlayer[]>([]);
+
+  useEffect(() => {
+    if (step === 2) {
+      getSavedPlayers().then(setSavedPlayers).catch(() => {});
+    }
+  }, [step]);
+
+  function quickAddPlayer(sp: SavedPlayer) {
+    // Find first empty slot
+    const emptySlot = players.find(p => p.name === '');
+    if (emptySlot) {
+      setPlayers(prev =>
+        prev.map(p =>
+          p.id === emptySlot.id
+            ? { ...p, name: sp.name, taxMan: sp.taxMan, handicap: sp.handicap }
+            : p
+        )
+      );
+    } else if (players.length < MAX_PLAYERS) {
+      // Add new player with saved data
+      setPlayers(prev => [
+        ...prev,
+        { id: generateId(), name: sp.name, taxMan: sp.taxMan, handicap: sp.handicap },
+      ]);
+    }
+  }
 
   function showAlert(title: string, body: string) {
     setAlertMsg({ title, body });
@@ -850,6 +880,26 @@ export default function SetupScreen() {
           <Text style={styles.sectionSubtitle}>
             {hasTaxMan ? 'Name + Tax Man score' : 'Add your players'}
           </Text>
+
+          {/* Saved Players Quick-Add */}
+          {savedPlayers.length > 0 && (
+            <View style={styles.savedPlayersSection}>
+              <Text style={styles.savedPlayersLabel}>SAVED PLAYERS</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {savedPlayers.map(sp => (
+                  <TouchableOpacity
+                    key={sp.id}
+                    style={styles.savedPlayerChip}
+                    onPress={() => quickAddPlayer(sp)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.savedPlayerName}>{sp.name}</Text>
+                    <Text style={styles.savedPlayerTM}>TM {sp.taxMan}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           {players.map((player, idx) => (
             <BevelCard key={player.id} style={styles.playerCard}>
@@ -1617,5 +1667,35 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: '800',
     fontSize: 16,
+  },
+
+  // Saved Players Quick-Add
+  savedPlayersSection: {
+    marginBottom: 16,
+  },
+  savedPlayersLabel: {
+    color: '#666',
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 8,
+    letterSpacing: 1,
+  },
+  savedPlayerChip: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: '#333',
+  },
+  savedPlayerName: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  savedPlayerTM: {
+    color: '#555',
+    fontSize: 11,
   },
 });

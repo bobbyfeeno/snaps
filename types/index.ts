@@ -155,3 +155,22 @@ export interface PlayerResult {
   score: number;
   beatTaxMan: boolean; // score < taxMan => winner
 }
+
+// ─── Saved Players & Round History ──────────────────────────────────────────
+
+export interface SavedPlayer {
+  id: string;       // generateId()
+  name: string;
+  taxMan: number;
+  handicap?: number;
+}
+
+export interface RoundRecord {
+  id: string;
+  date: string;              // ISO timestamp (new Date().toISOString())
+  players: Player[];
+  games: GameConfig[];
+  scores: Record<string, (number | null)[]>;  // playerId -> 18 hole scores
+  pars: number[];            // 18 par values
+  results: MultiGameResults;
+}

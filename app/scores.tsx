@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
-import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
+import { saveRound } from '../lib/storage';
+import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -329,6 +330,19 @@ export default function ScoresScreen() {
     };
     
     multiGameResults = calcAllGames(setup, scores, extras);
+
+    // Auto-save round to history
+    const record: RoundRecord = {
+      id: Math.random().toString(36).slice(2, 9),
+      date: new Date().toISOString(),
+      players: setup.players,
+      games: setup.games,
+      scores,
+      pars,
+      results: multiGameResults,
+    };
+    saveRound(record).catch(() => {}); // fire and forget
+
     router.push('/results');
   }
 
