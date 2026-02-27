@@ -115,7 +115,7 @@ export default function HomeScreen() {
                 style={styles.secondaryBtnGrad}
               >
                 <View style={styles.secondaryBtnEdge} />
-                <Text style={styles.secondaryBtnLabel}>📜  Past Rounds</Text>
+                <Text style={styles.secondaryBtnLabel}>Past Rounds</Text>
               </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
@@ -131,7 +131,7 @@ export default function HomeScreen() {
                 style={styles.secondaryBtnGrad}
               >
                 <View style={styles.secondaryBtnEdge} />
-                <Text style={styles.secondaryBtnLabel}>👥  Players</Text>
+                <Text style={styles.secondaryBtnLabel}>Players</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
