@@ -100,21 +100,39 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </Animated.View>
 
-          {/* History + Players buttons */}
+          {/* Past Rounds + Players buttons */}
           <View style={styles.secondaryBtnsRow}>
             <TouchableOpacity
-              style={styles.secondaryBtn}
+              style={styles.secondaryBtnOuter}
               onPress={() => router.push('/history')}
               activeOpacity={0.7}
             >
-              <Text style={styles.secondaryBtnText}>📜 History</Text>
+              <LinearGradient
+                colors={['#252525', '#1a1a1a', '#111111']}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.secondaryBtnGrad}
+              >
+                <View style={styles.secondaryBtnEdge} />
+                <Text style={styles.secondaryBtnLabel}>📜  Past Rounds</Text>
+              </LinearGradient>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.secondaryBtn}
+              style={styles.secondaryBtnOuter}
               onPress={() => router.push('/players')}
               activeOpacity={0.7}
             >
-              <Text style={styles.secondaryBtnText}>👥 Players</Text>
+              <LinearGradient
+                colors={['#252525', '#1a1a1a', '#111111']}
+                locations={[0, 0.5, 1]}
+                start={{ x: 0.5, y: 0 }}
+                end={{ x: 0.5, y: 1 }}
+                style={styles.secondaryBtnGrad}
+              >
+                <View style={styles.secondaryBtnEdge} />
+                <Text style={styles.secondaryBtnLabel}>👥  Players</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -217,21 +235,41 @@ const styles = StyleSheet.create({
   secondaryBtnsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 16,
+    marginTop: 14,
     width: '100%',
   },
-  secondaryBtn: {
+  secondaryBtnOuter: {
     flex: 1,
-    backgroundColor: '#141414',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
+    borderRadius: 16,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#2e2e2e',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  secondaryBtnText: {
-    color: '#aaa',
+  secondaryBtnGrad: {
+    paddingVertical: 17,
+    borderRadius: 16,
+    alignItems: 'center',
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  secondaryBtnEdge: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 1.5,
+    backgroundColor: 'rgba(255,255,255,0.09)',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  secondaryBtnLabel: {
+    color: '#c0c0c0',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });
