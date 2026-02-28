@@ -963,23 +963,9 @@ export default function SetupScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-      <ScrollView
-        ref={stepTwoScrollRef}
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        onContentSizeChange={() => {
-          // Scroll to bottom when a new player is added
-          if (players.length > prevPlayerCountRef.current && players.length > 2) {
-            stepTwoScrollRef.current?.scrollToEnd({ animated: true });
-          }
-          prevPlayerCountRef.current = players.length;
-        }}
-      >
-        {/* Radial center glow */}
+      {/* ── Fixed header: step indicator + title + saved chips ── */}
+      <View style={styles.step2Header}>
         <View style={styles.centerGlow} pointerEvents="none" />
-
-        {/* Step indicator */}
         <View style={styles.stepIndicator}>
           <TouchableOpacity onPress={() => setStep(1)}>
             <LinearGradient
@@ -998,34 +984,47 @@ export default function SetupScreen() {
           </LinearGradient>
         </View>
 
-        {/* Players */}
-        <View style={styles.section}>
+        <View style={styles.step2TitleArea}>
           <Text style={styles.sectionTitle}>Players</Text>
           <Text style={styles.sectionSubtitle}>
             {hasTaxMan ? 'Name + Tax Man score' : 'Add your players'}
           </Text>
+        </View>
 
-          {/* Saved Players Quick-Add */}
-          {savedPlayers.length > 0 && (
-            <View style={styles.savedPlayersSection}>
-              <Text style={styles.savedPlayersLabel}>SAVED PLAYERS</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {savedPlayers.map(sp => (
-                  <TouchableOpacity
-                    key={sp.id}
-                    style={styles.savedPlayerChip}
-                    onPress={() => quickAddPlayer(sp)}
-                    activeOpacity={0.7}
-                  >
-                    <Text style={styles.savedPlayerName}>{sp.name}</Text>
-                    <Text style={styles.savedPlayerTM}>TM {sp.taxMan}</Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </View>
-          )}
+        {savedPlayers.length > 0 && (
+          <View style={styles.savedPlayersSection}>
+            <Text style={styles.savedPlayersLabel}>SAVED PLAYERS</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {savedPlayers.map(sp => (
+                <TouchableOpacity
+                  key={sp.id}
+                  style={styles.savedPlayerChip}
+                  onPress={() => quickAddPlayer(sp)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.savedPlayerName}>{sp.name}</Text>
+                  <Text style={styles.savedPlayerTM}>TM {sp.taxMan}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </View>
 
-          {players.map((player, idx) => (
+      {/* ── Scrollable player cards only ── */}
+      <ScrollView
+        ref={stepTwoScrollRef}
+        style={styles.playerScroll}
+        contentContainerStyle={styles.playerScrollContent}
+        keyboardShouldPersistTaps="handled"
+        onContentSizeChange={() => {
+          if (players.length > prevPlayerCountRef.current && players.length > 2) {
+            stepTwoScrollRef.current?.scrollToEnd({ animated: true });
+          }
+          prevPlayerCountRef.current = players.length;
+        }}
+      >
+        {players.map((player, idx) => (
             <BevelCard key={player.id} style={styles.playerCard}>
               <View style={styles.playerCardInner}>
                 <View style={styles.playerHeader}>
@@ -1089,7 +1088,6 @@ export default function SetupScreen() {
               </View>
             </BevelCard>
           ))}
-        </View>
 
         {/* Team Assignment (Vegas + Best Ball) */}
         {(activeGames.has('vegas') || activeGames.has('best-ball')) && players.filter(p => p.name.trim()).length >= 2 && (
@@ -1220,6 +1218,21 @@ const styles = StyleSheet.create({
   flex: { flex: 1, width: '100%' },
   scroll: { flex: 1, width: '100%' },
   content: { padding: 20, paddingBottom: 32, width: '100%' },
+  // Step 2 fixed header (non-scrolling)
+  step2Header: {
+    width: '100%',
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1a1a1a',
+  },
+  step2TitleArea: {
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  // Step 2 scrollable player list
+  playerScroll: { flex: 1, width: '100%' },
+  playerScrollContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16, width: '100%' },
 
   // Radial center glow
   centerGlow: {
@@ -1804,7 +1817,8 @@ const styles = StyleSheet.create({
 
   // Saved Players Quick-Add
   savedPlayersSection: {
-    marginBottom: 16,
+    marginBottom: 8,
+    paddingHorizontal: 20,
   },
   savedPlayersLabel: {
     color: '#666',
