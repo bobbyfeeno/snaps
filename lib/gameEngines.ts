@@ -4,6 +4,7 @@ import {
   ArniesHoleState,
   BankerConfig,
   BankerHoleState,
+  MatchPlayConfig,
   BBBHoleState,
   BestBallConfig,
   BingoBangoBongoConfig,
@@ -1510,6 +1511,123 @@ export function calcBanker(
   return { mode: 'banker', label: 'Banker', payouts, net };
 }
 
+// ─── Match Play ───────────────────────────────────────────────────────────────
+
+export function calcMatchPlay(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  config: MatchPlayConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+  const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
+
+  // Pairwise — every player vs every other player
+  for (let i = 0; i < players.length; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      const a = players[i];
+      const b = players[j];
+
+      if (config.mode === 'match') {
+        // Hole-by-hole match play
+        let aUp = 0; // positive = A leads, negative = B leads
+        for (let h = 0; h < 18; h++) {
+          const aNet = config.useHandicaps ? getNetScore(scores[a.id][h], allowances[a.id] ?? 0, h) : scores[a.id][h];
+          const bNet = config.useHandicaps ? getNetScore(scores[b.id][h], allowances[b.id] ?? 0, h) : scores[b.id][h];
+          if (aNet === null || bNet === null) continue;
+          if (aNet < bNet) aUp++;
+          else if (bNet < aNet) aUp--;
+          // tie = halve, aUp unchanged
+        }
+        if (aUp === 0) continue; // match tied — push
+        const winner = aUp > 0 ? a : b;
+        const loser  = aUp > 0 ? b : a;
+        const amount = config.betAmount;
+        payouts.push({ from: loser.name, to: winner.name, amount, game: 'match-play' });
+        net[loser.name]  -= amount;
+        net[winner.name] += amount;
+
+      } else {
+        // Stroke play (net total)
+        let aTotal = 0; let bTotal = 0;
+        for (let h = 0; h < 18; h++) {
+          const aNet = config.useHandicaps ? getNetScore(scores[a.id][h], allowances[a.id] ?? 0, h) : scores[a.id][h];
+          const bNet = config.useHandicaps ? getNetScore(scores[b.id][h], allowances[b.id] ?? 0, h) : scores[b.id][h];
+          if (aNet !== null) aTotal += aNet;
+          if (bNet !== null) bTotal += bNet;
+        }
+        if (aTotal === bTotal) continue;
+        const diff = Math.abs(aTotal - bTotal);
+        const amount = Math.round(config.betAmount * diff * 100) / 100;
+        const winner = aTotal < bTotal ? a : b;
+        const loser  = aTotal < bTotal ? b : a;
+        payouts.push({ from: loser.name, to: winner.name, amount, game: 'match-play' });
+        net[loser.name]  -= amount;
+        net[winner.name] += amount;
+      }
+    }
+  }
+
+  return { mode: 'match-play', label: 'Match Play', payouts, net };
+}
+
+function calcLiveMatchPlay(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  config: MatchPlayConfig
+): LiveStatus {
+  const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
+  const lines: LiveStatusLine[] = [];
+
+  if (config.mode === 'match') {
+    // Show each pairing's live match status
+    for (let i = 0; i < players.length; i++) {
+      for (let j = i + 1; j < players.length; j++) {
+        const a = players[i]; const b = players[j];
+        let aUp = 0; let holesPlayed = 0;
+        for (let h = 0; h < 18; h++) {
+          const aNet = config.useHandicaps ? getNetScore(scores[a.id][h], allowances[a.id] ?? 0, h) : scores[a.id][h];
+          const bNet = config.useHandicaps ? getNetScore(scores[b.id][h], allowances[b.id] ?? 0, h) : scores[b.id][h];
+          if (aNet === null || bNet === null) continue;
+          holesPlayed++;
+          if (aNet < bNet) aUp++;
+          else if (bNet < aNet) aUp--;
+        }
+        const remaining = 18 - holesPlayed;
+        if (holesPlayed === 0) {
+          lines.push({ text: `${a.name} vs ${b.name} — Not started`, color: 'neutral' });
+        } else if (aUp === 0) {
+          lines.push({ text: `${a.name} vs ${b.name} — AS thru ${holesPlayed}`, color: 'neutral' });
+        } else {
+          const leader = aUp > 0 ? a : b;
+          const margin = Math.abs(aUp);
+          // Dormie / won check
+          const text = margin > remaining
+            ? `${leader.name} wins ${margin}&${remaining}` // already won
+            : margin === remaining
+              ? `${leader.name} ${margin}UP (dormie)`
+              : `${leader.name} ${margin}UP thru ${holesPlayed}`;
+          lines.push({ text, color: 'green', playerId: leader.id });
+        }
+      }
+    }
+  } else {
+    // Stroke play — show running net totals
+    for (const p of players) {
+      let total = 0;
+      for (let h = 0; h < 18; h++) {
+        const n = config.useHandicaps ? getNetScore(scores[p.id][h], allowances[p.id] ?? 0, h) : scores[p.id][h];
+        if (n !== null) total += n;
+      }
+      lines.push({ text: `${p.name} ${total}${config.useHandicaps ? ' (net)' : ''}`, color: 'neutral', playerId: p.id });
+    }
+  }
+
+  return { mode: 'match-play', label: '🏆 Match Play', lines };
+}
+
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
 export function calcAllGames(
@@ -1592,6 +1710,9 @@ export function calcAllGames(
         break;
       case 'banker':
         result = calcBanker(players, scores, extras.banker ?? [], game.config);
+        break;
+      case 'match-play':
+        result = calcMatchPlay(players, scores, extras.pars ?? Array(18).fill(4), game.config);
         break;
     }
 
@@ -2483,6 +2604,9 @@ export function calcLiveStatus(
         break;
       case 'banker':
         results.push(calcLiveBanker(players, scores, bankerHoles ?? [], game.config));
+        break;
+      case 'match-play':
+        results.push(calcLiveMatchPlay(players, scores, pars, game.config));
         break;
     }
   }

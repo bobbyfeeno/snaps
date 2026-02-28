@@ -116,6 +116,12 @@ export interface BankerConfig {
   betAmount: number;
 }
 
+export interface MatchPlayConfig {
+  betAmount: number;        // $ per match won (stroke play) or per hole (match play)
+  mode: 'match' | 'stroke'; // match = hole-by-hole, stroke = total net strokes
+  useHandicaps: boolean;    // apply USGA handicap strokes per hole
+}
+
 export interface TroubleHoleState {
   troubles: Record<string, string[]>; // playerId → array of trouble types
 }
@@ -149,7 +155,8 @@ export type GameConfig =
   | { mode: 'quota'; config: QuotaConfig }
   | { mode: 'trouble'; config: TroubleConfig }
   | { mode: 'arnies'; config: ArniesConfig }
-  | { mode: 'banker'; config: BankerConfig };
+  | { mode: 'banker'; config: BankerConfig }
+  | { mode: 'match-play'; config: MatchPlayConfig };
 
 export type GameMode = GameConfig['mode'];
 

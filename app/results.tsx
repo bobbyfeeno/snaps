@@ -32,6 +32,7 @@ function getGameEmoji(mode: GameMode): string {
     case 'trouble': return '😈';
     case 'arnies': return '🦁';
     case 'banker': return '🏦';
+    case 'match-play': return '🏆';
     default: return '🎮';
   }
 }

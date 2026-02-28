@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { getSavedPlayers } from '../lib/storage';
-import { AcesDeucesConfig, ArniesConfig, BankerConfig, BestBallConfig, CtpConfig, DotsConfig, GameConfig, GameMode, GameSetup, NassauConfig, NinesConfig, Player, QuotaConfig, SavedPlayer, ScotchConfig, StablefordConfig, TroubleConfig } from '../types';
+import { AcesDeucesConfig, ArniesConfig, BankerConfig, BestBallConfig, CtpConfig, DotsConfig, GameConfig, GameMode, GameSetup, MatchPlayConfig, NassauConfig, NinesConfig, Player, QuotaConfig, SavedPlayer, ScotchConfig, StablefordConfig, TroubleConfig } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -209,6 +209,14 @@ const GAME_DEFS: GameDef[] = [
     defaultAmount: 3,
     minPlayers: 2,
   },
+  {
+    mode: 'match-play',
+    name: 'Match Play',
+    description: '1v1 or round robin. Win holes (match) or fewest strokes (stroke). Handicaps supported.',
+    inputLabel: '$ per match',
+    defaultAmount: 10,
+    minPlayers: 2,
+  },
 ];
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
@@ -244,6 +252,7 @@ const ICON_DEFS: Record<string, {
   trouble:          { emoji: '😈', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   arnies:           { emoji: '🦁', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   banker:           { emoji: '🏦', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  'match-play':     { emoji: '🏆', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -358,6 +367,7 @@ export default function SetupScreen() {
     trouble: '2',
     arnies: '5',
     banker: '3',
+    'match-play': '10',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
@@ -383,6 +393,8 @@ export default function SetupScreen() {
   const [troubleThreePutt, setTroubleThreePutt] = useState(true);
   const [troubleSandTrap, setTroubleSandTrap] = useState(true);
   const [troubleLostBall, setTroubleLostBall] = useState(true);
+  const [matchPlayMode, setMatchPlayMode] = useState<'match' | 'stroke'>('match');
+  const [matchPlayHandicaps, setMatchPlayHandicaps] = useState(false);
 
   // Quota per-player inputs
   const [quotaInputs, setQuotaInputs] = useState<Record<string, string>>({});
@@ -659,6 +671,9 @@ export default function SetupScreen() {
           break;
         case 'banker':
           games.push({ mode: 'banker', config: { betAmount: amount } });
+          break;
+        case 'match-play':
+          games.push({ mode: 'match-play', config: { betAmount: amount, mode: matchPlayMode, useHandicaps: matchPlayHandicaps } });
           break;
       }
     }
@@ -1012,6 +1027,59 @@ export default function SetupScreen() {
                       ⚾ Nines requires exactly 3 players. 9 pts per hole distributed 5-3-1.
                     </Text>
                   </View>
+                </View>
+              )}
+
+              {/* Match Play config panel */}
+              {activeGames.has('match-play') && (
+                <View style={styles.nassauOpts}>
+                  {/* Match / Stroke toggle */}
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>Format</Text>
+                    <View style={styles.nassauModeRow}>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, matchPlayMode === 'match' && styles.pillBtnActive]}
+                        onPress={() => setMatchPlayMode('match')}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[styles.pillBtnText, matchPlayMode === 'match' && styles.pillBtnTextActive]}>Match</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, matchPlayMode === 'stroke' && styles.pillBtnActive]}
+                        onPress={() => setMatchPlayMode('stroke')}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[styles.pillBtnText, matchPlayMode === 'stroke' && styles.pillBtnTextActive]}>Stroke</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {/* Handicap toggle */}
+                  <View style={styles.nassauOptionRow}>
+                    <Text style={styles.nassauOptionLabel}>Handicaps</Text>
+                    <View style={styles.nassauModeRow}>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, !matchPlayHandicaps && styles.pillBtnActive]}
+                        onPress={() => setMatchPlayHandicaps(false)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[styles.pillBtnText, !matchPlayHandicaps && styles.pillBtnTextActive]}>Off</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.pillBtn, matchPlayHandicaps && styles.pillBtnActive]}
+                        onPress={() => setMatchPlayHandicaps(true)}
+                        activeOpacity={0.75}
+                      >
+                        <Text style={[styles.pillBtnText, matchPlayHandicaps && styles.pillBtnTextActive]}>On</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  {matchPlayHandicaps && (
+                    <View style={[styles.nassauOptionRow, { marginTop: 4 }]}>
+                      <Text style={[styles.nassauOptionLabel, { color: '#555', fontSize: 12, flex: 1 }]}>
+                        Enter handicaps in each player card above.
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
 
