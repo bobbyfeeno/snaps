@@ -77,7 +77,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🗑️',
     name: 'Dots / Junk',
-    rules: `Side bets rewarding great shots. Every dot you earn costs every other player your set dollar amount.\n\n🐦 Birdie — score 1 under par = 1 dot (auto-tracked)\n🦅 Eagle — score 2+ under par = 2 dots (auto-tracked)\n🏖️ Sandy — make par or better after hitting from a bunker = 1 dot (tap to mark in scorecard)\n🌿 Greenie — on par 3s only, closest player to the pin who makes par or better = 1 dot (tap to award in scorecard)\n\nYou can toggle which dot types are active when setting up the game. Mix with any other game — dots stack on top of everything else.`,
+    rules: `Side bets rewarding great shots. Every dot you earn costs every other player your set dollar amount.\n\n🐦 Birdie — score 1 under par = 1 dot (auto-tracked)\n🦅 Eagle — score 2+ under par = 2 dots (auto-tracked)\n🏖️ Sandy — make par or better after hitting from a bunker = 1 dot (tap to mark in scorecard)\n🌿 Greenie — on par 3s only, tee shot must land on the green; closest to the pin who then makes par or better = 1 dot (tap to award in scorecard)\n\nYou can toggle which dot types are active when setting up the game. Mix with any other game — dots stack on top of everything else.`,
   },
   {
     emoji: '🔄',
@@ -92,7 +92,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🥃',
     name: 'Scotch',
-    rules: `A 2v2 team points game. This app plays a simplified Low Ball / Low Total format — 5 points per hole.\n\n2 points — Low Ball: whichever team has the lower individual score wins 2 pts.\n3 points — Low Total: whichever team has the lower combined score wins 3 pts.\n\nA clean sweep wins all 5 pts on that hole. Ties on either category push (no points awarded).\n\nAt the end, point difference × your dollar amount determines the payout. Assign teams before teeing off.\n\nNote: Traditional 5-point Scotch (also called Umbriago) includes five separate categories — Low Ball, Low Total, Low Putts, Closest to Pin, and Birdie — worth 1 point each. This app plays the popular 2-category version for simplicity.`,
+    rules: `A 2v2 team points game. This app plays a simplified Low Ball / Low Total format — 5 points per hole.\n\n2 points — Low Ball: whichever team has the lower individual score wins 2 pts.\n3 points — Low Total: whichever team has the lower combined score wins 3 pts.\n\nA clean sweep wins all 5 pts on that hole. Ties on either category push (no points awarded).\n\nAt the end, point difference × your dollar amount determines the payout. Assign teams before teeing off.\n\nNote: Traditional 5-point Scotch (also called Umbriago) includes five separate categories — Low Ball, Low Total, Low Putts, Closest to Pin, and Birdie — worth 1 point each. This app plays a simplified 2-category version.`,
   },
   {
     emoji: '⛳',
