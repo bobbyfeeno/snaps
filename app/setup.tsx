@@ -1383,8 +1383,8 @@ export default function SetupScreen() {
                   </View>
                 )}
 
-                {/* Handicap input - only show when Nassau with handicaps enabled */}
-                {activeGames.has('nassau') && nassauHandicaps && (
+                {/* Handicap input - show when Nassau OR Head to Head has handicaps enabled */}
+                {((activeGames.has('nassau') && nassauHandicaps) || (activeGames.has('match-play') && matchPlayHandicaps)) && (
                   <View style={styles.handicapRow}>
                     <Text style={styles.handicapLabel}>Handicap:</Text>
                     <TextInput
