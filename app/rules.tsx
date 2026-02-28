@@ -25,6 +25,11 @@ const GAMES: GameRule[] = [
     rules: `Standard golf scorecard. Track every player's score hole-by-hole with no side bets attached. Combine it with any other game mode for a full picture of the round.`,
   },
   {
+    emoji: '🏆',
+    name: 'Head to Head',
+    rules: `The purest form of golf competition — you win holes, not strokes.\n\n**Match Play format:**\nEach hole is won, halved, or lost. Win a hole by having the lower score. Tie a hole (same score) = halve it — neither player moves up or down.\n\nTrack the match as "X UP" or "X DOWN" — e.g., "3UP thru 9" means you've won 3 more holes than your opponent. The match ends when someone is mathematically unbeatable ("dormie" = up by the number of holes remaining).\n\nFinal margin shown as "3&2" — meaning 3 holes up with 2 remaining.\n\n**Stroke Play format:**\nStandard stroke competition. Lowest net total over 18 holes wins. Payout = bet × stroke difference.\n\n**Press:**\nWhen a player goes 2-down in the match, a new side bet automatically starts covering the remaining holes. Presses can stack — each press is its own independent bet at the same dollar amount.\n\n**Handicaps:**\nWhen enabled, strokes are allocated using USGA-style hole difficulty ratings. The lower-handicap player gives strokes to the higher-handicap player — one stroke per hole difference on the hardest holes first.\n\n**Multi-player:**\nWith 3+ players, every pair plays their own independent match simultaneously. Each match settles separately.`,
+  },
+  {
     emoji: '💰',
     name: 'Tax Man',
     rules: `Each player sets a Tax Man number — their personal target score for 18 holes.\n\nIf you shoot ABOVE your number, you pay every player who shot BELOW their number.\n\nIf you shoot BELOW your number, you collect from every player who shot ABOVE theirs.\n\nThe lower your number, the harder it is to beat — but the bigger the payday when you do.`,
@@ -123,11 +128,6 @@ const GAMES: GameRule[] = [
     emoji: '🏦',
     name: 'Banker',
     rules: `One player is the Banker each hole — everyone else plays against them individually.\n\nAll other players compete against the Banker in stroke play, head-to-head:\n• Beat the Banker → Banker pays you the set amount\n• Lose to the Banker → you pay the Banker\n• Tie → push, no money changes hands\n\nThe Banker wins or loses against each opponent separately. A Banker with 3 opponents can collect or pay up to 3× per hole.\n\nStandard assignment rule: whoever won the previous hole (lowest score) becomes the next Banker. Tie for low score: first to hole out takes the Banker spot. Tied hole: current Banker retains. The Banker always tees off last — opponents see their own shots before the Banker hits.\n\nFirst hole: lowest handicap or coin flip.\n\nNote: This app uses a fixed bet amount and manual Banker assignment for simplicity. Traditional Banker lets each player set their own stake against the Banker within an agreed min/max range, adding a betting strategy layer. Also known as Chairman (UK) or Devil's Ball.`,
-  },
-  {
-    emoji: '🏆',
-    name: 'Head to Head',
-    rules: `The purest form of golf competition — you win holes, not strokes.\n\n**Match Play format:**\nEach hole is won, halved, or lost. Win a hole by having the lower score. Tie a hole (same score) = halve it — neither player moves up or down.\n\nTrack the match as "X UP" or "X DOWN" — e.g., "3UP thru 9" means you've won 3 more holes than your opponent. The match ends when someone is mathematically unbeatable ("dormie" = up by the number of holes remaining).\n\nFinal margin shown as "3&2" — meaning 3 holes up with 2 remaining.\n\n**Stroke Play format:**\nStandard stroke competition. Lowest net total over 18 holes wins. Payout = bet × stroke difference.\n\n**Handicaps:**\nWhen enabled, strokes are allocated using USGA-style hole difficulty ratings. The lower-handicap player gives strokes to the higher-handicap player — one stroke per hole difference on the hardest holes first.\n\n**Multi-player:**\nWith 3+ players, every pair plays their own independent match simultaneously. Each match settles separately.`,
   },
   {
     emoji: '🔨',

@@ -121,6 +121,7 @@ export interface BankerConfig {
 export interface MatchPlayConfig {
   betAmount: number;        // $ per match won (stroke play) or per hole (match play)
   mode: 'match' | 'stroke'; // match = hole-by-hole, stroke = total net strokes
+  press: 'none' | 'auto';  // 'auto' = auto-press when 2 down (match mode only)
   useHandicaps: boolean;    // apply USGA handicap strokes per hole
 }
 
@@ -216,6 +217,7 @@ export interface HoleExtras {
 
 export interface PressMatch {
   id: string;
+  game?: 'nassau' | 'match-play'; // which game this press belongs to (undefined = nassau, backwards compat)
   leg: 'front' | 'back' | 'full';
   startHole: number; // 0-indexed, first hole of this press
   endHole: number;   // last hole of this leg (8 for front, 17 for back, 17 for full)

@@ -15,7 +15,7 @@ import {
 import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
 import { saveRound } from '../lib/storage';
-import { ArniesHoleState, BankerHoleState, BBBHoleState, CtpHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, TroubleConfig, TroubleHoleState, VegasConfig, WolfHoleState } from '../types';
+import { ArniesHoleState, BankerHoleState, BBBHoleState, CtpHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MatchPlayConfig, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, TroubleConfig, TroubleHoleState, VegasConfig, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -217,7 +217,7 @@ export default function ScoresScreen() {
     });
   }
 
-  // ─── Press state (Nassau match play auto-press) ───────────────────────────
+  // ─── Press state (Nassau + Head to Head auto-press) ──────────────────────
   const [pressMatches, setPressMatches] = useState<PressMatch[]>([]);
 
   // Check if Nassau auto-press is active
@@ -225,6 +225,11 @@ export default function ScoresScreen() {
   const nassauConfig = nassauGame?.config as NassauConfig | undefined;
   const hasNassauAutoPress = !!nassauGame && nassauConfig?.mode === 'match' && nassauConfig?.press === 'auto';
   const useHandicaps = !!nassauGame && !!nassauConfig?.useHandicaps;
+
+  // Check if Head to Head auto-press is active
+  const matchPlayGame = setup.games.find(g => g.mode === 'match-play');
+  const matchPlayConfig = matchPlayGame?.config as MatchPlayConfig | undefined;
+  const hasMatchPlayAutoPress = !!matchPlayGame && matchPlayConfig?.mode === 'match' && matchPlayConfig?.press === 'auto';
 
   // Collapsible panel states
   const [wolfExpanded, setWolfExpanded] = useState(false);
@@ -349,68 +354,93 @@ export default function ScoresScreen() {
 
   // ─── Auto-press check ─────────────────────────────────────────────────────
   function checkAutoPress() {
-    if (!hasNassauAutoPress) return;
-
-    const legs: { name: 'front' | 'back' | 'full'; start: number; end: number }[] = [
-      { name: 'front', start: 0, end: 9 },
-      { name: 'back', start: 9, end: 18 },
-    ];
+    if (!hasNassauAutoPress && !hasMatchPlayAutoPress) return;
 
     const newPresses: PressMatch[] = [];
 
-    for (const leg of legs) {
-      // Find current hole being played in this leg
-      let currentHole = -1;
-      for (let h = leg.start; h < leg.end; h++) {
-        const allHaveScore = setup.players.every(p => scores[p.id][h] !== null);
-        if (allHaveScore) {
-          currentHole = h;
+    // ─── Nassau auto-press ─────────────────────────────────────────────────
+    if (hasNassauAutoPress) {
+      const legs: { name: 'front' | 'back' | 'full'; start: number; end: number }[] = [
+        { name: 'front', start: 0, end: 9 },
+        { name: 'back', start: 9, end: 18 },
+      ];
+
+      for (const leg of legs) {
+        let currentHole = -1;
+        for (let h = leg.start; h < leg.end; h++) {
+          const allHaveScore = setup.players.every(p => scores[p.id][h] !== null);
+          if (allHaveScore) currentHole = h;
+        }
+        if (currentHole < leg.start) continue;
+
+        const holesWon: Record<string, number> = {};
+        for (const p of setup.players) holesWon[p.id] = 0;
+
+        for (let h = leg.start; h <= currentHole; h++) {
+          const holeScores = setup.players
+            .map(p => ({ id: p.id, score: scores[p.id][h] }))
+            .filter(x => x.score !== null) as { id: string; score: number }[];
+          if (holeScores.length < 2) continue;
+          const minScore = Math.min(...holeScores.map(x => x.score));
+          const winners = holeScores.filter(x => x.score === minScore);
+          if (winners.length === 1) holesWon[winners[0].id]++;
+        }
+
+        const maxWon = Math.max(...Object.values(holesWon));
+        for (const p of setup.players) {
+          const deficit = maxWon - holesWon[p.id];
+          if (deficit >= 2 && currentHole < leg.end - 1) {
+            const nextHole = currentHole + 1;
+            const alreadyPressed = pressMatches.some(pm =>
+              (!pm.game || pm.game === 'nassau') && pm.leg === leg.name && pm.startHole <= nextHole && pm.endHole >= nextHole
+            ) || newPresses.some(pm =>
+              (!pm.game || pm.game === 'nassau') && pm.leg === leg.name && pm.startHole <= nextHole && pm.endHole >= nextHole
+            );
+            if (!alreadyPressed) {
+              newPresses.push({
+                id: `${leg.name}-${nextHole}-${Date.now()}`,
+                game: 'nassau',
+                leg: leg.name,
+                startHole: nextHole,
+                endHole: leg.end - 1,
+              });
+            }
+          }
         }
       }
+    }
 
-      if (currentHole < leg.start) continue; // No completed holes in this leg yet
+    // ─── Head to Head auto-press ───────────────────────────────────────────
+    if (hasMatchPlayAutoPress) {
+      const players = setup.players;
+      // Pairwise: check if any pair is 2+ down → trigger a press for the full match
+      for (let i = 0; i < players.length; i++) {
+        for (let j = i + 1; j < players.length; j++) {
+          const a = players[i]; const b = players[j];
+          let aUp = 0; let lastHolePlayed = -1;
 
-      // Calculate holes won per player up to and including currentHole
-      const holesWon: Record<string, number> = {};
-      for (const p of setup.players) holesWon[p.id] = 0;
+          for (let h = 0; h < 18; h++) {
+            const aScore = scores[a.id][h]; const bScore = scores[b.id][h];
+            if (aScore === null || bScore === null) continue;
+            if (aScore < bScore) aUp++;
+            else if (bScore < aScore) aUp--;
+            lastHolePlayed = h;
+          }
 
-      for (let h = leg.start; h <= currentHole; h++) {
-        const holeScores = setup.players
-          .map(p => ({ id: p.id, score: scores[p.id][h] }))
-          .filter(x => x.score !== null) as { id: string; score: number }[];
-        
-        if (holeScores.length < 2) continue;
-
-        const minScore = Math.min(...holeScores.map(x => x.score));
-        const winners = holeScores.filter(x => x.score === minScore);
-        if (winners.length === 1) {
-          holesWon[winners[0].id]++;
-        }
-      }
-
-      // Find leader and check if anyone is 2+ down
-      const maxWon = Math.max(...Object.values(holesWon));
-      
-      for (const p of setup.players) {
-        const deficit = maxWon - holesWon[p.id];
-        if (deficit >= 2 && currentHole < leg.end - 1) {
-          // Player is 2+ down and there are holes remaining
-          const nextHole = currentHole + 1;
-          
-          // Check if a press already covers this situation
-          const alreadyPressed = pressMatches.some(pm =>
-            pm.leg === leg.name && pm.startHole <= nextHole && pm.endHole >= nextHole
-          ) || newPresses.some(pm =>
-            pm.leg === leg.name && pm.startHole <= nextHole && pm.endHole >= nextHole
-          );
-
-          if (!alreadyPressed) {
-            newPresses.push({
-              id: `${leg.name}-${nextHole}-${Date.now()}`,
-              leg: leg.name,
-              startHole: nextHole,
-              endHole: leg.end - 1,
-            });
+          if (Math.abs(aUp) >= 2 && lastHolePlayed >= 0 && lastHolePlayed < 17) {
+            const nextHole = lastHolePlayed + 1;
+            const alreadyPressed = [...pressMatches, ...newPresses].some(
+              pm => pm.game === 'match-play' && pm.startHole <= nextHole && pm.endHole >= nextHole
+            );
+            if (!alreadyPressed) {
+              newPresses.push({
+                id: `h2h-press-${nextHole}-${Date.now()}`,
+                game: 'match-play',
+                leg: 'full',
+                startHole: nextHole,
+                endHole: 17,
+              });
+            }
           }
         }
       }

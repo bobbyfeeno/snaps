@@ -318,12 +318,13 @@ function calcNassauMatch(
     }
   }
 
-  // Process press bets
-  if (pressMatches && pressMatches.length > 0) {
+  // Process press bets (Nassau only — filter out H2H presses)
+  const nassauPresses = (pressMatches ?? []).filter(pm => !pm.game || pm.game === 'nassau');
+  if (nassauPresses.length > 0) {
     // Group presses by leg for labeling
     const pressCountByLeg: Record<string, number> = { front: 0, back: 0, full: 0 };
 
-    for (const press of pressMatches) {
+    for (const press of nassauPresses) {
       pressCountByLeg[press.leg]++;
       const pressNum = pressCountByLeg[press.leg];
       const labelSuffix = pressNum === 1 ? '' : ` ${pressNum}`;
@@ -1519,7 +1520,8 @@ export function calcMatchPlay(
   players: Player[],
   scores: Record<string, (number | null)[]>,
   pars: number[],
-  config: MatchPlayConfig
+  config: MatchPlayConfig,
+  pressMatches?: PressMatch[]
 ): GameResult {
   const net = initNet(players);
   const payouts: Payout[] = [];
@@ -1567,6 +1569,32 @@ export function calcMatchPlay(
         payouts.push({ from: loser.name, to: winner.name, amount, game: 'match-play' });
         net[loser.name]  -= amount;
         net[winner.name] += amount;
+      }
+    }
+  }
+
+  // Process press bets (match mode only)
+  if (config.mode === 'match' && pressMatches && pressMatches.length > 0) {
+    const h2hPresses = pressMatches.filter(pm => pm.game === 'match-play');
+    for (const press of h2hPresses) {
+      for (let i = 0; i < players.length; i++) {
+        for (let j = i + 1; j < players.length; j++) {
+          const a = players[i]; const b = players[j];
+          let aUp = 0;
+          for (let h = press.startHole; h <= press.endHole; h++) {
+            const aNet = config.useHandicaps ? getNetScore(scores[a.id][h], allowances[a.id] ?? 0, h) : scores[a.id][h];
+            const bNet = config.useHandicaps ? getNetScore(scores[b.id][h], allowances[b.id] ?? 0, h) : scores[b.id][h];
+            if (aNet === null || bNet === null) continue;
+            if (aNet < bNet) aUp++;
+            else if (bNet < aNet) aUp--;
+          }
+          if (aUp === 0) continue;
+          const winner = aUp > 0 ? a : b;
+          const loser  = aUp > 0 ? b : a;
+          payouts.push({ from: loser.name, to: winner.name, amount: config.betAmount, game: 'match-play' });
+          net[loser.name]  -= config.betAmount;
+          net[winner.name] += config.betAmount;
+        }
       }
     }
   }
@@ -1714,7 +1742,7 @@ export function calcAllGames(
         result = calcBanker(players, scores, extras.banker ?? [], game.config);
         break;
       case 'match-play':
-        result = calcMatchPlay(players, scores, extras.pars ?? Array(18).fill(4), game.config);
+        result = calcMatchPlay(players, scores, extras.pars ?? Array(18).fill(4), game.config, extras.pressMatches);
         break;
     }
 

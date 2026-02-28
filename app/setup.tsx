@@ -397,6 +397,7 @@ export default function SetupScreen() {
   const [troubleSandTrap, setTroubleSandTrap] = useState(true);
   const [troubleLostBall, setTroubleLostBall] = useState(true);
   const [matchPlayMode, setMatchPlayMode] = useState<'match' | 'stroke'>('match');
+  const [matchPlayPress, setMatchPlayPress] = useState<'none' | 'auto'>('none');
   const [matchPlayHandicaps, setMatchPlayHandicaps] = useState(false);
 
   // Quota per-player inputs
@@ -687,7 +688,7 @@ export default function SetupScreen() {
           games.push({ mode: 'banker', config: { betAmount: amount } });
           break;
         case 'match-play':
-          games.push({ mode: 'match-play', config: { betAmount: amount, mode: matchPlayMode, useHandicaps: matchPlayHandicaps } });
+          games.push({ mode: 'match-play', config: { betAmount: amount, mode: matchPlayMode, press: matchPlayPress, useHandicaps: matchPlayHandicaps } });
           break;
       }
     }
@@ -1091,6 +1092,28 @@ export default function SetupScreen() {
                       </TouchableOpacity>
                     </View>
                   </View>
+                  {/* Press toggle (match mode only) */}
+                  {matchPlayMode === 'match' && (
+                    <View style={styles.nassauOptionRow}>
+                      <Text style={styles.nassauOptionLabel}>Press</Text>
+                      <View style={styles.nassauModeRow}>
+                        <TouchableOpacity
+                          style={[styles.pillBtn, matchPlayPress === 'none' && styles.pillBtnActive]}
+                          onPress={() => setMatchPlayPress('none')}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={[styles.pillBtnText, matchPlayPress === 'none' && styles.pillBtnTextActive]}>None</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.pillBtn, matchPlayPress === 'auto' && styles.pillBtnActive]}
+                          onPress={() => setMatchPlayPress('auto')}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={[styles.pillBtnText, matchPlayPress === 'auto' && styles.pillBtnTextActive]}>Auto</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  )}
                   {/* Handicap toggle */}
                   <View style={styles.nassauOptionRow}>
                     <Text style={styles.nassauOptionLabel}>Handicaps</Text>
