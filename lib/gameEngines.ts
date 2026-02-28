@@ -1,7 +1,10 @@
 import {
+  AcesDeucesConfig,
   BBBHoleState,
   BestBallConfig,
   BingoBangoBongoConfig,
+  CtpConfig,
+  CtpHoleState,
   DotsConfig,
   DotsHoleState,
   GameConfig,
@@ -11,11 +14,13 @@ import {
   GameSetup,
   MultiGameResults,
   NassauConfig,
+  NinesConfig,
   Payout,
   Player,
   PressMatch,
   RabbitConfig,
   ScorecardConfig,
+  ScotchConfig,
   SixesConfig,
   SkinsConfig,
   SnakeConfig,
@@ -1128,6 +1133,208 @@ export function calcSixes(
   return { mode: 'sixes', label: 'Sixes', payouts, net };
 }
 
+// ─── Nines (Baseball) ────────────────────────────────────────────────────────
+
+export function calcNines(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: NinesConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  // Accumulate total points per player
+  const totalPoints: Record<string, number> = {};
+  for (const p of players) totalPoints[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const holeScores = players
+      .map(p => ({ player: p, score: scores[p.id][hole] }))
+      .filter((h): h is { player: Player; score: number } => h.score !== null);
+
+    if (holeScores.length < 2) continue;
+
+    // Sort by score ascending (best first)
+    holeScores.sort((a, b) => a.score - b.score);
+
+    // Distribute 9 points: 5-3-1 with tie splitting
+    // Build score groups
+    const groups: { score: number; players: Player[] }[] = [];
+    for (const h of holeScores) {
+      const last = groups[groups.length - 1];
+      if (last && last.score === h.score) {
+        last.players.push(h.player);
+      } else {
+        groups.push({ score: h.score, players: [h.player] });
+      }
+    }
+
+    // Point buckets: for 3 players = [5, 3, 1]
+    const buckets = [5, 3, 1].slice(0, groups.length);
+    let bucketIdx = 0;
+    for (const group of groups) {
+      // How many buckets does this group consume?
+      const consumed = group.players.length;
+      const pooled = buckets.slice(bucketIdx, bucketIdx + consumed).reduce((a, b) => a + b, 0);
+      const share = pooled / consumed;
+      for (const p of group.players) {
+        totalPoints[p.id] += share;
+      }
+      bucketIdx += consumed;
+    }
+  }
+
+  // Payouts: each pair, higher points collects from lower points
+  for (let i = 0; i < players.length; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      const a = players[i];
+      const b = players[j];
+      const diff = Math.abs(totalPoints[a.id] - totalPoints[b.id]);
+      if (diff === 0) continue;
+      const amount = Math.round(diff * config.betPerPoint * 100) / 100;
+      const winner = totalPoints[a.id] > totalPoints[b.id] ? a : b;
+      const loser  = totalPoints[a.id] > totalPoints[b.id] ? b : a;
+      payouts.push({ from: loser.name, to: winner.name, amount, game: 'nines' });
+      net[loser.name]  -= amount;
+      net[winner.name] += amount;
+    }
+  }
+
+  return { mode: 'nines', label: 'Nines', payouts, net };
+}
+
+// ─── Scotch (5-Point) ────────────────────────────────────────────────────────
+
+export function calcScotch(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: ScotchConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  const teamAPlayers = players.filter(p => config.teamA.includes(p.id));
+  const teamBPlayers = players.filter(p => config.teamB.includes(p.id));
+  if (teamAPlayers.length < 2 || teamBPlayers.length < 2) {
+    return { mode: 'scotch', label: 'Scotch', payouts, net };
+  }
+
+  let pointsA = 0;
+  let pointsB = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const aScores = teamAPlayers.map(p => scores[p.id][hole]).filter((s): s is number => s !== null);
+    const bScores = teamBPlayers.map(p => scores[p.id][hole]).filter((s): s is number => s !== null);
+    if (aScores.length < 2 || bScores.length < 2) continue;
+
+    const lowA = Math.min(...aScores);
+    const lowB = Math.min(...bScores);
+    const totalA = aScores.reduce((a, b) => a + b, 0);
+    const totalB = bScores.reduce((a, b) => a + b, 0);
+
+    // Low ball (2 pts) — lower individual score on team wins
+    if (lowA < lowB) pointsA += 2;
+    else if (lowB < lowA) pointsB += 2;
+    // tie: 0 pts each
+
+    // Low total (3 pts) — lower combined score wins
+    if (totalA < totalB) pointsA += 3;
+    else if (totalB < totalA) pointsB += 3;
+    // tie: 0 pts each
+  }
+
+  const diff = Math.abs(pointsA - pointsB);
+  const payout = Math.round(diff * config.betPerPoint * 100) / 100;
+
+  if (payout > 0) {
+    const winners = pointsA > pointsB ? teamAPlayers : teamBPlayers;
+    const losers  = pointsA > pointsB ? teamBPlayers : teamAPlayers;
+    const share = Math.round((payout / winners.length) * 100) / 100;
+
+    for (const w of winners) {
+      for (const l of losers) {
+        payouts.push({ from: l.name, to: w.name, amount: share, game: 'scotch' });
+      }
+      net[w.name] += share * losers.length;
+    }
+    for (const l of losers) {
+      net[l.name] -= share * winners.length;
+    }
+  }
+
+  return { mode: 'scotch', label: 'Scotch', payouts, net };
+}
+
+// ─── Closest to the Pin (CTP) ────────────────────────────────────────────────
+
+export function calcCtp(
+  players: Player[],
+  pars: number[],
+  ctpHoles: (CtpHoleState | null)[],
+  config: CtpConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  for (let hole = 0; hole < 18; hole++) {
+    if (pars[hole] !== 3) continue; // CTP only on par 3s
+    const state = ctpHoles[hole];
+    if (!state?.winnerId) continue;
+
+    const winner = players.find(p => p.id === state.winnerId);
+    if (!winner) continue;
+
+    for (const other of players) {
+      if (other.id === winner.id) continue;
+      payouts.push({ from: other.name, to: winner.name, amount: config.betAmount, game: 'ctp' });
+      net[other.name]  -= config.betAmount;
+      net[winner.name] += config.betAmount;
+    }
+  }
+
+  return { mode: 'ctp', label: 'CTP', payouts, net };
+}
+
+// ─── Aces & Deuces ───────────────────────────────────────────────────────────
+
+export function calcAcesDeuces(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: AcesDeucesConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  for (let hole = 0; hole < 18; hole++) {
+    const holeScores = players
+      .map(p => ({ player: p, score: scores[p.id][hole] }))
+      .filter((h): h is { player: Player; score: number } => h.score !== null);
+
+    if (holeScores.length < 2) continue;
+
+    const scores_arr = holeScores.map(h => h.score);
+    const minScore = Math.min(...scores_arr);
+    const maxScore = Math.max(...scores_arr);
+
+    // If everyone ties: push
+    if (minScore === maxScore) continue;
+
+    const aces   = holeScores.filter(h => h.score === minScore).map(h => h.player);
+    const deuces = holeScores.filter(h => h.score === maxScore).map(h => h.player);
+
+    // Each ace collects betPerHole from each deuce
+    for (const ace of aces) {
+      for (const deuce of deuces) {
+        payouts.push({ from: deuce.name, to: ace.name, amount: config.betPerHole, game: 'aces-deuces' });
+        net[deuce.name] -= config.betPerHole;
+        net[ace.name]   += config.betPerHole;
+      }
+    }
+  }
+
+  return { mode: 'aces-deuces', label: 'Aces & Deuces', payouts, net };
+}
+
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
 export function calcAllGames(
@@ -1186,6 +1393,18 @@ export function calcAllGames(
         break;
       case 'sixes':
         result = calcSixes(players, scores, game.config);
+        break;
+      case 'nines':
+        result = calcNines(players, scores, game.config);
+        break;
+      case 'scotch':
+        result = calcScotch(players, scores, game.config);
+        break;
+      case 'ctp':
+        result = calcCtp(players, extras.pars ?? Array(18).fill(4), extras.ctp ?? [], game.config);
+        break;
+      case 'aces-deuces':
+        result = calcAcesDeuces(players, scores, game.config);
         break;
     }
 
@@ -1748,6 +1967,93 @@ function calcLiveSixes(
   return { mode: 'sixes', label: '🔄 Sixes', lines };
 }
 
+function calcLiveNines(players: Player[], scores: Record<string, (number | null)[]>): LiveStatus {
+  const pts: Record<string, number> = {};
+  for (const p of players) pts[p.id] = 0;
+
+  for (let h = 0; h < 18; h++) {
+    const hs = players.map(p => ({ p, s: scores[p.id][h] })).filter((x): x is { p: Player; s: number } => x.s !== null);
+    if (hs.length < 2) continue;
+    hs.sort((a, b) => a.s - b.s);
+    const groups: { s: number; ps: Player[] }[] = [];
+    for (const { p, s } of hs) {
+      const last = groups[groups.length - 1];
+      if (last && last.s === s) last.ps.push(p); else groups.push({ s, ps: [p] });
+    }
+    const buckets = [5, 3, 1].slice(0, groups.length);
+    let idx = 0;
+    for (const g of groups) {
+      const share = buckets.slice(idx, idx + g.ps.length).reduce((a, b) => a + b, 0) / g.ps.length;
+      for (const p of g.ps) pts[p.id] += share;
+      idx += g.ps.length;
+    }
+  }
+
+  const sorted = players.map(p => ({ p, pts: pts[p.id] })).sort((a, b) => b.pts - a.pts);
+  const max = sorted[0]?.pts ?? 0;
+  const lines: LiveStatusLine[] = sorted.map(({ p, pts: pt }) => ({
+    text: `${p.name} ${pt}pts`, color: pt === max && max > 0 ? 'green' : 'neutral', playerId: p.id,
+  }));
+  return { mode: 'nines', label: '⚾ Nines', lines };
+}
+
+function calcLiveScotch(players: Player[], scores: Record<string, (number | null)[]>, config: ScotchConfig): LiveStatus {
+  const teamAPlayers = players.filter(p => config.teamA.includes(p.id));
+  const teamBPlayers = players.filter(p => config.teamB.includes(p.id));
+  let pA = 0; let pB = 0;
+  for (let h = 0; h < 18; h++) {
+    const aS = teamAPlayers.map(p => scores[p.id][h]).filter((s): s is number => s !== null);
+    const bS = teamBPlayers.map(p => scores[p.id][h]).filter((s): s is number => s !== null);
+    if (aS.length < 2 || bS.length < 2) continue;
+    if (Math.min(...aS) < Math.min(...bS)) pA += 2; else if (Math.min(...bS) < Math.min(...aS)) pB += 2;
+    if (aS.reduce((a,b)=>a+b,0) < bS.reduce((a,b)=>a+b,0)) pA += 3; else if (bS.reduce((a,b)=>a+b,0) < aS.reduce((a,b)=>a+b,0)) pB += 3;
+  }
+  const nA = teamAPlayers.map(p => p.name.split(' ')[0]).join('/');
+  const nB = teamBPlayers.map(p => p.name.split(' ')[0]).join('/');
+  const diff = pA - pB;
+  const lines: LiveStatusLine[] = [
+    diff === 0
+      ? { text: `${nA} ${pA} — ${pB} ${nB}`, color: 'neutral' }
+      : diff > 0
+        ? { text: `${nA} leads ${pA}–${pB}`, color: 'green' }
+        : { text: `${nB} leads ${pB}–${pA}`, color: 'green' },
+  ];
+  return { mode: 'scotch', label: '🤝 Scotch', lines };
+}
+
+function calcLiveCtp(players: Player[], pars: number[], ctpHoles: (CtpHoleState | null)[]): LiveStatus {
+  const wins: Record<string, number> = {};
+  for (const p of players) wins[p.id] = 0;
+  for (let h = 0; h < 18; h++) {
+    if (pars[h] !== 3) continue;
+    const w = ctpHoles[h]?.winnerId;
+    if (w) wins[w] = (wins[w] ?? 0) + 1;
+  }
+  const lines: LiveStatusLine[] = players
+    .filter(p => wins[p.id] > 0)
+    .map(p => ({ text: `${p.name} ${wins[p.id]} CTP`, color: 'green' as const, playerId: p.id }));
+  if (lines.length === 0) lines.push({ text: 'No CTP yet', color: 'neutral' });
+  return { mode: 'ctp', label: '⛳ CTP', lines };
+}
+
+function calcLiveAcesDeuces(players: Player[], scores: Record<string, (number | null)[]>, config: AcesDeucesConfig): LiveStatus {
+  const net: Record<string, number> = {};
+  for (const p of players) net[p.id] = 0;
+  for (let h = 0; h < 18; h++) {
+    const hs = players.map(p => ({ p, s: scores[p.id][h] })).filter((x): x is { p: Player; s: number } => x.s !== null);
+    if (hs.length < 2) continue;
+    const min = Math.min(...hs.map(x => x.s)); const max = Math.max(...hs.map(x => x.s));
+    if (min === max) continue;
+    const aces = hs.filter(x => x.s === min); const deuces = hs.filter(x => x.s === max);
+    for (const ace of aces) for (const d of deuces) { net[ace.p.id] += config.betPerHole; net[d.p.id] -= config.betPerHole; }
+  }
+  const lines: LiveStatusLine[] = players.map(p => {
+    const v = net[p.id]; const sign = v >= 0 ? '+' : '';
+    return { text: `${p.name} ${sign}$${v}`, color: v > 0 ? 'green' : v < 0 ? 'red' : 'neutral', playerId: p.id };
+  });
+  return { mode: 'aces-deuces', label: '🎲 Aces & Deuces', lines };
+}
+
 export function calcLiveStatus(
   setup: GameSetup,
   scores: Record<string, (number | null)[]>,
@@ -1756,7 +2062,8 @@ export function calcLiveStatus(
   bbbHoles: (BBBHoleState | null)[],
   snakeHoles: (SnakeHoleState | null)[],
   pressMatches?: PressMatch[],
-  dotsHoles?: (DotsHoleState | null)[]
+  dotsHoles?: (DotsHoleState | null)[],
+  ctpHoles?: (CtpHoleState | null)[]
 ): LiveStatus[] {
   const results: LiveStatus[] = [];
   const { players, games } = setup;
@@ -1844,6 +2151,18 @@ export function calcLiveStatus(
         break;
       case 'sixes':
         results.push(calcLiveSixes(players, scores));
+        break;
+      case 'nines':
+        results.push(calcLiveNines(players, scores));
+        break;
+      case 'scotch':
+        results.push(calcLiveScotch(players, scores, game.config));
+        break;
+      case 'ctp':
+        results.push(calcLiveCtp(players, pars, ctpHoles ?? []));
+        break;
+      case 'aces-deuces':
+        results.push(calcLiveAcesDeuces(players, scores, game.config));
         break;
     }
   }

@@ -15,7 +15,7 @@ import {
 import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
 import { saveRound } from '../lib/storage';
-import { BBBHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
+import { BBBHoleState, CtpHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -112,6 +112,18 @@ export default function ScoresScreen() {
     }))
   );
 
+  const [ctpHoles, setCtpHoles] = useState<(CtpHoleState | null)[]>(() => Array(18).fill(null));
+
+  function setCtpWinner(hole: number, playerId: string | null) {
+    setCtpHoles(prev => {
+      const next = [...prev];
+      // Toggle: tap same player again to deselect
+      const current = prev[hole]?.winnerId ?? null;
+      next[hole] = { winnerId: current === playerId ? null : playerId };
+      return next;
+    });
+  }
+
   // ─── Hammer multipliers (per-hole, for Vegas/Nassau with Hammer enabled) ────
   const [hammerMultipliers, setHammerMultipliers] = useState<number[]>(() => Array(18).fill(1));
 
@@ -176,11 +188,12 @@ export default function ScoresScreen() {
   const [bbbExpanded, setBbbExpanded] = useState(false);
   const [snakeExpanded, setSnakeExpanded] = useState(false);
   const [dotsExpanded, setDotsExpanded] = useState(false);
+  const [ctpExpanded, setCtpExpanded] = useState(false);
 
   // ─── Live Status ──────────────────────────────────────────────────────────
   const liveStatus = useMemo(() =>
-    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles),
-    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles]
+    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles, ctpHoles),
+    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles, ctpHoles]
   );
 
   function openEdit(t: EditTarget) {
@@ -371,6 +384,7 @@ export default function ScoresScreen() {
       bbb: bbbHoles,
       snake: snakeHoles,
       dots: dotsHoles,
+      ctp: ctpHoles,
       pressMatches: pressMatches,
       hammerMultipliers: hammerMultipliers,
       pars: pars,
@@ -407,7 +421,8 @@ export default function ScoresScreen() {
     (g.mode === 'nassau' && (g.config as NassauConfig).useHammer)
   );
   const hasSnake = hasGame(activeGameModes, 'snake');
-  const hasExtras = hasWolf || hasBBB || hasSnake;
+  const hasCtp   = hasGame(activeGameModes, 'ctp');
+  const hasExtras = hasWolf || hasBBB || hasSnake || hasCtp;
 
   return (
     <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
@@ -980,6 +995,43 @@ export default function ScoresScreen() {
                                 </TouchableOpacity>
                               );
                             })}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+              </LinearGradient>
+            )}
+
+            {/* CTP Panel */}
+            {hasCtp && (
+              <LinearGradient colors={['#0f0f0f', '#0a0a0a']} style={styles.extrasPanel}>
+                <TouchableOpacity onPress={() => setCtpExpanded(!ctpExpanded)} style={styles.extrasPanelHeader} activeOpacity={0.7}>
+                  <Text style={styles.extrasPanelTitle}>⛳ Closest to Pin</Text>
+                  <Text style={styles.extrasPanelToggle}>{ctpExpanded ? '▾' : '▸'}</Text>
+                </TouchableOpacity>
+                {ctpExpanded && (
+                  <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                    {pars.map((par, holeIdx) => {
+                      if (par !== 3) return null;
+                      const winner = ctpHoles[holeIdx]?.winnerId ?? null;
+                      return (
+                        <View key={holeIdx} style={styles.wolfRow}>
+                          <Text style={styles.wolfHoleNum}>H{holeIdx + 1}</Text>
+                          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+                            {setup.players.map(p => (
+                              <TouchableOpacity
+                                key={p.id}
+                                onPress={() => setCtpWinner(holeIdx, p.id)}
+                                style={[styles.wolfPartnerBtn, winner === p.id && styles.wolfPartnerBtnActive]}
+                                activeOpacity={0.75}
+                              >
+                                <Text style={[styles.wolfPartnerBtnText, winner === p.id && styles.wolfPartnerBtnTextActive]}>
+                                  {p.name}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
                           </View>
                         </View>
                       );

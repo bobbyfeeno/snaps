@@ -85,6 +85,26 @@ const GAMES: GameRule[] = [
     rules: `A 4-player game where partners rotate every 6 holes — everyone plays with everyone.\n\nSegment 1 (Holes 1–6): Player 1 & 2 vs Player 3 & 4\nSegment 2 (Holes 7–12): Player 1 & 3 vs Player 2 & 4\nSegment 3 (Holes 13–18): Player 1 & 4 vs Player 2 & 3\n\nEach segment is match play — lowest score wins each hole. The team that wins the most holes in a segment collects from each opponent.\n\nTies within a segment push. No rotating partner drama — everyone partners up over the full round.`,
   },
   {
+    emoji: '⚾',
+    name: 'Nines',
+    rules: `A 3-player game where 9 points are distributed every hole.\n\nBest score = 5 points. Second = 3 points. Worst = 1 point.\n\nTie rules:\n• Two tie for best: each gets 4 pts (5+3 split), worst gets 1\n• Two tie for worst: best gets 5 pts, each of the two gets 2 (3+1 split)\n• All tie: 3 pts each\n\nAt the end, players settle based on total point differences × your set dollar amount per point. A swing of 4 points (e.g., 5-1 hole) = 4× your bet.`,
+  },
+  {
+    emoji: '🥃',
+    name: 'Scotch',
+    rules: `A 2v2 team game worth 5 points per hole.\n\n2 points — Low Ball: whichever team has the better individual score wins 2 pts.\n3 points — Low Total: whichever team has the lower combined score wins 3 pts.\n\nA clean sweep (win both low ball and low total) wins all 5 pts on that hole.\n\nAt the end, the point difference × your dollar amount determines the payout. Assign teams before the round starts.`,
+  },
+  {
+    emoji: '⛳',
+    name: 'Closest to Pin',
+    rules: `A par 3 side bet. On each par 3, whoever finishes closest to the pin collects from every other player.\n\nThe CTP winner is marked manually in the scorecard — tap the CTP panel, find the par 3 hole, and select the winner.\n\nNo score requirement — just closest to the stick when everyone is on (or near) the green. Simple, clean, and sparks friendly competition on every par 3.`,
+  },
+  {
+    emoji: '🎲',
+    name: 'Aces & Deuces',
+    rules: `Every hole, there's an Ace (best score) and a Deuce (worst score).\n\nThe Ace collects your set dollar amount from the Deuce. Players with middle scores push — no payment either way.\n\nTie rules: if two players tie for best, both are Aces. If two tie for worst, both are Deuces. All Aces collect from all Deuces.\n\nIf everyone ties, it's a push. Works great stacked alongside any other game.`,
+  },
+  {
     emoji: '🔨',
     name: 'Hammer',
     rules: `A bet-doubling modifier applied to Nassau or Vegas. On any hole, any player can call "Hammer!" — doubling the value of that hole's bet. The opponent must accept or concede.\n\nMultipliers stack each time the Hammer is called:\n×1 → ×2 → ×4 → ×8\n\nTap the ×N cell in the scorecard to cycle the multiplier for that hole.`,

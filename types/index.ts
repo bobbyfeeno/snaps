@@ -72,6 +72,26 @@ export interface SixesConfig {
   betPerSegment: number; // $ per segment (6 holes each, 3 segments)
 }
 
+// ─── Tier 2 Game Configs ────────────────────────────────────────────────────
+
+export interface NinesConfig {
+  betPerPoint: number; // $ per point difference at end (3-player game, 9 pts per hole)
+}
+
+export interface ScotchConfig {
+  betPerPoint: number; // $ per point difference (5-pt Scotch: 2 low-ball + 3 low-total per hole)
+  teamA: string[];     // player IDs on Team A (2 players)
+  teamB: string[];     // player IDs on Team B (2 players)
+}
+
+export interface CtpConfig {
+  betAmount: number; // $ winner collects from each other player on par 3s
+}
+
+export interface AcesDeucesConfig {
+  betPerHole: number; // $ ace collects from deuce per hole
+}
+
 export type GameConfig =
   | { mode: 'taxman'; config: TaxManConfig }
   | { mode: 'nassau'; config: NassauConfig }
@@ -85,7 +105,11 @@ export type GameConfig =
   | { mode: 'stableford'; config: StablefordConfig }
   | { mode: 'rabbit'; config: RabbitConfig }
   | { mode: 'dots'; config: DotsConfig }
-  | { mode: 'sixes'; config: SixesConfig };
+  | { mode: 'sixes'; config: SixesConfig }
+  | { mode: 'nines'; config: NinesConfig }
+  | { mode: 'scotch'; config: ScotchConfig }
+  | { mode: 'ctp'; config: CtpConfig }
+  | { mode: 'aces-deuces'; config: AcesDeucesConfig };
 
 export type GameMode = GameConfig['mode'];
 
@@ -123,11 +147,17 @@ export interface DotsHoleState {
   greeniePlayerId: string | null; // player who got greenie on a par 3 (radio: one per hole)
 }
 
+// CTP: closest to pin winner on par 3 holes (manual select)
+export interface CtpHoleState {
+  winnerId: string | null; // player who was closest to pin on this par 3
+}
+
 export interface HoleExtras {
   wolf?: WolfHoleState;
   bbb?: BBBHoleState;
   snake?: SnakeHoleState;
   dots?: DotsHoleState;
+  ctp?: CtpHoleState;
 }
 
 // ─── Press Match (Nassau auto-press side bets) ──────────────────────────────
@@ -146,6 +176,7 @@ export interface GameExtras {
   bbb?: (BBBHoleState | null)[];
   snake?: (SnakeHoleState | null)[];
   dots?: (DotsHoleState | null)[];
+  ctp?: (CtpHoleState | null)[];
   pressMatches?: PressMatch[];
   hammerMultipliers?: number[]; // per-hole hammer multipliers (1, 2, 4, 8...)
   pars?: number[];              // par values per hole (for Vegas calculation)

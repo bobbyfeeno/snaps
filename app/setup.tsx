@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { getSavedPlayers } from '../lib/storage';
-import { BestBallConfig, DotsConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player, SavedPlayer, StablefordConfig } from '../types';
+import { AcesDeucesConfig, BestBallConfig, CtpConfig, DotsConfig, GameConfig, GameMode, GameSetup, NassauConfig, NinesConfig, Player, SavedPlayer, ScotchConfig, StablefordConfig } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -145,6 +145,38 @@ const GAME_DEFS: GameDef[] = [
     defaultAmount: 10,
     minPlayers: 4,
   },
+  {
+    mode: 'nines',
+    name: 'Nines',
+    description: '3-player game. 9 pts per hole (5-3-1). Most points wins.',
+    inputLabel: '$ per point',
+    defaultAmount: 1,
+    minPlayers: 3,
+  },
+  {
+    mode: 'scotch',
+    name: 'Scotch',
+    description: '2v2 teams. Low ball (2 pts) + low total (3 pts) per hole.',
+    inputLabel: '$ per point',
+    defaultAmount: 2,
+    minPlayers: 4,
+  },
+  {
+    mode: 'ctp',
+    name: 'Closest to Pin',
+    description: 'Par 3s only. Closest to the pin collects from everyone.',
+    inputLabel: '$ per CTP',
+    defaultAmount: 5,
+    minPlayers: 2,
+  },
+  {
+    mode: 'aces-deuces',
+    name: 'Aces & Deuces',
+    description: 'Best score (ace) collects from worst score (deuce) every hole.',
+    inputLabel: '$ per hole',
+    defaultAmount: 2,
+    minPlayers: 2,
+  },
 ];
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
@@ -172,6 +204,10 @@ const ICON_DEFS: Record<string, {
   rabbit:           { emoji: '🐰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   dots:             { emoji: '🗑️', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   sixes:            { emoji: '🔄', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  nines:            { emoji: '⚾', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  scotch:           { emoji: '🥃', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  ctp:              { emoji: '⛳', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  'aces-deuces':    { emoji: '🎲', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -278,6 +314,10 @@ export default function SetupScreen() {
     rabbit: '10',
     dots: '2',
     sixes: '10',
+    nines: '1',
+    scotch: '2',
+    ctp: '5',
+    'aces-deuces': '2',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
@@ -448,6 +488,18 @@ export default function SetupScreen() {
       return;
     }
 
+    // Check Scotch player requirement (exactly 4)
+    if (activeGames.has('scotch') && filledPlayers.length !== 4) {
+      showAlert('Scotch Selected', 'Scotch requires exactly 4 players — 2 per team.');
+      return;
+    }
+
+    // Check Nines player requirement (exactly 3)
+    if (activeGames.has('nines') && filledPlayers.length !== 3) {
+      showAlert('Nines Selected', 'Nines requires exactly 3 players.');
+      return;
+    }
+
     // Check Best Ball player requirement
     if (activeGames.has('best-ball') && filledPlayers.length < 4) {
       showAlert('Best Ball Selected', 'Best Ball requires at least 4 players — 2 per team.');
@@ -525,6 +577,21 @@ export default function SetupScreen() {
           break;
         case 'sixes':
           games.push({ mode: 'sixes', config: { betPerSegment: amount } });
+          break;
+        case 'nines':
+          games.push({ mode: 'nines', config: { betPerPoint: amount } });
+          break;
+        case 'scotch': {
+          const tA = filledPlayers.filter(p => (teamAssignment[p.id] ?? 'A') === 'A').map(p => p.id);
+          const tB = filledPlayers.filter(p => teamAssignment[p.id] === 'B').map(p => p.id);
+          games.push({ mode: 'scotch', config: { betPerPoint: amount, teamA: tA, teamB: tB } });
+          break;
+        }
+        case 'ctp':
+          games.push({ mode: 'ctp', config: { betAmount: amount } });
+          break;
+        case 'aces-deuces':
+          games.push({ mode: 'aces-deuces', config: { betPerHole: amount } });
           break;
       }
     }
@@ -869,6 +936,17 @@ export default function SetupScreen() {
                   </View>
                 </View>
               )}
+
+              {/* Nines note */}
+              {activeGames.has('nines') && (
+                <View style={styles.nassauOpts}>
+                  <View style={[styles.nassauOptionRow, { marginTop: 4 }]}>
+                    <Text style={[styles.nassauOptionLabel, { color: '#555', fontSize: 12, flex: 1 }]}>
+                      ⚾ Nines requires exactly 3 players. 9 pts per hole distributed 5-3-1.
+                    </Text>
+                  </View>
+                </View>
+              )}
             </BevelCard>
           )}
 
@@ -1094,7 +1172,7 @@ export default function SetupScreen() {
           ))}
 
         {/* Team Assignment (Vegas + Best Ball) */}
-        {(activeGames.has('vegas') || activeGames.has('best-ball')) && players.filter(p => p.name.trim()).length >= 2 && (
+        {(activeGames.has('vegas') || activeGames.has('best-ball') || activeGames.has('scotch')) && players.filter(p => p.name.trim()).length >= 2 && (
           <BevelCard style={styles.configPanel}>
             <View style={styles.cardHighlight} />
             <Text style={styles.teamSectionLabel}>TEAMS</Text>

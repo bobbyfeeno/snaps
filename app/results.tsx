@@ -24,6 +24,10 @@ function getGameEmoji(mode: GameMode): string {
     case 'rabbit': return '🐰';
     case 'dots': return '🗑️';
     case 'sixes': return '🔄';
+    case 'nines': return '⚾';
+    case 'scotch': return '🥃';
+    case 'ctp': return '⛳';
+    case 'aces-deuces': return '🎲';
     default: return '🎮';
   }
 }
