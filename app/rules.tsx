@@ -32,7 +32,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🏌️',
     name: 'Nassau',
-    rules: `Three bets in one: Front 9, Back 9, and Full 18. The player with the lowest score on each segment wins that bet.\n\nStroke Play: Total strokes decide the winner.\nMatch Play: Win holes one at a time — whoever wins the most holes takes the bet.\n\nAuto-Press: When a player goes 2-down, a new side bet automatically kicks in for the remaining holes. Presses can stack.`,
+    rules: `Three bets in one: Front 9, Back 9, and Full 18. The player with the lowest score on each segment wins that bet.\n\nStroke Play: Total strokes decide the winner.\nMatch Play: Win holes one at a time — whoever wins the most holes takes the bet.\n\nPress: When a player goes 2-down, they can call a press — starting a new side bet for the remaining holes. Presses can stack. This app uses auto-press (triggers automatically at 2-down), which is the most common variant. Some groups require the losing side to offer the press and the opponent to accept — agree before the round.`,
   },
   {
     emoji: '🎰',
@@ -42,7 +42,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🐺',
     name: 'Wolf',
-    rules: `One player is the "Wolf" each hole, rotating in order. The Wolf tees off first, then watches each opponent hit one at a time. After each drive, the Wolf must decide: pick that player as a partner right now — or pass. Once you pass a player, you can't go back.\n\nThe Wolf must commit before the next player tees off.\n\nYour options:\n🐺 Partner Wolf — Pick someone. The chosen pair plays the other two for the set bet.\n🔥 Solo Wolf (×2) — Pass all three opponents. Go 1v3 for double the bet.\n⚡ Lone Wolf (×3) — Declare solo right after your own drive, before anyone else tees off. Higher risk, triple the reward.\n🕶️ Blind Wolf (×4) — Declare solo before you even hit your own drive. Maximum risk, 4× the bet.\n\nWolf rotates each hole. On holes 17 and 18, the players with the most points (1st and 2nd place) get the Wolf spot — they're on top and must defend their lead. Some groups give it to the trailing player instead; agree before the round.`,
+    rules: `One player is the "Wolf" each hole, rotating in order. The Wolf tees off first, then watches each opponent hit one at a time. After each drive, the Wolf must decide: pick that player as a partner right now — or pass. Once you pass a player, you can't go back.\n\nThe Wolf must commit before the next player tees off.\n\nYour options:\n🐺 Partner Wolf — Pick someone. The chosen pair plays the other two for the set bet.\n🔥 Solo Wolf (×2) — Pass all three opponents. Go 1v3 for double the bet.\n⚡ Lone Wolf (×3) — Declare solo right after your own drive, before anyone else tees off. Higher risk, triple the reward.\n🕶️ Blind Wolf (×4) — Declare solo before you even hit your own drive. Maximum risk, 4× the bet.\n\nWolf rotates each hole. On holes 17 and 18, the player in last place chooses which hole to be Wolf, and the player in 3rd takes the other — giving the trailing players a chance to swing the match. Some groups give it to the leaders instead; agree before the round.`,
   },
   {
     emoji: '🎯',
@@ -77,7 +77,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🗑️',
     name: 'Dots / Junk',
-    rules: `Side bets rewarding great shots. Every dot you earn costs every other player your set dollar amount.\n\n🐦 Birdie — score 1 under par = 1 dot (auto-tracked)\n🦅 Eagle — score 2+ under par = 2 dots (auto-tracked)\n🏖️ Sandy — make par or better after hitting from a bunker = 1 dot (tap to mark in scorecard)\n🌿 Greenie — on par 3s only, tee shot must land on the green; closest to the pin who then makes par or better = 1 dot (tap to award in scorecard)\n\nYou can toggle which dot types are active when setting up the game. Mix with any other game — dots stack on top of everything else.`,
+    rules: `Side bets rewarding great shots. Every dot you earn costs every other player your set dollar amount.\n\n🐦 Birdie — score 1 under par = 1 dot (auto-tracked)\n🦅 Eagle — score 2+ under par = 2 dots (auto-tracked)\n🏖️ Sandy — get up-and-down from a bunker (one shot out + finish the hole with par or better) = 1 dot (tap to mark in scorecard)\n🌿 Greenie — on par 3s only, tee shot must land on the green; closest to the pin who then makes par or better = 1 dot (tap to award in scorecard)\n\nYou can toggle which dot types are active when setting up the game. Mix with any other game — dots stack on top of everything else.`,
   },
   {
     emoji: '🔄',
@@ -122,7 +122,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🏦',
     name: 'Banker',
-    rules: `One player is the Banker each hole — everyone else plays against them individually.\n\nAll other players compete against the Banker in stroke play, head-to-head:\n• Beat the Banker → Banker pays you the set amount\n• Lose to the Banker → you pay the Banker\n• Tie → push, no money changes hands\n\nThe Banker wins or loses against each opponent separately. A Banker with 3 opponents can collect or pay up to 3× per hole.\n\nStandard assignment rule: whoever won the previous hole (lowest score) becomes the next Banker. The Banker always tees off last — opponents see their own shots before deciding whether to press.\n\nFirst hole: lowest handicap or coin flip.\n\nNote: This app uses a fixed bet amount and manual Banker assignment for simplicity. Traditional Banker lets each player set their own stake against the Banker within an agreed min/max range, adding a betting strategy layer. Also known as Chairman (UK) or Devil's Ball.`,
+    rules: `One player is the Banker each hole — everyone else plays against them individually.\n\nAll other players compete against the Banker in stroke play, head-to-head:\n• Beat the Banker → Banker pays you the set amount\n• Lose to the Banker → you pay the Banker\n• Tie → push, no money changes hands\n\nThe Banker wins or loses against each opponent separately. A Banker with 3 opponents can collect or pay up to 3× per hole.\n\nStandard assignment rule: whoever won the previous hole (lowest score) becomes the next Banker. If the previous hole was tied, the current Banker retains the spot. The Banker always tees off last — opponents see their own shots before deciding whether to press.\n\nFirst hole: lowest handicap or coin flip.\n\nNote: This app uses a fixed bet amount and manual Banker assignment for simplicity. Traditional Banker lets each player set their own stake against the Banker within an agreed min/max range, adding a betting strategy layer. Also known as Chairman (UK) or Devil's Ball.`,
   },
   {
     emoji: '🔨',
