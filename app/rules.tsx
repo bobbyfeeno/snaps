@@ -105,6 +105,26 @@ const GAMES: GameRule[] = [
     rules: `Every hole, there's an Ace (best score) and a Deuce (worst score).\n\nThe Ace collects your set dollar amount from the Deuce. Players with middle scores push — no payment either way.\n\nTie rules (app variant): tied-best players all count as Aces; tied-worst all count as Deuces. All Aces collect from all Deuces.\n\nNote: The most common standard rule is that ties cancel — if two players tie for best, there's no Ace that hole (push). If two tie for worst, there's no Deuce. Agree on your group's tie rule before the round.\n\nIf everyone ties, it's always a push. Works great stacked alongside any other game.`,
   },
   {
+    emoji: '⚖️',
+    name: 'Quota',
+    rules: `A personal points challenge layered on top of Stableford scoring.\n\nBefore the round, each player sets their quota — a target number of Stableford points for the 18 holes. 36 is a common baseline for scratch golfers (2 pts per hole), but adjust for handicap.\n\nScoring (per hole):\n🌟 Albatross = 5 pts\n🦅 Eagle = 4 pts\n🐦 Birdie = 3 pts\n⛳ Par = 2 pts\n👎 Bogey = 1 pt\n💀 Double+ = 0 pts\n\nAt the end, each player's total is compared to their quota:\n• Beat your quota → collect (points over quota × your set dollar amount) from each player who missed theirs\n• Miss your quota → pay each player who beat theirs\n\nGreat equalizer — different skill levels can compete fairly with custom quotas.`,
+  },
+  {
+    emoji: '😈',
+    name: 'Trouble',
+    rules: `Pay for your mistakes.\n\nBefore the round, agree which trouble categories are in play. When a player hits trouble, they pay every other player the set dollar amount — one charge per occurrence.\n\n😈 Trouble types:\n🚩 OB (out of bounds)\n💧 Water hazard\n3️⃣ 3-Putt\n🏖️ Sand trap\n🔍 Lost ball\n\nMultiple troubles in one hole stack — go OB and 3-putt on the same hole and you're paying twice.\n\nTrack trouble manually in the scorecard panel during your round. A great equalizer that punishes sloppy play regardless of handicap.`,
+  },
+  {
+    emoji: '🦁',
+    name: 'Arnies',
+    rules: `Named after Arnold Palmer — making par or better from off the fairway the ENTIRE hole.\n\nTo earn an Arnie, you must:\n1. Make par or better on the hole\n2. Never have your ball on the fairway at any point during the hole\n\nThat means playing from rough, trees, bunkers, or any non-fairway surface all the way to the green — and still making par. It's rare and impressive.\n\nWhen you pull it off, every other player pays you the set amount.\n\nMark Arnies manually in the scorecard panel. The chip is disabled on any hole where the player didn't make par or better.`,
+  },
+  {
+    emoji: '🏦',
+    name: 'Banker',
+    rules: `One player is the Banker each hole — everyone else plays against them.\n\nThe Banker is assigned manually before or during each hole. All other players compete against the Banker in match play:\n• Beat the Banker → Banker pays you the set amount\n• Lose to the Banker → you pay the Banker\n• Tie → push, no money changes hands\n\nThe Banker is exposed on every hole they're assigned — they win or lose against each opponent individually. A Banker with 3 opponents can collect or pay up to 3× per hole.\n\nRotate the Banker role however your group agrees — some groups rotate every hole, others let the best player start as Banker.`,
+  },
+  {
     emoji: '🔨',
     name: 'Hammer',
     rules: `A bet-doubling modifier that can be added to Nassau, Vegas, or other hole-based games. On any hole, any player (or team) can call "Hammer!" — doubling the value of that hole's bet.\n\nThe opponent must accept or concede:\n• Accept — the hole continues at the new doubled value. The receiving side can immediately re-Hammer back, doubling it again.\n• Concede — the hole is over. The hammering side wins at the previous (un-doubled) value.\n\nEither side can swing the Hammer at any point during a hole, and it can be thrown back and forth until someone concedes. Multipliers stack:\n×1 → ×2 → ×4 → ×8 → ×16\n\nIn this app, tap the ×N cell in the scorecard on any active hole, then pass the phone to call, accept, re-hammer, or concede.`,

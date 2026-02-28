@@ -92,6 +92,42 @@ export interface AcesDeucesConfig {
   betPerHole: number; // $ ace collects from deuce per hole
 }
 
+// ─── Tier 3 Game Configs ────────────────────────────────────────────────────
+
+export interface QuotaConfig {
+  betPerPoint: number;
+  quotas: Record<string, number>; // playerId → target points
+}
+
+export interface TroubleConfig {
+  betAmount: number;
+  ob: boolean;        // Out of bounds
+  water: boolean;     // Water hazard
+  threePutt: boolean; // 3-putt
+  sandTrap: boolean;  // Sand trap shot
+  lostBall: boolean;  // Lost ball
+}
+
+export interface ArniesConfig {
+  betAmount: number;
+}
+
+export interface BankerConfig {
+  betAmount: number;
+}
+
+export interface TroubleHoleState {
+  troubles: Record<string, string[]>; // playerId → array of trouble types
+}
+
+export interface ArniesHoleState {
+  qualifiedPlayerIds: string[]; // players who got an Arnie this hole
+}
+
+export interface BankerHoleState {
+  bankerId: string | null;
+}
+
 export type GameConfig =
   | { mode: 'taxman'; config: TaxManConfig }
   | { mode: 'nassau'; config: NassauConfig }
@@ -109,7 +145,11 @@ export type GameConfig =
   | { mode: 'nines'; config: NinesConfig }
   | { mode: 'scotch'; config: ScotchConfig }
   | { mode: 'ctp'; config: CtpConfig }
-  | { mode: 'aces-deuces'; config: AcesDeucesConfig };
+  | { mode: 'aces-deuces'; config: AcesDeucesConfig }
+  | { mode: 'quota'; config: QuotaConfig }
+  | { mode: 'trouble'; config: TroubleConfig }
+  | { mode: 'arnies'; config: ArniesConfig }
+  | { mode: 'banker'; config: BankerConfig };
 
 export type GameMode = GameConfig['mode'];
 
@@ -158,6 +198,9 @@ export interface HoleExtras {
   snake?: SnakeHoleState;
   dots?: DotsHoleState;
   ctp?: CtpHoleState;
+  trouble?: TroubleHoleState;
+  arnies?: ArniesHoleState;
+  banker?: BankerHoleState;
 }
 
 // ─── Press Match (Nassau auto-press side bets) ──────────────────────────────
@@ -180,6 +223,9 @@ export interface GameExtras {
   pressMatches?: PressMatch[];
   hammerMultipliers?: number[]; // per-hole hammer multipliers (1, 2, 4, 8...)
   pars?: number[];              // par values per hole (for Vegas calculation)
+  trouble?: (TroubleHoleState | null)[];
+  arnies?: (ArniesHoleState | null)[];
+  banker?: (BankerHoleState | null)[];
 }
 
 // ─── Results ────────────────────────────────────────────────────────────────

@@ -1,5 +1,9 @@
 import {
   AcesDeucesConfig,
+  ArniesConfig,
+  ArniesHoleState,
+  BankerConfig,
+  BankerHoleState,
   BBBHoleState,
   BestBallConfig,
   BingoBangoBongoConfig,
@@ -18,6 +22,7 @@ import {
   Payout,
   Player,
   PressMatch,
+  QuotaConfig,
   RabbitConfig,
   ScorecardConfig,
   ScotchConfig,
@@ -27,6 +32,8 @@ import {
   SnakeHoleState,
   StablefordConfig,
   TaxManConfig,
+  TroubleConfig,
+  TroubleHoleState,
   VegasConfig,
   WolfConfig,
   WolfHoleState,
@@ -1336,6 +1343,162 @@ export function calcAcesDeuces(
   return { mode: 'aces-deuces', label: 'Aces & Deuces', payouts, net };
 }
 
+// ─── Quota ───────────────────────────────────────────────────────────────────
+
+function stablefordPts(score: number, par: number): number {
+  const d = score - par;
+  if (d <= -3) return 5;
+  if (d === -2) return 4;
+  if (d === -1) return 3;
+  if (d === 0)  return 2;
+  if (d === 1)  return 1;
+  return 0;
+}
+
+export function calcQuota(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  config: QuotaConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  // Calculate total Stableford points and deviation for each player
+  const deviations: Record<string, number> = {};
+  for (const p of players) {
+    let pts = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = scores[p.id][h];
+      if (s !== null) pts += stablefordPts(s, pars[h]);
+    }
+    const quota = config.quotas[p.id] ?? 18;
+    deviations[p.id] = pts - quota;
+  }
+
+  // Pairwise settlement
+  for (let i = 0; i < players.length; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      const a = players[i];
+      const b = players[j];
+      const diff = deviations[a.id] - deviations[b.id];
+      if (diff === 0) continue;
+      const amount = Math.round(Math.abs(diff) * config.betPerPoint * 100) / 100;
+      const winner = diff > 0 ? a : b;
+      const loser  = diff > 0 ? b : a;
+      payouts.push({ from: loser.name, to: winner.name, amount, game: 'quota' });
+      net[loser.name]  -= amount;
+      net[winner.name] += amount;
+    }
+  }
+
+  return { mode: 'quota', label: 'Quota', payouts, net };
+}
+
+// ─── Trouble ─────────────────────────────────────────────────────────────────
+
+export function calcTrouble(
+  players: Player[],
+  troubleHoles: (TroubleHoleState | null)[],
+  config: TroubleConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = troubleHoles[hole];
+    if (!state) continue;
+
+    for (const player of players) {
+      const troubles = state.troubles[player.id] ?? [];
+      for (const _type of troubles) {
+        // For each occurrence: player pays betAmount to each other player
+        for (const other of players) {
+          if (other.id === player.id) continue;
+          payouts.push({ from: player.name, to: other.name, amount: config.betAmount, game: 'trouble' });
+          net[player.name] -= config.betAmount;
+          net[other.name]  += config.betAmount;
+        }
+      }
+    }
+  }
+
+  return { mode: 'trouble', label: 'Trouble', payouts, net };
+}
+
+// ─── Arnies ───────────────────────────────────────────────────────────────────
+
+export function calcArnies(
+  players: Player[],
+  arniesHoles: (ArniesHoleState | null)[],
+  config: ArniesConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = arniesHoles[hole];
+    if (!state) continue;
+
+    for (const pId of state.qualifiedPlayerIds) {
+      const winner = players.find(p => p.id === pId);
+      if (!winner) continue;
+      for (const other of players) {
+        if (other.id === winner.id) continue;
+        payouts.push({ from: other.name, to: winner.name, amount: config.betAmount, game: 'arnies' });
+        net[other.name]  -= config.betAmount;
+        net[winner.name] += config.betAmount;
+      }
+    }
+  }
+
+  return { mode: 'arnies', label: 'Arnies', payouts, net };
+}
+
+// ─── Banker ───────────────────────────────────────────────────────────────────
+
+export function calcBanker(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  bankerHoles: (BankerHoleState | null)[],
+  config: BankerConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = bankerHoles[hole];
+    if (!state?.bankerId) continue;
+
+    const banker = players.find(p => p.id === state.bankerId);
+    if (!banker) continue;
+
+    const bankerScore = scores[banker.id][hole];
+    if (bankerScore === null) continue;
+
+    for (const other of players) {
+      if (other.id === banker.id) continue;
+      const otherScore = scores[other.id][hole];
+      if (otherScore === null) continue;
+
+      if (bankerScore < otherScore) {
+        // Banker wins
+        payouts.push({ from: other.name, to: banker.name, amount: config.betAmount, game: 'banker' });
+        net[other.name]  -= config.betAmount;
+        net[banker.name] += config.betAmount;
+      } else if (otherScore < bankerScore) {
+        // Other player wins
+        payouts.push({ from: banker.name, to: other.name, amount: config.betAmount, game: 'banker' });
+        net[banker.name] -= config.betAmount;
+        net[other.name]  += config.betAmount;
+      }
+      // Tie = push
+    }
+  }
+
+  return { mode: 'banker', label: 'Banker', payouts, net };
+}
+
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
 export function calcAllGames(
@@ -1406,6 +1569,18 @@ export function calcAllGames(
         break;
       case 'aces-deuces':
         result = calcAcesDeuces(players, scores, game.config);
+        break;
+      case 'quota':
+        result = calcQuota(players, scores, extras.pars ?? Array(18).fill(4), game.config);
+        break;
+      case 'trouble':
+        result = calcTrouble(players, extras.trouble ?? [], game.config);
+        break;
+      case 'arnies':
+        result = calcArnies(players, extras.arnies ?? [], game.config);
+        break;
+      case 'banker':
+        result = calcBanker(players, scores, extras.banker ?? [], game.config);
         break;
     }
 
@@ -2055,6 +2230,124 @@ function calcLiveAcesDeuces(players: Player[], scores: Record<string, (number | 
   return { mode: 'aces-deuces', label: '🎲 Aces & Deuces', lines };
 }
 
+function calcLiveQuota(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  config: QuotaConfig
+): LiveStatus {
+  const lines: LiveStatusLine[] = players.map(p => {
+    let pts = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = scores[p.id][h];
+      if (s !== null) pts += stablefordPts(s, pars[h]);
+    }
+    const quota = config.quotas[p.id] ?? 18;
+    const dev = pts - quota;
+    const sign = dev > 0 ? '+' : '';
+    const text = dev === 0 ? `${p.name} =0` : `${p.name} ${sign}${dev} pts`;
+    return {
+      text,
+      color: dev > 0 ? 'green' : dev < 0 ? 'red' : 'neutral',
+      playerId: p.id,
+    };
+  });
+  return { mode: 'quota', label: '⚖️ Quota', lines };
+}
+
+function calcLiveTrouble(
+  players: Player[],
+  troubleHoles: (TroubleHoleState | null)[],
+  config: TroubleConfig
+): LiveStatus {
+  const net: Record<string, number> = {};
+  for (const p of players) net[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = troubleHoles[hole];
+    if (!state) continue;
+    for (const player of players) {
+      const troubles = state.troubles[player.id] ?? [];
+      for (const _type of troubles) {
+        for (const other of players) {
+          if (other.id === player.id) continue;
+          net[player.id] -= config.betAmount;
+          net[other.id]  += config.betAmount;
+        }
+      }
+    }
+  }
+
+  const lines: LiveStatusLine[] = players.map(p => {
+    const v = net[p.id];
+    const sign = v >= 0 ? '+' : '';
+    return { text: `${p.name} ${sign}$${v}`, color: v > 0 ? 'green' : v < 0 ? 'red' : 'neutral', playerId: p.id };
+  });
+  return { mode: 'trouble', label: '😈 Trouble', lines };
+}
+
+function calcLiveArnies(
+  players: Player[],
+  arniesHoles: (ArniesHoleState | null)[]
+): LiveStatus {
+  const counts: Record<string, number> = {};
+  for (const p of players) counts[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = arniesHoles[hole];
+    if (!state) continue;
+    for (const pId of state.qualifiedPlayerIds) {
+      if (counts[pId] !== undefined) counts[pId]++;
+    }
+  }
+
+  const lines: LiveStatusLine[] = players
+    .filter(p => counts[p.id] > 0)
+    .map(p => ({ text: `${p.name} ${counts[p.id]} Arnies 🦁`, color: 'green' as const, playerId: p.id }));
+
+  if (lines.length === 0) lines.push({ text: 'No Arnies yet', color: 'neutral' });
+  return { mode: 'arnies', label: '🦁 Arnies', lines };
+}
+
+function calcLiveBanker(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  bankerHoles: (BankerHoleState | null)[],
+  config: BankerConfig
+): LiveStatus {
+  const net: Record<string, number> = {};
+  for (const p of players) net[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const state = bankerHoles[hole];
+    if (!state?.bankerId) continue;
+    const banker = players.find(p => p.id === state.bankerId);
+    if (!banker) continue;
+    const bankerScore = scores[banker.id][hole];
+    if (bankerScore === null) continue;
+
+    for (const other of players) {
+      if (other.id === banker.id) continue;
+      const otherScore = scores[other.id][hole];
+      if (otherScore === null) continue;
+      if (bankerScore < otherScore) {
+        net[banker.id] += config.betAmount;
+        net[other.id]  -= config.betAmount;
+      } else if (otherScore < bankerScore) {
+        net[banker.id] -= config.betAmount;
+        net[other.id]  += config.betAmount;
+      }
+    }
+  }
+
+  const lines: LiveStatusLine[] = players.map(p => {
+    const v = net[p.id];
+    const sign = v >= 0 ? '+' : '';
+    return { text: `${p.name} ${sign}$${v}`, color: v > 0 ? 'green' : v < 0 ? 'red' : 'neutral', playerId: p.id };
+  });
+  return { mode: 'banker', label: '🏦 Banker', lines };
+}
+
 export function calcLiveStatus(
   setup: GameSetup,
   scores: Record<string, (number | null)[]>,
@@ -2064,7 +2357,10 @@ export function calcLiveStatus(
   snakeHoles: (SnakeHoleState | null)[],
   pressMatches?: PressMatch[],
   dotsHoles?: (DotsHoleState | null)[],
-  ctpHoles?: (CtpHoleState | null)[]
+  ctpHoles?: (CtpHoleState | null)[],
+  troubleHoles?: (TroubleHoleState | null)[],
+  arniesHoles?: (ArniesHoleState | null)[],
+  bankerHoles?: (BankerHoleState | null)[]
 ): LiveStatus[] {
   const results: LiveStatus[] = [];
   const { players, games } = setup;
@@ -2164,6 +2460,18 @@ export function calcLiveStatus(
         break;
       case 'aces-deuces':
         results.push(calcLiveAcesDeuces(players, scores, game.config));
+        break;
+      case 'quota':
+        results.push(calcLiveQuota(players, scores, pars, game.config));
+        break;
+      case 'trouble':
+        results.push(calcLiveTrouble(players, troubleHoles ?? [], game.config));
+        break;
+      case 'arnies':
+        results.push(calcLiveArnies(players, arniesHoles ?? []));
+        break;
+      case 'banker':
+        results.push(calcLiveBanker(players, scores, bankerHoles ?? [], game.config));
         break;
     }
   }

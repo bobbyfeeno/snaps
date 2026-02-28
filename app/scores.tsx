@@ -15,7 +15,7 @@ import {
 import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
 import { saveRound } from '../lib/storage';
-import { BBBHoleState, CtpHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
+import { ArniesHoleState, BankerHoleState, BBBHoleState, CtpHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, TroubleConfig, TroubleHoleState, VegasConfig, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -114,12 +114,55 @@ export default function ScoresScreen() {
 
   const [ctpHoles, setCtpHoles] = useState<(CtpHoleState | null)[]>(() => Array(18).fill(null));
 
+  const [troubleHoles, setTroubleHoles] = useState<(TroubleHoleState | null)[]>(() =>
+    Array(18).fill(null).map(() => ({ troubles: {} }))
+  );
+  const [arniesHoles, setArniesHoles] = useState<(ArniesHoleState | null)[]>(() =>
+    Array(18).fill(null).map(() => ({ qualifiedPlayerIds: [] }))
+  );
+  const [bankerHoles, setBankerHoles] = useState<(BankerHoleState | null)[]>(() => Array(18).fill(null));
+
+  const [troubleExpanded, setTroubleExpanded] = useState(false);
+  const [arniesExpanded, setArniesExpanded] = useState(false);
+  const [bankerExpanded, setBankerExpanded] = useState(false);
+
   function setCtpWinner(hole: number, playerId: string | null) {
     setCtpHoles(prev => {
       const next = [...prev];
       // Toggle: tap same player again to deselect
       const current = prev[hole]?.winnerId ?? null;
       next[hole] = { winnerId: current === playerId ? null : playerId };
+      return next;
+    });
+  }
+
+  function toggleTrouble(hole: number, playerId: string, type: string) {
+    setTroubleHoles(prev => {
+      const next = prev.map(h => h ? { ...h, troubles: { ...h.troubles } } : { troubles: {} });
+      const current = next[hole].troubles[playerId] ?? [];
+      next[hole].troubles[playerId] = current.includes(type)
+        ? current.filter(t => t !== type)
+        : [...current, type];
+      return next;
+    });
+  }
+
+  function toggleArnie(hole: number, playerId: string) {
+    setArniesHoles(prev => {
+      const next = prev.map(h => h ? { ...h, qualifiedPlayerIds: [...h.qualifiedPlayerIds] } : { qualifiedPlayerIds: [] });
+      const cur = next[hole].qualifiedPlayerIds;
+      next[hole].qualifiedPlayerIds = cur.includes(playerId)
+        ? cur.filter(id => id !== playerId)
+        : [...cur, playerId];
+      return next;
+    });
+  }
+
+  function setBankerForHole(hole: number, playerId: string | null) {
+    setBankerHoles(prev => {
+      const next = [...prev];
+      const current = prev[hole]?.bankerId ?? null;
+      next[hole] = { bankerId: current === playerId ? null : playerId };
       return next;
     });
   }
@@ -192,8 +235,8 @@ export default function ScoresScreen() {
 
   // ─── Live Status ──────────────────────────────────────────────────────────
   const liveStatus = useMemo(() =>
-    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles, ctpHoles),
-    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles, ctpHoles]
+    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles, ctpHoles, troubleHoles, arniesHoles, bankerHoles),
+    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles, ctpHoles, troubleHoles, arniesHoles, bankerHoles]
   );
 
   function openEdit(t: EditTarget) {
@@ -388,6 +431,9 @@ export default function ScoresScreen() {
       pressMatches: pressMatches,
       hammerMultipliers: hammerMultipliers,
       pars: pars,
+      trouble: troubleHoles,
+      arnies: arniesHoles,
+      banker: bankerHoles,
     };
     
     multiGameResults = calcAllGames(setup, scores, extras);
@@ -421,8 +467,11 @@ export default function ScoresScreen() {
     (g.mode === 'nassau' && (g.config as NassauConfig).useHammer)
   );
   const hasSnake = hasGame(activeGameModes, 'snake');
-  const hasCtp   = hasGame(activeGameModes, 'ctp');
-  const hasExtras = hasWolf || hasBBB || hasSnake || hasCtp;
+  const hasCtp     = hasGame(activeGameModes, 'ctp');
+  const hasTrouble = hasGame(activeGameModes, 'trouble');
+  const hasArnies  = hasGame(activeGameModes, 'arnies');
+  const hasBanker  = hasGame(activeGameModes, 'banker');
+  const hasExtras = hasWolf || hasBBB || hasSnake || hasCtp || hasTrouble || hasArnies || hasBanker;
 
   return (
     <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
@@ -1028,6 +1077,137 @@ export default function ScoresScreen() {
                                 activeOpacity={0.75}
                               >
                                 <Text style={[styles.wolfPartnerBtnText, winner === p.id && styles.wolfPartnerBtnTextActive]}>
+                                  {p.name}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+              </LinearGradient>
+            )}
+
+            {/* Trouble Panel */}
+            {hasTrouble && (
+              <LinearGradient colors={['#0f0f0f', '#0a0a0a']} style={styles.extrasPanel}>
+                <TouchableOpacity onPress={() => setTroubleExpanded(!troubleExpanded)} style={styles.extrasPanelHeader} activeOpacity={0.7}>
+                  <Text style={styles.extrasPanelTitle}>😈 Trouble</Text>
+                  <Text style={styles.extrasPanelToggle}>{troubleExpanded ? '▾' : '▸'}</Text>
+                </TouchableOpacity>
+                {troubleExpanded && (() => {
+                  const troubleConfig = setup.games.find(g => g.mode === 'trouble')?.config as import('../types').TroubleConfig | undefined;
+                  const enabledTypes: { key: string; label: string }[] = [];
+                  if (troubleConfig?.ob) enabledTypes.push({ key: 'ob', label: 'OB' });
+                  if (troubleConfig?.water) enabledTypes.push({ key: 'water', label: 'Water' });
+                  if (troubleConfig?.threePutt) enabledTypes.push({ key: 'threePutt', label: '3-Putt' });
+                  if (troubleConfig?.sandTrap) enabledTypes.push({ key: 'sandTrap', label: 'Sand' });
+                  if (troubleConfig?.lostBall) enabledTypes.push({ key: 'lostBall', label: 'Lost' });
+                  return (
+                    <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                      {Array(18).fill(null).map((_, hole) => (
+                        <View key={hole} style={styles.wolfRow}>
+                          <Text style={styles.wolfHoleNum}>H{hole + 1}</Text>
+                          <View style={{ flex: 1, gap: 6 }}>
+                            {setup.players.map(p => {
+                              const playerTroubles = troubleHoles[hole]?.troubles[p.id] ?? [];
+                              return (
+                                <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                                  <Text style={[styles.wolfPartnerBtnText, { color: '#666', minWidth: 40 }]}>{p.name.slice(0, 5)}</Text>
+                                  {enabledTypes.map(({ key, label }) => {
+                                    const isActive = playerTroubles.includes(key);
+                                    return (
+                                      <TouchableOpacity
+                                        key={key}
+                                        onPress={() => toggleTrouble(hole, p.id, key)}
+                                        style={[styles.wolfPartnerBtn, isActive && styles.wolfPartnerBtnActive]}
+                                        activeOpacity={0.75}
+                                      >
+                                        <Text style={[styles.wolfPartnerBtnText, isActive && styles.wolfPartnerBtnTextActive]}>
+                                          {label}
+                                        </Text>
+                                      </TouchableOpacity>
+                                    );
+                                  })}
+                                </View>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  );
+                })()}
+              </LinearGradient>
+            )}
+
+            {/* Arnies Panel */}
+            {hasArnies && (
+              <LinearGradient colors={['#0f0f0f', '#0a0a0a']} style={styles.extrasPanel}>
+                <TouchableOpacity onPress={() => setArniesExpanded(!arniesExpanded)} style={styles.extrasPanelHeader} activeOpacity={0.7}>
+                  <Text style={styles.extrasPanelTitle}>🦁 Arnies</Text>
+                  <Text style={styles.extrasPanelToggle}>{arniesExpanded ? '▾' : '▸'}</Text>
+                </TouchableOpacity>
+                {arniesExpanded && (
+                  <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                    {Array(18).fill(null).map((_, hole) => {
+                      const qualified = arniesHoles[hole]?.qualifiedPlayerIds ?? [];
+                      return (
+                        <View key={hole} style={styles.wolfRow}>
+                          <Text style={styles.wolfHoleNum}>H{hole + 1}</Text>
+                          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+                            {setup.players.map(p => {
+                              const score = scores[p.id][hole];
+                              const par = pars[hole];
+                              const eligible = score !== null && score <= par;
+                              const isActive = qualified.includes(p.id);
+                              return (
+                                <TouchableOpacity
+                                  key={p.id}
+                                  onPress={() => eligible && toggleArnie(hole, p.id)}
+                                  style={[styles.wolfPartnerBtn, isActive && styles.wolfPartnerBtnActive, !eligible && { opacity: 0.4 }]}
+                                  activeOpacity={eligible ? 0.75 : 1}
+                                >
+                                  <Text style={[styles.wolfPartnerBtnText, isActive && styles.wolfPartnerBtnTextActive]}>
+                                    {p.name}
+                                  </Text>
+                                </TouchableOpacity>
+                              );
+                            })}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </ScrollView>
+                )}
+              </LinearGradient>
+            )}
+
+            {/* Banker Panel */}
+            {hasBanker && (
+              <LinearGradient colors={['#0f0f0f', '#0a0a0a']} style={styles.extrasPanel}>
+                <TouchableOpacity onPress={() => setBankerExpanded(!bankerExpanded)} style={styles.extrasPanelHeader} activeOpacity={0.7}>
+                  <Text style={styles.extrasPanelTitle}>🏦 Banker</Text>
+                  <Text style={styles.extrasPanelToggle}>{bankerExpanded ? '▾' : '▸'}</Text>
+                </TouchableOpacity>
+                {bankerExpanded && (
+                  <ScrollView style={styles.extrasPanelContent} nestedScrollEnabled>
+                    {Array(18).fill(null).map((_, hole) => {
+                      const bankerId = bankerHoles[hole]?.bankerId ?? null;
+                      return (
+                        <View key={hole} style={styles.wolfRow}>
+                          <Text style={styles.wolfHoleNum}>H{hole + 1}</Text>
+                          <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap', flex: 1 }}>
+                            {setup.players.map(p => (
+                              <TouchableOpacity
+                                key={p.id}
+                                onPress={() => setBankerForHole(hole, p.id)}
+                                style={[styles.wolfPartnerBtn, bankerId === p.id && styles.wolfPartnerBtnActive]}
+                                activeOpacity={0.75}
+                              >
+                                <Text style={[styles.wolfPartnerBtnText, bankerId === p.id && styles.wolfPartnerBtnTextActive]}>
                                   {p.name}
                                 </Text>
                               </TouchableOpacity>

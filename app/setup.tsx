@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { getSavedPlayers } from '../lib/storage';
-import { AcesDeucesConfig, BestBallConfig, CtpConfig, DotsConfig, GameConfig, GameMode, GameSetup, NassauConfig, NinesConfig, Player, SavedPlayer, ScotchConfig, StablefordConfig } from '../types';
+import { AcesDeucesConfig, ArniesConfig, BankerConfig, BestBallConfig, CtpConfig, DotsConfig, GameConfig, GameMode, GameSetup, NassauConfig, NinesConfig, Player, QuotaConfig, SavedPlayer, ScotchConfig, StablefordConfig, TroubleConfig } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -177,6 +177,38 @@ const GAME_DEFS: GameDef[] = [
     defaultAmount: 2,
     minPlayers: 2,
   },
+  {
+    mode: 'quota',
+    name: 'Quota',
+    description: 'Beat your personal points quota. Stableford scoring vs a target you set.',
+    inputLabel: '$ per point',
+    defaultAmount: 1,
+    minPlayers: 2,
+  },
+  {
+    mode: 'trouble',
+    name: 'Trouble',
+    description: 'Pay for bad shots — OB, water, 3-putts and more.',
+    inputLabel: '$ per trouble',
+    defaultAmount: 2,
+    minPlayers: 2,
+  },
+  {
+    mode: 'arnies',
+    name: 'Arnies',
+    description: 'Make par without ever hitting the fairway. Collect from the group.',
+    inputLabel: '$ per Arnie',
+    defaultAmount: 5,
+    minPlayers: 2,
+  },
+  {
+    mode: 'banker',
+    name: 'Banker',
+    description: 'One player is the Banker each hole. Everyone else plays against them.',
+    inputLabel: '$ per hole',
+    defaultAmount: 3,
+    minPlayers: 2,
+  },
 ];
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
@@ -208,6 +240,10 @@ const ICON_DEFS: Record<string, {
   scotch:           { emoji: '🥃', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   ctp:              { emoji: '⛳', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   'aces-deuces':    { emoji: '🎲', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  quota:            { emoji: '⚖️', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  trouble:          { emoji: '😈', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  arnies:           { emoji: '🦁', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  banker:           { emoji: '🏦', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -318,6 +354,10 @@ export default function SetupScreen() {
     scotch: '2',
     ctp: '5',
     'aces-deuces': '2',
+    quota: '1',
+    trouble: '2',
+    arnies: '5',
+    banker: '3',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
@@ -336,6 +376,16 @@ export default function SetupScreen() {
   const [dotsEagle, setDotsEagle] = useState(true);
   const [dotsSandy, setDotsSandy] = useState(true);
   const [dotsGreenie, setDotsGreenie] = useState(true);
+
+  // Trouble toggles
+  const [troubleOb, setTroubleOb] = useState(true);
+  const [troubleWater, setTroubleWater] = useState(true);
+  const [troubleThreePutt, setTroubleThreePutt] = useState(true);
+  const [troubleSandTrap, setTroubleSandTrap] = useState(true);
+  const [troubleLostBall, setTroubleLostBall] = useState(true);
+
+  // Quota per-player inputs
+  const [quotaInputs, setQuotaInputs] = useState<Record<string, string>>({});
 
   // Custom alert modal state
   const [alertMsg, setAlertMsg] = useState<{ title: string; body: string } | null>(null);
@@ -592,6 +642,23 @@ export default function SetupScreen() {
           break;
         case 'aces-deuces':
           games.push({ mode: 'aces-deuces', config: { betPerHole: amount } });
+          break;
+        case 'quota': {
+          const qMap: Record<string, number> = {};
+          for (const p of filledPlayers) {
+            qMap[p.id] = parseInt(quotaInputs[p.id] ?? '18', 10) || 18;
+          }
+          games.push({ mode: 'quota', config: { betPerPoint: amount, quotas: qMap } });
+          break;
+        }
+        case 'trouble':
+          games.push({ mode: 'trouble', config: { betAmount: amount, ob: troubleOb, water: troubleWater, threePutt: troubleThreePutt, sandTrap: troubleSandTrap, lostBall: troubleLostBall } });
+          break;
+        case 'arnies':
+          games.push({ mode: 'arnies', config: { betAmount: amount } });
+          break;
+        case 'banker':
+          games.push({ mode: 'banker', config: { betAmount: amount } });
           break;
       }
     }
@@ -945,6 +1012,66 @@ export default function SetupScreen() {
                       ⚾ Nines requires exactly 3 players. 9 pts per hole distributed 5-3-1.
                     </Text>
                   </View>
+                </View>
+              )}
+
+              {/* Trouble config panel */}
+              {activeGames.has('trouble') && (
+                <View style={styles.nassauOpts}>
+                  {(
+                    [
+                      { label: '🚩 OB', value: troubleOb, set: setTroubleOb },
+                      { label: '💧 Water', value: troubleWater, set: setTroubleWater },
+                      { label: '3️⃣ 3-Putt', value: troubleThreePutt, set: setTroubleThreePutt },
+                      { label: '🏖️ Sand', value: troubleSandTrap, set: setTroubleSandTrap },
+                      { label: '🔍 Lost Ball', value: troubleLostBall, set: setTroubleLostBall },
+                    ] as { label: string; value: boolean; set: (v: boolean) => void }[]
+                  ).map(({ label, value, set }) => (
+                    <View key={label} style={styles.nassauOptionRow}>
+                      <Text style={styles.nassauOptionLabel}>{label}</Text>
+                      <View style={styles.nassauToggleGroup}>
+                        <TouchableOpacity
+                          style={[styles.pillBtn, !value && styles.pillBtnActive]}
+                          onPress={() => set(false)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.pillBtnText, !value && styles.pillBtnTextActive]}>Off</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.pillBtn, value && styles.pillBtnActive]}
+                          onPress={() => set(true)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.pillBtnText, value && styles.pillBtnTextActive]}>On</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Quota config panel */}
+              {activeGames.has('quota') && players.filter(p => p.name.trim()).length > 0 && (
+                <View style={styles.nassauOpts}>
+                  <View style={[styles.nassauOptionRow, { marginTop: 4 }]}>
+                    <Text style={[styles.nassauOptionLabel, { color: '#aaa', fontSize: 14, flex: 1 }]}>
+                      Player Quotas (target pts)
+                    </Text>
+                  </View>
+                  {players.filter(p => p.name.trim()).map(p => (
+                    <View key={p.id} style={styles.nassauOptionRow}>
+                      <Text style={styles.nassauOptionLabel}>{p.name}'s quota</Text>
+                      <TextInput
+                        style={styles.configAmountInput}
+                        value={quotaInputs[p.id] ?? '18'}
+                        onChangeText={val => setQuotaInputs(prev => ({ ...prev, [p.id]: val }))}
+                        keyboardType="numeric"
+                        maxLength={3}
+                        placeholder="18"
+                        placeholderTextColor="#333"
+                      />
+                    </View>
+                  ))}
                 </View>
               )}
             </BevelCard>

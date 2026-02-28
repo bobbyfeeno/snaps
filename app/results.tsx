@@ -28,6 +28,10 @@ function getGameEmoji(mode: GameMode): string {
     case 'scotch': return '🥃';
     case 'ctp': return '⛳';
     case 'aces-deuces': return '🎲';
+    case 'quota': return '⚖️';
+    case 'trouble': return '😈';
+    case 'arnies': return '🦁';
+    case 'banker': return '🏦';
     default: return '🎮';
   }
 }
