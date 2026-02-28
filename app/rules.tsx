@@ -72,7 +72,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🐰',
     name: 'Rabbit',
-    rules: `One rabbit, 18 holes, and a whole lot of pressure.\n\nThe first player to win a hole outright (lowest score, no ties) "catches the rabbit." They hold it until another player wins a hole outright — then the rabbit jumps to them.\n\nWhoever holds the rabbit at the end of the round pays every other player the set amount.\n\nIf nobody ever wins a hole outright, no payout. If you catch it on 17 and 18 is a tie — you're paying.`,
+    rules: `One rabbit, 18 holes, and a whole lot of pressure.\n\nThe first player to win a hole outright (lowest score, no ties) "catches the rabbit." They hold it until another player wins a hole outright — then the rabbit jumps to them.\n\nWhoever holds the rabbit at the end of the round COLLECTS from every other player. Catching the rabbit is good — holding it is better.\n\nIf nobody ever wins a hole outright, no payout. If you catch it on 17 and 18 is a tie — you're collecting.`,
   },
   {
     emoji: '🗑️',

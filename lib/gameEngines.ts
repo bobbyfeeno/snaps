@@ -995,15 +995,15 @@ export function calcRabbit(
     // Tie — rabbit stays with current holder
   }
 
-  // Holder at end pays every other player rabbitAmount
+  // Holder at end COLLECTS rabbitAmount from every other player (holding = winning)
   if (rabbitHolder !== null) {
     const holder = players.find(p => p.id === rabbitHolder);
     if (holder) {
       for (const other of players) {
         if (other.id !== holder.id) {
-          payouts.push({ from: holder.name, to: other.name, amount: config.rabbitAmount, game: 'rabbit' });
-          net[holder.name] -= config.rabbitAmount;
-          net[other.name]  += config.rabbitAmount;
+          payouts.push({ from: other.name, to: holder.name, amount: config.rabbitAmount, game: 'rabbit' });
+          net[other.name]  -= config.rabbitAmount;
+          net[holder.name] += config.rabbitAmount;
         }
       }
     }
