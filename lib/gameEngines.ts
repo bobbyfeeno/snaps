@@ -157,10 +157,10 @@ function calcNassauStroke(
   // Handicap allowances (if enabled)
   const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
 
-  const legs: { name: string; start: number; end: number }[] = [
-    { name: 'Front 9', start: 0, end: 9 },
-    { name: 'Back 9', start: 9, end: 18 },
-    { name: 'Full 18', start: 0, end: 18 },
+  const legs: { name: string; bet: number; start: number; end: number }[] = [
+    { name: 'Front 9', bet: config.betFront, start: 0, end: 9 },
+    { name: 'Back 9', bet: config.betBack, start: 9, end: 18 },
+    { name: 'Full 18', bet: config.betOverall, start: 0, end: 18 },
   ];
 
   for (const leg of legs) {
@@ -203,17 +203,17 @@ function calcNassauStroke(
 
     const winner = winners[0].player;
     
-    // Winner receives betAmount from each other player
+    // Winner receives bet for this leg from each other player
     for (const t of totals) {
       if (t.player.id !== winner.id) {
         payouts.push({
           from: t.player.name,
           to: winner.name,
-          amount: config.betAmount,
+          amount: leg.bet,
           game: 'nassau',
         });
-        net[t.player.name] -= config.betAmount;
-        net[winner.name] += config.betAmount;
+        net[t.player.name] -= leg.bet;
+        net[winner.name] += leg.bet;
       }
     }
   }
@@ -281,11 +281,12 @@ function calcNassauMatch(
   // Handicap allowances (if enabled)
   const allowances = config.useHandicaps ? getHandicapAllowances(players) : {};
 
-  const legs: { name: string; key: 'front' | 'back' | 'full'; start: number; end: number }[] = [
-    { name: 'Front 9', key: 'front', start: 0, end: 8 },
-    { name: 'Back 9', key: 'back', start: 9, end: 17 },
-    { name: 'Full 18', key: 'full', start: 0, end: 17 },
+  const legs: { name: string; key: 'front' | 'back' | 'full'; bet: number; start: number; end: number }[] = [
+    { name: 'Front 9', key: 'front', bet: config.betFront, start: 0, end: 8 },
+    { name: 'Back 9', key: 'back', bet: config.betBack, start: 9, end: 17 },
+    { name: 'Full 18', key: 'full', bet: config.betOverall, start: 0, end: 17 },
   ];
+  const legBetByKey: Record<string, number> = { front: config.betFront, back: config.betBack, full: config.betOverall };
 
   for (const leg of legs) {
     const { holesWon, participating } = calcMatchPlayRange(
@@ -308,11 +309,11 @@ function calcNassauMatch(
         payouts.push({
           from: other.name,
           to: winner.name,
-          amount: config.betAmount,
+          amount: leg.bet,
           game: 'nassau',
         });
-        net[other.name] -= config.betAmount;
-        net[winner.name] += config.betAmount;
+        net[other.name] -= leg.bet;
+        net[winner.name] += leg.bet;
       }
     }
   }
@@ -342,17 +343,18 @@ function calcNassauMatch(
       if (pressWinners.length > 1) continue; // Push
 
       const winner = pressWinners[0];
+      const pressBet = legBetByKey[press.leg] ?? config.betFront;
 
       for (const other of participating) {
         if (other.id !== winner.id) {
           payouts.push({
             from: other.name,
             to: winner.name,
-            amount: config.betAmount,
+            amount: pressBet,
             game: 'nassau',
           });
-          net[other.name] -= config.betAmount;
-          net[winner.name] += config.betAmount;
+          net[other.name] -= pressBet;
+          net[winner.name] += pressBet;
         }
       }
     }

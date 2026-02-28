@@ -12,7 +12,9 @@ export interface TaxManConfig {
 }
 
 export interface NassauConfig {
-  betAmount: number; // $ per leg (front 9, back 9, full 18 = 3 possible payouts)
+  betFront: number;    // $ on the Front 9
+  betBack: number;     // $ on the Back 9
+  betOverall: number;  // $ on the Full 18 (overall)
   mode: 'stroke' | 'match'; // stroke = total score per leg, match = hole-by-hole wins
   press: 'none' | 'auto'; // 'auto' = auto-press when 2 down (match play only)
   useHandicaps: boolean; // apply handicap strokes per hole

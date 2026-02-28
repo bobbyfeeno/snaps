@@ -373,6 +373,9 @@ export default function SetupScreen() {
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
   const [nassauHandicaps, setNassauHandicaps] = useState(false);
   const [nassauHammer, setNassauHammer] = useState(false);
+  const [nassauBetFront, setNassauBetFront] = useState('5');
+  const [nassauBetBack, setNassauBetBack] = useState('5');
+  const [nassauBetOverall, setNassauBetOverall] = useState('5');
   // Vegas options
   const [vegasFlipBird, setVegasFlipBird] = useState(true);
   const [vegasHammer, setVegasHammer] = useState(false);
@@ -579,6 +582,17 @@ export default function SetupScreen() {
     // Validate all active game amounts (skip scorecard since it has no amount)
     for (const mode of activeGames) {
       if (mode === 'scorecard') continue; // scorecard has no bet amount
+      if (mode === 'nassau') {
+        // Nassau uses 3 separate bets
+        const front = parseFloat(nassauBetFront);
+        const back  = parseFloat(nassauBetBack);
+        const over  = parseFloat(nassauBetOverall);
+        if (isNaN(front) || front <= 0 || isNaN(back) || back <= 0 || isNaN(over) || over <= 0) {
+          showAlert('Invalid Amount', 'Enter valid dollar amounts for Nassau (Front, Back, Overall).');
+          return;
+        }
+        continue;
+      }
       const amount = parseFloat(gameAmounts[mode]);
       if (isNaN(amount) || amount <= 0) {
         const gameName = GAME_DEFS.find(g => g.mode === mode)?.name ?? mode;
@@ -602,7 +616,7 @@ export default function SetupScreen() {
           games.push({ mode: 'taxman', config: { taxAmount: amount } });
           break;
         case 'nassau':
-          games.push({ mode: 'nassau', config: { betAmount: amount, mode: nassauMode, press: nassauPress, useHandicaps: nassauHandicaps, useHammer: nassauHammer } });
+          games.push({ mode: 'nassau', config: { betFront: parseFloat(nassauBetFront), betBack: parseFloat(nassauBetBack), betOverall: parseFloat(nassauBetOverall), mode: nassauMode, press: nassauPress, useHandicaps: nassauHandicaps, useHammer: nassauHammer } });
           break;
         case 'skins':
           games.push({ mode: 'skins', config: { betPerSkin: amount } });
@@ -742,7 +756,7 @@ export default function SetupScreen() {
           {Array.from(activeGames).filter(m => m !== 'scorecard').length > 0 && (
             <BevelCard style={styles.configPanel}>
               <View style={styles.cardHighlight} />
-              {Array.from(activeGames).filter(m => m !== 'scorecard').map(mode => (
+              {Array.from(activeGames).filter(m => m !== 'scorecard' && m !== 'nassau').map(mode => (
                 <View key={mode} style={styles.configRow}>
                   <Text style={styles.configLabel}>{GAME_DEFS.find(g => g.mode === mode)?.name}</Text>
                   <View style={styles.configRight}>
@@ -762,6 +776,30 @@ export default function SetupScreen() {
               {/* Nassau-specific options */}
               {activeGames.has('nassau') && (
                 <View style={styles.nassauOpts}>
+                  {/* Nassau label */}
+                  <Text style={[styles.configLabel, { marginBottom: 8 }]}>Nassau</Text>
+                  {/* 3 separate bets */}
+                  {([
+                    { label: 'Front 9', value: nassauBetFront, setter: setNassauBetFront },
+                    { label: 'Back 9',  value: nassauBetBack,  setter: setNassauBetBack  },
+                    { label: 'Overall', value: nassauBetOverall, setter: setNassauBetOverall },
+                  ] as { label: string; value: string; setter: (v: string) => void }[]).map(({ label, value, setter }) => (
+                    <View key={label} style={[styles.configRow, { marginBottom: 4 }]}>
+                      <Text style={styles.nassauOptionLabel}>{label}</Text>
+                      <View style={styles.configRight}>
+                        <Text style={styles.dollarSign}>$</Text>
+                        <TextInput
+                          style={styles.configAmountInput}
+                          value={value}
+                          onChangeText={v => setter(v.replace(/[^0-9.]/g, ''))}
+                          keyboardType="numeric"
+                          maxLength={4}
+                          placeholder="0"
+                          placeholderTextColor="#333"
+                        />
+                      </View>
+                    </View>
+                  ))}
                   {/* Stroke/Match Play toggle */}
                   <View style={styles.nassauModeRow}>
                     <TouchableOpacity
