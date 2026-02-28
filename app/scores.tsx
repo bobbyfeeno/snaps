@@ -115,12 +115,50 @@ export default function ScoresScreen() {
   // ─── Hammer multipliers (per-hole, for Vegas/Nassau with Hammer enabled) ────
   const [hammerMultipliers, setHammerMultipliers] = useState<number[]>(() => Array(18).fill(1));
 
-  function cycleHammer(hole: number) {
+  type HammerModal = {
+    hole: number;
+    pendingMult: number;
+    message: string; // instruction shown at top of modal
+  } | null;
+  const [hammerModal, setHammerModal] = useState<HammerModal>(null);
+
+  function callHammer(hole: number) {
+    const cur = hammerMultipliers[hole];
+    const next = cur >= 8 ? 1 : cur * 2;
+    if (next === 1) {
+      // Reset directly (cycling back to ×1 doesn't need a confirmation)
+      setHammerMultipliers(prev => { const a = [...prev]; a[hole] = 1; return a; });
+      return;
+    }
+    setHammerModal({
+      hole,
+      pendingMult: next,
+      message: '🔨 Hammer called! Pass phone to opponent.',
+    });
+  }
+
+  function acceptHammer() {
+    if (!hammerModal) return;
     setHammerMultipliers(prev => {
-      const next = [...prev];
-      const cur = next[hole];
-      next[hole] = cur >= 8 ? 1 : cur * 2;
-      return next;
+      const a = [...prev];
+      a[hammerModal.hole] = hammerModal.pendingMult;
+      return a;
+    });
+    setHammerModal(null);
+  }
+
+  function concedeHammer() {
+    // Opponent concedes the hole — caller wins it. Close modal; score reflects outcome.
+    setHammerModal(null);
+  }
+
+  function reHammer() {
+    if (!hammerModal) return;
+    const next = hammerModal.pendingMult * 2;
+    setHammerModal({
+      hole: hammerModal.hole,
+      pendingMult: next,
+      message: '🔨 Re-Hammer! Pass phone back to caller.',
     });
   }
 
@@ -468,6 +506,67 @@ export default function ScoresScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* ─── Hammer Call Modal ───────────────────────────────────────────── */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={!!hammerModal}
+        onRequestClose={concedeHammer}
+      >
+        <View style={styles.hammerOverlay}>
+          <BevelCard style={styles.hammerCard}>
+            {/* Header */}
+            <View style={styles.hammerHeader}>
+              <Text style={styles.hammerIcon}>🔨</Text>
+              <Text style={styles.hammerTitle}>HAMMER</Text>
+              <Text style={styles.hammerHole}>Hole {(hammerModal?.hole ?? 0) + 1}</Text>
+            </View>
+
+            {/* Multiplier display */}
+            <View style={styles.hammerMultRow}>
+              <View style={styles.hammerMultBox}>
+                <Text style={styles.hammerMultLabel}>current</Text>
+                <Text style={styles.hammerMultCur}>×{hammerMultipliers[hammerModal?.hole ?? 0]}</Text>
+              </View>
+              <Text style={styles.hammerArrow}>→</Text>
+              <View style={[styles.hammerMultBox, styles.hammerMultBoxNew]}>
+                <Text style={styles.hammerMultLabel}>if accepted</Text>
+                <Text style={styles.hammerMultNew}>×{hammerModal?.pendingMult ?? 2}</Text>
+              </View>
+            </View>
+
+            {/* Instruction */}
+            <Text style={styles.hammerMsg}>{hammerModal?.message}</Text>
+
+            {/* Action buttons */}
+            <View style={styles.hammerActions}>
+              {/* Concede */}
+              <TouchableOpacity onPress={concedeHammer} style={styles.hammerConcedeBtn} activeOpacity={0.8}>
+                <Text style={styles.hammerConcedeTxt}>Concede</Text>
+              </TouchableOpacity>
+
+              {/* Re-Hammer (only if pendingMult < 16) */}
+              {(hammerModal?.pendingMult ?? 2) < 16 && (
+                <TouchableOpacity onPress={reHammer} style={styles.hammerReBtn} activeOpacity={0.8}>
+                  <Text style={styles.hammerReTxt}>Re-Hammer ×{(hammerModal?.pendingMult ?? 2) * 2}</Text>
+                </TouchableOpacity>
+              )}
+
+              {/* Accept */}
+              <TouchableOpacity onPress={acceptHammer} activeOpacity={0.85}>
+                <LinearGradient
+                  colors={['#52ff20', '#2dcc08', '#1fa005']}
+                  locations={[0, 0.6, 1]}
+                  style={styles.hammerAcceptBtn}
+                >
+                  <Text style={styles.hammerAcceptTxt}>Accept ×{hammerModal?.pendingMult ?? 2}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          </BevelCard>
+        </View>
+      </Modal>
+
       <ScrollView style={styles.mainScroll} contentContainerStyle={styles.mainScrollContent} bounces={false}>
         {/* Scorecard grid */}
         <View style={styles.grid}>
@@ -582,7 +681,7 @@ export default function ScoresScreen() {
                   {[0,1,2,3,4,5,6,7,8].map(i => (
                     <TouchableOpacity
                       key={i}
-                      onPress={() => cycleHammer(i)}
+                      onPress={() => callHammer(i)}
                       style={[styles.cell, styles.hammerCell, { width: CELL_W }]}
                     >
                       <Text style={[styles.hammerText, hammerMultipliers[i] > 1 && styles.hammerTextActive]}>
@@ -594,7 +693,7 @@ export default function ScoresScreen() {
                   {[9,10,11,12,13,14,15,16,17].map(i => (
                     <TouchableOpacity
                       key={i}
-                      onPress={() => cycleHammer(i)}
+                      onPress={() => callHammer(i)}
                       style={[styles.cell, styles.hammerCell, { width: CELL_W }]}
                     >
                       <Text style={[styles.hammerText, hammerMultipliers[i] > 1 && styles.hammerTextActive]}>
@@ -1113,6 +1212,100 @@ const styles = StyleSheet.create({
   hammerCell: { backgroundColor: '#070707' },
   hammerText: { color: '#333', fontSize: 11, fontWeight: '700' },
   hammerTextActive: { color: '#39FF14' },
+
+  // ─── Hammer Modal styles ─────────────────────────────────────────────────
+  hammerOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.82)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  hammerCard: {
+    width: '100%',
+    maxWidth: 360,
+    padding: 0,
+  },
+  hammerHeader: {
+    alignItems: 'center',
+    paddingTop: 28,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#222',
+  },
+  hammerIcon: { fontSize: 44, marginBottom: 4 },
+  hammerTitle: {
+    fontSize: 26,
+    fontWeight: '900',
+    color: '#39FF14',
+    letterSpacing: 4,
+  },
+  hammerHole: {
+    fontSize: 13,
+    color: '#666',
+    fontWeight: '600',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  hammerMultRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 24,
+    gap: 20,
+  },
+  hammerMultBox: {
+    alignItems: 'center',
+  },
+  hammerMultBoxNew: {
+    backgroundColor: 'rgba(57,255,20,0.06)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(57,255,20,0.3)',
+  },
+  hammerMultLabel: { fontSize: 10, color: '#555', fontWeight: '700', textTransform: 'uppercase', marginBottom: 2 },
+  hammerMultCur: { fontSize: 28, fontWeight: '800', color: '#444' },
+  hammerArrow: { fontSize: 22, color: '#444', fontWeight: '700' },
+  hammerMultNew: { fontSize: 36, fontWeight: '900', color: '#39FF14' },
+  hammerMsg: {
+    textAlign: 'center',
+    color: '#aaa',
+    fontSize: 13,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+    lineHeight: 19,
+  },
+  hammerActions: {
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 24,
+  },
+  hammerAcceptBtn: {
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  hammerAcceptTxt: { color: '#000', fontSize: 17, fontWeight: '800' },
+  hammerReBtn: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: 'rgba(57,255,20,0.25)',
+  },
+  hammerReTxt: { color: '#39FF14', fontSize: 15, fontWeight: '700' },
+  hammerConcedeBtn: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    backgroundColor: '#111',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+  },
+  hammerConcedeTxt: { color: '#666', fontSize: 15, fontWeight: '600' },
 
   // OUT/IN/TOT value cells
   sumCell: { backgroundColor: '#0f0f0f' },
