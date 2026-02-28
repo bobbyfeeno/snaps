@@ -55,6 +55,14 @@ const GAME_DEFS: GameDef[] = [
     defaultAmount: 0,
   },
   {
+    mode: 'match-play',
+    name: 'Head to Head',
+    description: '1v1 or round robin. Win holes (match) or fewest strokes (stroke). Handicaps supported.',
+    inputLabel: '$ per match',
+    defaultAmount: 10,
+    minPlayers: 2,
+  },
+  {
     mode: 'taxman',
     name: 'Tax Man',
     description: 'Beat your target score. Losers pay every winner.',
@@ -207,14 +215,6 @@ const GAME_DEFS: GameDef[] = [
     description: 'One player is the Banker each hole. Everyone else plays against them.',
     inputLabel: '$ per hole',
     defaultAmount: 3,
-    minPlayers: 2,
-  },
-  {
-    mode: 'match-play',
-    name: 'Head to Head',
-    description: '1v1 or round robin. Win holes (match) or fewest strokes (stroke). Handicaps supported.',
-    inputLabel: '$ per match',
-    defaultAmount: 10,
     minPlayers: 2,
   },
 ];
