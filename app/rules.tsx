@@ -42,7 +42,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🐺',
     name: 'Wolf',
-    rules: `One player is the "Wolf" each hole (rotating each hole). The Wolf watches each opponent tee off one at a time, deciding after each shot whether to pick that player as a partner — or pass. Once you pass, you can't go back.\n\nLone Wolf: If the Wolf passes everyone, they go 1 vs. 3 for double the bet.\nPartner Wolf: The chosen duo plays against the other two for the set bet amount.`,
+    rules: `One player is the "Wolf" each hole, rotating in order. The Wolf tees off first, then watches each opponent hit one at a time. After each drive, the Wolf must decide: pick that player as a partner right now — or pass. Once you pass a player, you can't go back.\n\nThe Wolf must commit before the next player tees off.\n\nYour options:\n🐺 Partner Wolf — Pick someone. The chosen pair plays the other two for the set bet.\n🔥 Solo Wolf (×2) — Pass all three opponents. Go 1v3 for double the bet.\n⚡ Lone Wolf (×3) — Declare solo right after your own drive, before anyone else tees off. Higher risk, triple the reward.\n🕶️ Blind Wolf (×4) — Declare solo before you even hit your own drive. Maximum risk, 4× the bet.\n\nWolf rotates each hole. On holes 17 and 18, the player with the fewest points gets the Wolf spot.`,
   },
   {
     emoji: '🎯',
@@ -92,7 +92,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🥃',
     name: 'Scotch',
-    rules: `A 2v2 team game worth 5 points per hole.\n\n2 points — Low Ball: whichever team has the better individual score wins 2 pts.\n3 points — Low Total: whichever team has the lower combined score wins 3 pts.\n\nA clean sweep (win both low ball and low total) wins all 5 pts on that hole.\n\nAt the end, the point difference × your dollar amount determines the payout. Assign teams before the round starts.`,
+    rules: `A 2v2 team points game. This app plays a simplified Low Ball / Low Total format — 5 points per hole.\n\n2 points — Low Ball: whichever team has the lower individual score wins 2 pts.\n3 points — Low Total: whichever team has the lower combined score wins 3 pts.\n\nA clean sweep wins all 5 pts on that hole. Ties on either category push (no points awarded).\n\nAt the end, point difference × your dollar amount determines the payout. Assign teams before teeing off.\n\nNote: Traditional 5-point Scotch (also called Umbriago) includes five separate categories — Low Ball, Low Total, Low Putts, Closest to Pin, and Birdie — worth 1 point each. This app plays the popular 2-category version for simplicity.`,
   },
   {
     emoji: '⛳',
@@ -102,12 +102,12 @@ const GAMES: GameRule[] = [
   {
     emoji: '🎲',
     name: 'Aces & Deuces',
-    rules: `Every hole, there's an Ace (best score) and a Deuce (worst score).\n\nThe Ace collects your set dollar amount from the Deuce. Players with middle scores push — no payment either way.\n\nTie rules: if two players tie for best, both are Aces. If two tie for worst, both are Deuces. All Aces collect from all Deuces.\n\nIf everyone ties, it's a push. Works great stacked alongside any other game.`,
+    rules: `Every hole, there's an Ace (best score) and a Deuce (worst score).\n\nThe Ace collects your set dollar amount from the Deuce. Players with middle scores push — no payment either way.\n\nTie rules (app variant): tied-best players all count as Aces; tied-worst all count as Deuces. All Aces collect from all Deuces.\n\nNote: The most common standard rule is that ties cancel — if two players tie for best, there's no Ace that hole (push). If two tie for worst, there's no Deuce. Agree on your group's tie rule before the round.\n\nIf everyone ties, it's always a push. Works great stacked alongside any other game.`,
   },
   {
     emoji: '🔨',
     name: 'Hammer',
-    rules: `A bet-doubling modifier applied to Nassau or Vegas. On any hole, any player can call "Hammer!" — doubling the value of that hole's bet. The opponent must accept or concede.\n\nMultipliers stack each time the Hammer is called:\n×1 → ×2 → ×4 → ×8\n\nTap the ×N cell in the scorecard to cycle the multiplier for that hole.`,
+    rules: `A bet-doubling modifier that can be added to Nassau, Vegas, or other hole-based games. On any hole, any player (or team) can call "Hammer!" — doubling the value of that hole's bet.\n\nThe opponent must accept or concede:\n• Accept — the hole continues at the new doubled value. The receiving side can immediately re-Hammer back, doubling it again.\n• Concede — the hole is over. The hammering side wins at the previous (un-doubled) value.\n\nEither side can swing the Hammer at any point during a hole, and it can be thrown back and forth until someone concedes. Multipliers stack:\n×1 → ×2 → ×4 → ×8 → ×16\n\nIn this app, tap the ×N cell in the scorecard on any active hole, then pass the phone to call, accept, re-hammer, or concede.`,
   },
 ];
 
