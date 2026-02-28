@@ -1571,7 +1571,7 @@ export function calcMatchPlay(
     }
   }
 
-  return { mode: 'match-play', label: 'Match Play', payouts, net };
+  return { mode: 'match-play', label: 'Head to Head', payouts, net };
 }
 
 function calcLiveMatchPlay(
@@ -1627,7 +1627,7 @@ function calcLiveMatchPlay(
     }
   }
 
-  return { mode: 'match-play', label: '🏆 Match Play', lines };
+  return { mode: 'match-play', label: '🏆 Head to Head', lines };
 }
 
 // ─── Master: Calculate all active games ─────────────────────────────────────

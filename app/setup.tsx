@@ -211,7 +211,7 @@ const GAME_DEFS: GameDef[] = [
   },
   {
     mode: 'match-play',
-    name: 'Match Play',
+    name: 'Head to Head',
     description: '1v1 or round robin. Win holes (match) or fewest strokes (stroke). Handicaps supported.',
     inputLabel: '$ per match',
     defaultAmount: 10,

@@ -126,7 +126,7 @@ const GAMES: GameRule[] = [
   },
   {
     emoji: '🏆',
-    name: 'Match Play',
+    name: 'Head to Head',
     rules: `The purest form of golf competition — you win holes, not strokes.\n\n**Match Play format:**\nEach hole is won, halved, or lost. Win a hole by having the lower score. Tie a hole (same score) = halve it — neither player moves up or down.\n\nTrack the match as "X UP" or "X DOWN" — e.g., "3UP thru 9" means you've won 3 more holes than your opponent. The match ends when someone is mathematically unbeatable ("dormie" = up by the number of holes remaining).\n\nFinal margin shown as "3&2" — meaning 3 holes up with 2 remaining.\n\n**Stroke Play format:**\nStandard stroke competition. Lowest net total over 18 holes wins. Payout = bet × stroke difference.\n\n**Handicaps:**\nWhen enabled, strokes are allocated using USGA-style hole difficulty ratings. The lower-handicap player gives strokes to the higher-handicap player — one stroke per hole difference on the hardest holes first.\n\n**Multi-player:**\nWith 3+ players, every pair plays their own independent match simultaneously. Each match settles separately.`,
   },
   {
