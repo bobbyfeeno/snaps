@@ -11,6 +11,7 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
@@ -253,6 +254,9 @@ function GameIcon({ game, isActive, onPress }: {
 
 export default function SetupScreen() {
   const router = useRouter();
+  const { height: windowHeight } = useWindowDimensions();
+  // On web (mobile Safari), flex:1 doesn't reliably lock to viewport — pin exact height
+  const screenStyle = Platform.OS === 'web' ? { height: windowHeight } : undefined;
   const [step, setStep] = useState<1 | 2>(1);
   const [players, setPlayers] = useState<Player[]>([createPlayer(), createPlayer()]);
   const nameRefs = useRef<(TextInput | null)[]>([]);
@@ -533,7 +537,7 @@ export default function SetupScreen() {
 
   if (step === 1) {
     return (
-      <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
+      <ImageBackground source={require("../assets/bg.png")} style={[styles.bgFull, screenStyle]} resizeMode="cover">
         <View style={styles.bgOverlay} />
         <KeyboardAvoidingView
           style={styles.flex}
@@ -957,7 +961,7 @@ export default function SetupScreen() {
   // ─── Render Step 2: Players ───────────────────────────────────────────────
 
   return (
-    <ImageBackground source={require('../assets/bg.png')} style={styles.bgFull} resizeMode="cover">
+    <ImageBackground source={require("../assets/bg.png")} style={[styles.bgFull, screenStyle]} resizeMode="cover">
       <View style={styles.bgOverlay} />
       <KeyboardAvoidingView
         style={styles.flex}
