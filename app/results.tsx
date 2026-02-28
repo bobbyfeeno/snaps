@@ -20,6 +20,10 @@ function getGameEmoji(mode: GameMode): string {
     case 'bingo-bango-bongo': return '🎯';
     case 'snake': return '🐍';
     case 'scorecard': return '📋';
+    case 'stableford': return '🃏';
+    case 'rabbit': return '🐰';
+    case 'dots': return '🗑️';
+    case 'sixes': return '🔄';
     default: return '🎮';
   }
 }

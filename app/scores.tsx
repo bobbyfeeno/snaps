@@ -15,7 +15,7 @@ import {
 import { BevelCard } from '../components/BevelCard';
 import { calcAllGames, calcLiveStatus, GameExtras, LiveStatus, LiveStatusLine } from '../lib/gameEngines';
 import { saveRound } from '../lib/storage';
-import { BBBHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
+import { BBBHoleState, DotsConfig, DotsHoleState, GameMode, GameSetup, MultiGameResults, NassauConfig, PressMatch, RoundRecord, SnakeHoleState, VegasConfig, WolfHoleState } from '../types';
 import { gameSetup } from './setup';
 
 // Export multiGameResults for results screen
@@ -105,6 +105,13 @@ export default function ScoresScreen() {
     }))
   );
 
+  const [dotsHoles, setDotsHoles] = useState<(DotsHoleState | null)[]>(() =>
+    Array(18).fill(null).map(() => ({
+      sandyPlayerIds: [],
+      greeniePlayerId: null,
+    }))
+  );
+
   // ─── Hammer multipliers (per-hole, for Vegas/Nassau with Hammer enabled) ────
   const [hammerMultipliers, setHammerMultipliers] = useState<number[]>(() => Array(18).fill(1));
 
@@ -130,11 +137,12 @@ export default function ScoresScreen() {
   const [wolfExpanded, setWolfExpanded] = useState(false);
   const [bbbExpanded, setBbbExpanded] = useState(false);
   const [snakeExpanded, setSnakeExpanded] = useState(false);
+  const [dotsExpanded, setDotsExpanded] = useState(false);
 
   // ─── Live Status ──────────────────────────────────────────────────────────
-  const liveStatus = useMemo(() => 
-    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches),
-    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches]
+  const liveStatus = useMemo(() =>
+    calcLiveStatus(setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles),
+    [setup, scores, pars, wolfHoles, bbbHoles, snakeHoles, pressMatches, dotsHoles]
   );
 
   function openEdit(t: EditTarget) {
@@ -324,6 +332,7 @@ export default function ScoresScreen() {
       wolf: wolfHoles,
       bbb: bbbHoles,
       snake: snakeHoles,
+      dots: dotsHoles,
       pressMatches: pressMatches,
       hammerMultipliers: hammerMultipliers,
       pars: pars,

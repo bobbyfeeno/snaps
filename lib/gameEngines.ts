@@ -2,6 +2,8 @@ import {
   BBBHoleState,
   BestBallConfig,
   BingoBangoBongoConfig,
+  DotsConfig,
+  DotsHoleState,
   GameConfig,
   GameExtras,
   GameMode,
@@ -12,10 +14,13 @@ import {
   Payout,
   Player,
   PressMatch,
+  RabbitConfig,
   ScorecardConfig,
+  SixesConfig,
   SkinsConfig,
   SnakeConfig,
   SnakeHoleState,
+  StablefordConfig,
   TaxManConfig,
   VegasConfig,
   WolfConfig,
@@ -907,6 +912,222 @@ export function calcBestBall(
   return { mode: 'best-ball', label: 'Best Ball', payouts, net };
 }
 
+// ─── Stableford ──────────────────────────────────────────────────────────────
+
+function stablefordPoints(score: number, par: number): number {
+  const diff = score - par;
+  if (diff <= -2) return 4; // Eagle or better
+  if (diff === -1) return 3; // Birdie
+  if (diff === 0)  return 2; // Par
+  if (diff === 1)  return 1; // Bogey
+  return 0;                  // Double bogey or worse
+}
+
+export function calcStableford(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  config: StablefordConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  const playerPoints = players.map(player => {
+    let pts = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = scores[player.id][h];
+      if (s !== null) pts += stablefordPoints(s, pars[h]);
+    }
+    return { player, points: pts };
+  });
+
+  const maxPts = Math.max(...playerPoints.map(p => p.points));
+  if (maxPts === 0) return { mode: 'stableford', label: 'Stableford', payouts, net };
+
+  const winners = playerPoints.filter(p => p.points === maxPts);
+  const losers  = playerPoints.filter(p => p.points < maxPts);
+
+  for (const loser of losers) {
+    for (const winner of winners) {
+      const diff   = winner.points - loser.points;
+      const amount = Math.round(config.betAmount * diff * 100) / 100;
+      payouts.push({ from: loser.player.name, to: winner.player.name, amount, game: 'stableford' });
+      net[loser.player.name]  -= amount;
+      net[winner.player.name] += amount;
+    }
+  }
+
+  return { mode: 'stableford', label: 'Stableford', payouts, net };
+}
+
+// ─── Rabbit ──────────────────────────────────────────────────────────────────
+
+export function calcRabbit(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: RabbitConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  let rabbitHolder: string | null = null;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const holeScores: { player: Player; score: number }[] = [];
+    for (const player of players) {
+      const s = scores[player.id][hole];
+      if (s !== null) holeScores.push({ player, score: s });
+    }
+    if (holeScores.length < 2) continue;
+
+    const minScore    = Math.min(...holeScores.map(h => h.score));
+    const holeWinners = holeScores.filter(h => h.score === minScore);
+
+    if (holeWinners.length === 1) {
+      // Outright winner — catches the rabbit (or keeps it)
+      rabbitHolder = holeWinners[0].player.id;
+    }
+    // Tie — rabbit stays with current holder
+  }
+
+  // Holder at end pays every other player rabbitAmount
+  if (rabbitHolder !== null) {
+    const holder = players.find(p => p.id === rabbitHolder);
+    if (holder) {
+      for (const other of players) {
+        if (other.id !== holder.id) {
+          payouts.push({ from: holder.name, to: other.name, amount: config.rabbitAmount, game: 'rabbit' });
+          net[holder.name] -= config.rabbitAmount;
+          net[other.name]  += config.rabbitAmount;
+        }
+      }
+    }
+  }
+
+  return { mode: 'rabbit', label: 'Rabbit', payouts, net };
+}
+
+// ─── Dots / Junk ─────────────────────────────────────────────────────────────
+
+export function calcDots(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  dotsHoles: (DotsHoleState | null)[],
+  config: DotsConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  const dotsEarned: Record<string, number> = {};
+  for (const p of players) dotsEarned[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const par       = pars[hole];
+    const holeState = dotsHoles[hole];
+
+    for (const player of players) {
+      const s = scores[player.id][hole];
+      if (s === null) continue;
+
+      const diff = s - par;
+
+      if (config.eagle && diff <= -2) {
+        dotsEarned[player.id] += 2;
+      } else if (config.birdie && diff === -1) {
+        dotsEarned[player.id] += 1;
+      }
+
+      if (config.sandy && holeState?.sandyPlayerIds.includes(player.id)) {
+        dotsEarned[player.id] += 1;
+      }
+    }
+
+    // Greenie: par 3 only — manual radio winner making par or better
+    if (config.greenie && par === 3 && holeState?.greeniePlayerId) {
+      const gScore = scores[holeState.greeniePlayerId]?.[hole];
+      if (gScore !== null && gScore !== undefined && gScore <= par) {
+        dotsEarned[holeState.greeniePlayerId] += 1;
+      }
+    }
+  }
+
+  // Each dot: every other player pays betPerDot to the earner
+  for (const winner of players) {
+    const d = dotsEarned[winner.id];
+    if (d === 0) continue;
+    for (const other of players) {
+      if (other.id === winner.id) continue;
+      const amount = Math.round(d * config.betPerDot * 100) / 100;
+      payouts.push({ from: other.name, to: winner.name, amount, game: 'dots' });
+      net[other.name]  -= amount;
+      net[winner.name] += amount;
+    }
+  }
+
+  return { mode: 'dots', label: 'Dots/Junk', payouts, net };
+}
+
+// ─── Sixes ────────────────────────────────────────────────────────────────────
+
+export function calcSixes(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  config: SixesConfig
+): GameResult {
+  const net = initNet(players);
+  const payouts: Payout[] = [];
+
+  if (players.length < 4) {
+    return { mode: 'sixes', label: 'Sixes', payouts, net };
+  }
+
+  const [p0, p1, p2, p3] = players;
+
+  const segments = [
+    { start: 0,  end: 5,  teamA: [p0, p1], teamB: [p2, p3] },
+    { start: 6,  end: 11, teamA: [p0, p2], teamB: [p1, p3] },
+    { start: 12, end: 17, teamA: [p0, p3], teamB: [p1, p2] },
+  ];
+
+  for (const seg of segments) {
+    let teamAWins = 0;
+    let teamBWins = 0;
+
+    for (let hole = seg.start; hole <= seg.end; hole++) {
+      const aScores = seg.teamA
+        .map(p => scores[p.id][hole])
+        .filter((s): s is number => s !== null);
+      const bScores = seg.teamB
+        .map(p => scores[p.id][hole])
+        .filter((s): s is number => s !== null);
+
+      if (aScores.length === 0 || bScores.length === 0) continue;
+
+      const bestA = Math.min(...aScores);
+      const bestB = Math.min(...bScores);
+
+      if (bestA < bestB) teamAWins++;
+      else if (bestB < bestA) teamBWins++;
+    }
+
+    if (teamAWins === teamBWins) continue; // segment tied
+
+    const winners = teamAWins > teamBWins ? seg.teamA : seg.teamB;
+    const losers  = teamAWins > teamBWins ? seg.teamB : seg.teamA;
+
+    for (const winner of winners) {
+      for (const loser of losers) {
+        payouts.push({ from: loser.name, to: winner.name, amount: config.betPerSegment, game: 'sixes' });
+        net[loser.name]  -= config.betPerSegment;
+        net[winner.name] += config.betPerSegment;
+      }
+    }
+  }
+
+  return { mode: 'sixes', label: 'Sixes', payouts, net };
+}
+
 // ─── Master: Calculate all active games ─────────────────────────────────────
 
 export function calcAllGames(
@@ -953,6 +1174,18 @@ export function calcAllGames(
         break;
       case 'best-ball':
         result = calcBestBall(players, scores, game.config);
+        break;
+      case 'stableford':
+        result = calcStableford(players, scores, extras.pars ?? Array(18).fill(4), game.config);
+        break;
+      case 'rabbit':
+        result = calcRabbit(players, scores, game.config);
+        break;
+      case 'dots':
+        result = calcDots(players, scores, extras.pars ?? Array(18).fill(4), extras.dots ?? [], game.config);
+        break;
+      case 'sixes':
+        result = calcSixes(players, scores, game.config);
         break;
     }
 
@@ -1363,6 +1596,158 @@ function calcLiveSnake(
   };
 }
 
+function calcLiveStableford(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[]
+): LiveStatus {
+  const playerPoints = players.map(p => {
+    let pts = 0;
+    for (let h = 0; h < 18; h++) {
+      const s = scores[p.id][h];
+      if (s !== null) pts += stablefordPoints(s, pars[h]);
+    }
+    return { player: p, points: pts };
+  });
+
+  playerPoints.sort((a, b) => b.points - a.points);
+  const maxPts = playerPoints[0]?.points ?? 0;
+
+  const lines: LiveStatusLine[] = playerPoints.map(pp => ({
+    text: `${pp.player.name} ${pp.points}pts`,
+    color: pp.points === maxPts && maxPts > 0 ? 'green' : 'neutral',
+    playerId: pp.player.id,
+  }));
+
+  return { mode: 'stableford', label: '🃏 Stableford', lines };
+}
+
+function calcLiveRabbit(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): LiveStatus {
+  let rabbitHolder: string | null = null;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const holeScores: { player: Player; score: number }[] = [];
+    for (const player of players) {
+      const s = scores[player.id][hole];
+      if (s !== null) holeScores.push({ player, score: s });
+    }
+    if (holeScores.length < 2) continue;
+    const minScore = Math.min(...holeScores.map(h => h.score));
+    const winners  = holeScores.filter(h => h.score === minScore);
+    if (winners.length === 1) rabbitHolder = winners[0].player.id;
+  }
+
+  if (!rabbitHolder) {
+    return { mode: 'rabbit', label: '🐰 Rabbit', lines: [{ text: 'Uncaught', color: 'neutral' }] };
+  }
+  const holder = players.find(p => p.id === rabbitHolder);
+  return {
+    mode: 'rabbit',
+    label: '🐰 Rabbit',
+    lines: [{ text: `🐰 ${holder?.name ?? '?'} holds`, color: 'red', playerId: rabbitHolder }],
+  };
+}
+
+function calcLiveDots(
+  players: Player[],
+  scores: Record<string, (number | null)[]>,
+  pars: number[],
+  dotsHoles: (DotsHoleState | null)[],
+  config: DotsConfig
+): LiveStatus {
+  const dotsEarned: Record<string, number> = {};
+  for (const p of players) dotsEarned[p.id] = 0;
+
+  for (let hole = 0; hole < 18; hole++) {
+    const par       = pars[hole];
+    const holeState = dotsHoles[hole];
+
+    for (const player of players) {
+      const s = scores[player.id][hole];
+      if (s === null) continue;
+      const diff = s - par;
+      if (config.eagle && diff <= -2) dotsEarned[player.id] += 2;
+      else if (config.birdie && diff === -1) dotsEarned[player.id] += 1;
+      if (config.sandy && holeState?.sandyPlayerIds.includes(player.id)) dotsEarned[player.id] += 1;
+    }
+
+    if (config.greenie && par === 3 && holeState?.greeniePlayerId) {
+      const gScore = scores[holeState.greeniePlayerId]?.[hole];
+      if (gScore !== null && gScore !== undefined && gScore <= par) {
+        dotsEarned[holeState.greeniePlayerId] += 1;
+      }
+    }
+  }
+
+  const sorted = players
+    .map(p => ({ player: p, dots: dotsEarned[p.id] }))
+    .sort((a, b) => b.dots - a.dots);
+  const maxDots = sorted[0]?.dots ?? 0;
+
+  const lines: LiveStatusLine[] = sorted.map(s => ({
+    text: `${s.player.name} ${s.dots}🔵`,
+    color: s.dots === maxDots && maxDots > 0 ? 'green' : 'neutral',
+    playerId: s.player.id,
+  }));
+
+  return { mode: 'dots', label: '🗑️ Dots', lines };
+}
+
+function calcLiveSixes(
+  players: Player[],
+  scores: Record<string, (number | null)[]>
+): LiveStatus {
+  if (players.length < 4) {
+    return { mode: 'sixes', label: '🔄 Sixes', lines: [{ text: 'Need 4 players', color: 'neutral' }] };
+  }
+
+  const [p0, p1, p2, p3] = players;
+  const segments = [
+    { label: 'S1', start: 0,  end: 5,  teamA: [p0, p1], teamB: [p2, p3] },
+    { label: 'S2', start: 6,  end: 11, teamA: [p0, p2], teamB: [p1, p3] },
+    { label: 'S3', start: 12, end: 17, teamA: [p0, p3], teamB: [p1, p2] },
+  ];
+
+  const lines: LiveStatusLine[] = [];
+
+  for (const seg of segments) {
+    let aWins = 0;
+    let bWins = 0;
+    let hasAnyScore = false;
+
+    for (let hole = seg.start; hole <= seg.end; hole++) {
+      const aS = seg.teamA.map(p => scores[p.id][hole]).filter((s): s is number => s !== null);
+      const bS = seg.teamB.map(p => scores[p.id][hole]).filter((s): s is number => s !== null);
+      if (aS.length === 0 || bS.length === 0) continue;
+      hasAnyScore = true;
+      const bestA = Math.min(...aS);
+      const bestB = Math.min(...bS);
+      if (bestA < bestB) aWins++;
+      else if (bestB < bestA) bWins++;
+    }
+
+    if (!hasAnyScore) continue;
+
+    const teamAName = seg.teamA.map(p => p.name.split(' ')[0]).join('/');
+    const teamBName = seg.teamB.map(p => p.name.split(' ')[0]).join('/');
+
+    if (aWins === bWins) {
+      lines.push({ text: `${seg.label}: AS`, color: 'neutral' });
+    } else if (aWins > bWins) {
+      lines.push({ text: `${seg.label}: ${teamAName} ${aWins}-${bWins}`, color: 'green' });
+    } else {
+      lines.push({ text: `${seg.label}: ${teamBName} ${bWins}-${aWins}`, color: 'green' });
+    }
+  }
+
+  if (lines.length === 0) lines.push({ text: 'In progress', color: 'neutral' });
+
+  return { mode: 'sixes', label: '🔄 Sixes', lines };
+}
+
 export function calcLiveStatus(
   setup: GameSetup,
   scores: Record<string, (number | null)[]>,
@@ -1370,7 +1755,8 @@ export function calcLiveStatus(
   wolfHoles: (WolfHoleState | null)[],
   bbbHoles: (BBBHoleState | null)[],
   snakeHoles: (SnakeHoleState | null)[],
-  pressMatches?: PressMatch[]
+  pressMatches?: PressMatch[],
+  dotsHoles?: (DotsHoleState | null)[]
 ): LiveStatus[] {
   const results: LiveStatus[] = [];
   const { players, games } = setup;
@@ -1447,6 +1833,18 @@ export function calcLiveStatus(
         results.push({ mode: 'best-ball', label: 'Best Ball', lines });
         break;
       }
+      case 'stableford':
+        results.push(calcLiveStableford(players, scores, pars));
+        break;
+      case 'rabbit':
+        results.push(calcLiveRabbit(players, scores));
+        break;
+      case 'dots':
+        results.push(calcLiveDots(players, scores, pars, dotsHoles ?? [], game.config));
+        break;
+      case 'sixes':
+        results.push(calcLiveSixes(players, scores));
+        break;
     }
   }
 

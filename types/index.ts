@@ -52,6 +52,26 @@ export interface SnakeConfig {
 
 export interface ScorecardConfig {} // no config needed
 
+export interface StablefordConfig {
+  betAmount: number; // $ per point difference
+}
+
+export interface RabbitConfig {
+  rabbitAmount: number; // $ the rabbit holder pays everyone at end
+}
+
+export interface DotsConfig {
+  betPerDot: number;  // $ per dot (paid by every other player)
+  birdie: boolean;    // 1 under par = 1 dot (auto)
+  eagle: boolean;     // 2+ under par = 2 dots (auto)
+  sandy: boolean;     // par or better from bunker = 1 dot (manual)
+  greenie: boolean;   // par 3, closest to pin making par or better = 1 dot (manual radio)
+}
+
+export interface SixesConfig {
+  betPerSegment: number; // $ per segment (6 holes each, 3 segments)
+}
+
 export type GameConfig =
   | { mode: 'taxman'; config: TaxManConfig }
   | { mode: 'nassau'; config: NassauConfig }
@@ -61,7 +81,11 @@ export type GameConfig =
   | { mode: 'snake'; config: SnakeConfig }
   | { mode: 'scorecard'; config: ScorecardConfig }
   | { mode: 'vegas'; config: VegasConfig }
-  | { mode: 'best-ball'; config: BestBallConfig };
+  | { mode: 'best-ball'; config: BestBallConfig }
+  | { mode: 'stableford'; config: StablefordConfig }
+  | { mode: 'rabbit'; config: RabbitConfig }
+  | { mode: 'dots'; config: DotsConfig }
+  | { mode: 'sixes'; config: SixesConfig };
 
 export type GameMode = GameConfig['mode'];
 
@@ -93,10 +117,17 @@ export interface SnakeHoleState {
   threeputters: string[];        // player IDs who 3-putted this hole
 }
 
+// Dots/Junk: manual dot awards per hole
+export interface DotsHoleState {
+  sandyPlayerIds: string[];    // players who got a sandy (par or better from bunker)
+  greeniePlayerId: string | null; // player who got greenie on a par 3 (radio: one per hole)
+}
+
 export interface HoleExtras {
   wolf?: WolfHoleState;
   bbb?: BBBHoleState;
   snake?: SnakeHoleState;
+  dots?: DotsHoleState;
 }
 
 // ─── Press Match (Nassau auto-press side bets) ──────────────────────────────
@@ -114,6 +145,7 @@ export interface GameExtras {
   wolf?: (WolfHoleState | null)[];
   bbb?: (BBBHoleState | null)[];
   snake?: (SnakeHoleState | null)[];
+  dots?: (DotsHoleState | null)[];
   pressMatches?: PressMatch[];
   hammerMultipliers?: number[]; // per-hole hammer multipliers (1, 2, 4, 8...)
   pars?: number[];              // par values per hole (for Vegas calculation)

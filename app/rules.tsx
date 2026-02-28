@@ -65,6 +65,26 @@ const GAMES: GameRule[] = [
     rules: `A 2v2 team game. All four players play their own ball every hole — but only the BEST (lowest) score on each hole counts for the team.\n\nStroke Play: Add up the best scores over 18 holes. Lower team total wins the full bet × stroke difference.\n\nMatch Play: Win holes outright with a lower team score. Most holes won takes the pot. Ties push.`,
   },
   {
+    emoji: '🃏',
+    name: 'Stableford',
+    rules: `Points awarded per hole based on your score vs par:\n\n🦅 Eagle or better = 4 points\n🐦 Birdie = 3 points\n⛳ Par = 2 points\n👎 Bogey = 1 point\n💀 Double bogey or worse = 0 points\n\nHighest total points after 18 holes wins. Each losing player pays each winner your set dollar amount × the point difference.\n\nGreat equalizer — even a bad hole only costs you 2 points instead of blowing up a stroke total.`,
+  },
+  {
+    emoji: '🐰',
+    name: 'Rabbit',
+    rules: `One rabbit, 18 holes, and a whole lot of pressure.\n\nThe first player to win a hole outright (lowest score, no ties) "catches the rabbit." They hold it until another player wins a hole outright — then the rabbit jumps to them.\n\nWhoever holds the rabbit at the end of the round pays every other player the set amount.\n\nIf nobody ever wins a hole outright, no payout. If you catch it on 17 and 18 is a tie — you're paying.`,
+  },
+  {
+    emoji: '🗑️',
+    name: 'Dots / Junk',
+    rules: `Side bets rewarding great shots. Every dot you earn costs every other player your set dollar amount.\n\n🐦 Birdie — score 1 under par = 1 dot (auto-tracked)\n🦅 Eagle — score 2+ under par = 2 dots (auto-tracked)\n🏖️ Sandy — make par or better after hitting from a bunker = 1 dot (tap to mark in scorecard)\n🌿 Greenie — on par 3s only, closest player to the pin who makes par or better = 1 dot (tap to award in scorecard)\n\nYou can toggle which dot types are active when setting up the game. Mix with any other game — dots stack on top of everything else.`,
+  },
+  {
+    emoji: '🔄',
+    name: 'Sixes',
+    rules: `A 4-player game where partners rotate every 6 holes — everyone plays with everyone.\n\nSegment 1 (Holes 1–6): Player 1 & 2 vs Player 3 & 4\nSegment 2 (Holes 7–12): Player 1 & 3 vs Player 2 & 4\nSegment 3 (Holes 13–18): Player 1 & 4 vs Player 2 & 3\n\nEach segment is match play — lowest score wins each hole. The team that wins the most holes in a segment collects from each opponent.\n\nTies within a segment push. No rotating partner drama — everyone partners up over the full round.`,
+  },
+  {
     emoji: '🔨',
     name: 'Hammer',
     rules: `A bet-doubling modifier applied to Nassau or Vegas. On any hole, any player can call "Hammer!" — doubling the value of that hole's bet. The opponent must accept or concede.\n\nMultipliers stack each time the Hammer is called:\n×1 → ×2 → ×4 → ×8\n\nTap the ×N cell in the scorecard to cycle the multiplier for that hole.`,

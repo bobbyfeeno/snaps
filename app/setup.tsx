@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { BevelCard } from '../components/BevelCard';
 import { getSavedPlayers } from '../lib/storage';
-import { BestBallConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player, SavedPlayer } from '../types';
+import { BestBallConfig, DotsConfig, GameConfig, GameMode, GameSetup, NassauConfig, Player, SavedPlayer, StablefordConfig } from '../types';
 
 const MAX_PLAYERS = 6;
 
@@ -112,6 +112,38 @@ const GAME_DEFS: GameDef[] = [
     defaultAmount: 5,
     minPlayers: 4,
   },
+  {
+    mode: 'stableford',
+    name: 'Stableford',
+    description: 'Points per hole. Eagle=4, Birdie=3, Par=2, Bogey=1. Highest points wins.',
+    inputLabel: '$ per point diff',
+    defaultAmount: 1,
+    minPlayers: 2,
+  },
+  {
+    mode: 'rabbit',
+    name: 'Rabbit',
+    description: 'Win a hole outright to catch the rabbit. Holder at 18 pays everyone.',
+    inputLabel: 'Rabbit amount $',
+    defaultAmount: 10,
+    minPlayers: 2,
+  },
+  {
+    mode: 'dots',
+    name: 'Dots / Junk',
+    description: 'Earn dots for birdies, eagles, sandies & greenies. Each dot = $ from everyone.',
+    inputLabel: '$ per dot',
+    defaultAmount: 2,
+    minPlayers: 2,
+  },
+  {
+    mode: 'sixes',
+    name: 'Sixes',
+    description: '4-player rotating partners. 3 x 6-hole match-play segments.',
+    inputLabel: '$ per segment',
+    defaultAmount: 10,
+    minPlayers: 4,
+  },
 ];
 
 // ─── iOS-style glossy icon definitions (glass sphere look) ─────────────────
@@ -135,6 +167,10 @@ const ICON_DEFS: Record<string, {
   snake:            { emoji: '🐍', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   vegas:            { emoji: '🎰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
   'best-ball':      { emoji: '⚔️', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  stableford:       { emoji: '🃏', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  rabbit:           { emoji: '🐰', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  dots:             { emoji: '🗑️', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
+  sixes:            { emoji: '🔄', activeColors: ACTIVE_COLORS, inactiveColors: ['#000000','#050505','#0a0a0a'], shadowColor: ACTIVE_SHADOW },
 };
 
 // ─── GameIcon Component ─────────────────────────────────────────────────────
@@ -234,6 +270,10 @@ export default function SetupScreen() {
     snake: '10',
     vegas: '1',
     'best-ball': '5',
+    stableford: '1',
+    rabbit: '10',
+    dots: '2',
+    sixes: '10',
   });
   const [nassauMode, setNassauMode] = useState<'stroke' | 'match'>('stroke');
   const [nassauPress, setNassauPress] = useState<'none' | 'auto'>('none');
@@ -246,6 +286,12 @@ export default function SetupScreen() {
   const [bestBallMode, setBestBallMode] = useState<'stroke' | 'match'>('stroke');
   // Team assignment: player ID → 'A' | 'B' (shared by Vegas + Best Ball)
   const [teamAssignment, setTeamAssignment] = useState<Record<string, 'A' | 'B'>>({});
+
+  // Dots/Junk dot type toggles
+  const [dotsBirdie, setDotsBirdie] = useState(true);
+  const [dotsEagle, setDotsEagle] = useState(true);
+  const [dotsSandy, setDotsSandy] = useState(true);
+  const [dotsGreenie, setDotsGreenie] = useState(true);
 
   // Custom alert modal state
   const [alertMsg, setAlertMsg] = useState<{ title: string; body: string } | null>(null);
@@ -392,6 +438,12 @@ export default function SetupScreen() {
       }
     }
 
+    // Check Sixes player requirement (exactly 4)
+    if (activeGames.has('sixes') && filledPlayers.length !== 4) {
+      showAlert('Sixes Selected', 'Sixes requires exactly 4 players.');
+      return;
+    }
+
     // Check Best Ball player requirement
     if (activeGames.has('best-ball') && filledPlayers.length < 4) {
       showAlert('Best Ball Selected', 'Best Ball requires at least 4 players — 2 per team.');
@@ -458,6 +510,18 @@ export default function SetupScreen() {
           games.push({ mode: 'best-ball', config: { mode: bestBallMode, betAmount: amount, teamA: teamAIds, teamB: teamBIds } });
           break;
         }
+        case 'stableford':
+          games.push({ mode: 'stableford', config: { betAmount: amount } });
+          break;
+        case 'rabbit':
+          games.push({ mode: 'rabbit', config: { rabbitAmount: amount } });
+          break;
+        case 'dots':
+          games.push({ mode: 'dots', config: { betPerDot: amount, birdie: dotsBirdie, eagle: dotsEagle, sandy: dotsSandy, greenie: dotsGreenie } });
+          break;
+        case 'sixes':
+          games.push({ mode: 'sixes', config: { betPerSegment: amount } });
+          break;
       }
     }
 
@@ -753,6 +817,51 @@ export default function SetupScreen() {
                         <Text style={[styles.pillBtnText, vegasHammer && styles.pillBtnTextActive]}>On</Text>
                       </TouchableOpacity>
                     </View>
+                  </View>
+                </View>
+              )}
+
+              {/* Dots/Junk options */}
+              {activeGames.has('dots') && (
+                <View style={styles.nassauOpts}>
+                  {(
+                    [
+                      { label: '🐦 Birdie (1 dot)', value: dotsBirdie, set: setDotsBirdie },
+                      { label: '🦅 Eagle (2 dots)', value: dotsEagle, set: setDotsEagle },
+                      { label: '🏖️ Sandy (1 dot)', value: dotsSandy, set: setDotsSandy },
+                      { label: '🌿 Greenie (1 dot)', value: dotsGreenie, set: setDotsGreenie },
+                    ] as { label: string; value: boolean; set: (v: boolean) => void }[]
+                  ).map(({ label, value, set }) => (
+                    <View key={label} style={styles.nassauOptionRow}>
+                      <Text style={styles.nassauOptionLabel}>{label}</Text>
+                      <View style={styles.nassauToggleGroup}>
+                        <TouchableOpacity
+                          style={[styles.pillBtn, !value && styles.pillBtnActive]}
+                          onPress={() => set(false)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.pillBtnText, !value && styles.pillBtnTextActive]}>Off</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.pillBtn, value && styles.pillBtnActive]}
+                          onPress={() => set(true)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={[styles.pillBtnText, value && styles.pillBtnTextActive]}>On</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+              {/* Sixes note */}
+              {activeGames.has('sixes') && (
+                <View style={styles.nassauOpts}>
+                  <View style={[styles.nassauOptionRow, { marginTop: 4 }]}>
+                    <Text style={[styles.nassauOptionLabel, { color: '#555', fontSize: 12, flex: 1 }]}>
+                      Player order matters — S1: P1+P2 vs P3+P4, S2: P1+P3 vs P2+P4, S3: P1+P4 vs P2+P3
+                    </Text>
                   </View>
                 </View>
               )}
