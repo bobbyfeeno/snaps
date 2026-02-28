@@ -57,7 +57,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '🎰',
     name: 'Vegas',
-    rules: `A 2v2 team game with a twist: each team's scores are concatenated into a 2-digit number.\n\nScoring: When either player makes par or better, the lower digit goes first (e.g., 3 and 5 = "35"). On bogey or worse, the higher digit goes first (e.g., 5 and 3 = "53"). Lower team number wins the hole.\n\nPayout: The difference between the two team numbers × your bet per point.\n\nFlip the Bird 🐦: If you make birdie, you flip your opponent's digits (their "47" becomes "74").\n\nHammer 🔨: Either team can drop the Hammer mid-hole to double the stakes. Multipliers stack: ×1 → ×2 → ×4 → ×8.`,
+    rules: `A 2v2 team game where each team's scores combine into a 2-digit number. Lower team number wins the hole.\n\nThis app plays the popular action variant:\n• When either player makes par or better → lower digit goes first (4 and 6 = "46")\n• When BOTH players make bogey or worse → higher digit goes first (4 and 6 = "64")\n\nNote: The pure standard rule is simply lower digit always first — no bogey-flip. Use whichever your group agrees on before teeing off.\n\nDouble-digit scores (10+): the double-digit number always goes first regardless (scores of 4 and 10 = "104").\n\nPayout: difference between the two team numbers × your bet per point.\n\nFlip the Bird 🐦 (optional): birdie flips your opponent's digits ("47" → "74").\n\nHammer 🔨: either team can drop the Hammer mid-hole to double the stakes. Multipliers stack: ×1 → ×2 → ×4 → ×8.`,
   },
   {
     emoji: '⚔️',
@@ -67,12 +67,12 @@ const GAMES: GameRule[] = [
   {
     emoji: '🃏',
     name: 'Stableford',
-    rules: `Points awarded per hole based on your score vs par:\n\n🦅 Eagle or better = 4 points\n🐦 Birdie = 3 points\n⛳ Par = 2 points\n👎 Bogey = 1 point\n💀 Double bogey or worse = 0 points\n\nHighest total points after 18 holes wins. Each losing player pays each winner your set dollar amount × the point difference.\n\nGreat equalizer — even a bad hole only costs you 2 points instead of blowing up a stroke total.`,
+    rules: `Points awarded per hole based on your score vs par:\n\n🌟 Albatross (3 under) = 5 points\n🦅 Eagle = 4 points\n🐦 Birdie = 3 points\n⛳ Par = 2 points\n👎 Bogey = 1 point\n💀 Double bogey or worse = 0 points\n\nHighest total points after 18 holes wins. Each losing player pays each winner your set dollar amount × the point difference.\n\nGreat equalizer — blow-up holes cap at 0 points. You can never go negative, so bad holes hurt less than in stroke play.`,
   },
   {
     emoji: '🐰',
     name: 'Rabbit',
-    rules: `One rabbit, 18 holes, and a whole lot of pressure.\n\nThe first player to win a hole outright (lowest score, no ties) "catches the rabbit." They hold it until another player wins a hole outright — then the rabbit jumps to them.\n\nWhoever holds the rabbit at the end of the round COLLECTS from every other player. Catching the rabbit is good — holding it is better.\n\nIf nobody ever wins a hole outright, no payout. If you catch it on 17 and 18 is a tie — you're collecting.`,
+    rules: `One rabbit, 18 holes, and a whole lot of pressure.\n\nThe first player to win a hole outright (lowest score, no ties) "catches the rabbit." They hold it until another player wins a hole outright — then the rabbit jumps to them.\n\nWhoever holds the rabbit at the end of the round COLLECTS from every other player. Catching the rabbit is good — holding it is better.\n\nIf nobody ever wins a hole outright, no payout. If you catch it on 17 and 18 is a tie — you're collecting.\n\nNote: This app plays simplified Rabbit — one bet over 18 holes. The traditional game runs two separate bets: front 9 and back 9, with the rabbit resetting at the turn. Either format works — agree before you tee off.`,
   },
   {
     emoji: '🗑️',
@@ -97,7 +97,7 @@ const GAMES: GameRule[] = [
   {
     emoji: '⛳',
     name: 'Closest to Pin',
-    rules: `A par 3 side bet. On each par 3, whoever finishes closest to the pin collects from every other player.\n\nThe CTP winner is marked manually in the scorecard — tap the CTP panel, find the par 3 hole, and select the winner.\n\nNo score requirement — just closest to the stick when everyone is on (or near) the green. Simple, clean, and sparks friendly competition on every par 3.`,
+    rules: `A par 3 side bet. On each par 3, whoever's tee shot comes to rest on the green closest to the pin collects from every other player.\n\nThe CTP winner is marked manually in the scorecard — tap the CTP panel, find the par 3 hole, and select the winner.\n\nKey rule: the ball must be on the green from the tee shot to qualify. A ball that misses the green is not eligible — even if it ends up closer than everyone else.\n\nSimple, clean, and sparks friendly competition on every par 3.`,
   },
   {
     emoji: '🎲',

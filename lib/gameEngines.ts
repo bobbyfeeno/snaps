@@ -921,7 +921,8 @@ export function calcBestBall(
 
 function stablefordPoints(score: number, par: number): number {
   const diff = score - par;
-  if (diff <= -2) return 4; // Eagle or better
+  if (diff <= -3) return 5; // Albatross (double eagle) or better
+  if (diff === -2) return 4; // Eagle
   if (diff === -1) return 3; // Birdie
   if (diff === 0)  return 2; // Par
   if (diff === 1)  return 1; // Bogey
