@@ -764,7 +764,10 @@ export default function SetupScreen() {
             <Text style={styles.validationHint}>Select at least one game</Text>
           )}
 
-          {/* Bottom buttons */}
+        </ScrollView>
+
+        {/* Sticky footer — outside ScrollView so Safari toolbar never clips it */}
+        <View style={styles.stickyFooter}>
           <View style={styles.bottomBtns}>
             <TouchableOpacity style={styles.secondaryBtnOuter} onPress={() => router.back()} activeOpacity={0.7}>
               <LinearGradient
@@ -801,7 +804,7 @@ export default function SetupScreen() {
               </LinearGradient>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
 
         {/* Custom Alert Modal */}
         {alertMsg && (
@@ -1011,7 +1014,10 @@ export default function SetupScreen() {
           </BevelCard>
         )}
 
-        {/* Bottom buttons */}
+      </ScrollView>
+
+      {/* Sticky footer — outside ScrollView so Safari toolbar never clips it */}
+      <View style={styles.stickyFooter}>
         <View style={styles.bottomBtns}>
           {players.length < MAX_PLAYERS ? (
             <TouchableOpacity style={styles.secondaryBtnOuter} onPress={addPlayer} activeOpacity={0.7}>
@@ -1058,7 +1064,7 @@ export default function SetupScreen() {
             </LinearGradient>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      </View>
 
       {/* Custom Alert Modal */}
       {alertMsg && (
@@ -1104,7 +1110,7 @@ const styles = StyleSheet.create({
   bgOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.58)' },
   flex: { flex: 1, width: '100%' },
   scroll: { flex: 1, width: '100%' },
-  content: { padding: 20, paddingBottom: Platform.select({ web: 340, default: 200 }), width: '100%' },
+  content: { padding: 20, paddingBottom: 32, width: '100%' },
 
   // Radial center glow
   centerGlow: {
@@ -1443,11 +1449,17 @@ const styles = StyleSheet.create({
   },
   handicapHint: { fontSize: 12, color: '#555', flex: 1 },
 
+  // Sticky footer — lives outside ScrollView, always above Safari toolbar
+  stickyFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: Platform.select({ web: 34, default: 16 }),
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
   // Bottom buttons
   bottomBtns: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 24,
   },
   primaryBtnOuter: {
     flex: 1,
