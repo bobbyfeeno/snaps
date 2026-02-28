@@ -1,0 +1,22 @@
+name: SnapsNative
+options:
+  bundleIdPrefix: com.qchay
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+settings:
+  SWIFT_VERSION: 6.0
+  DEVELOPMENT_TEAM: ""
+targets:
+  SnapsNative:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - Sources/SnapsNative
+    settings:
+      PRODUCT_NAME: Snaps
+      PRODUCT_BUNDLE_IDENTIFIER: com.qchay.snaps
+      INFOPLIST_FILE: Sources/SnapsNative/Info.plist
+      SWIFT_EMIT_LOC_STRINGS: YES
+      ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon

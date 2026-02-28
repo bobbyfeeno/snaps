@@ -1,0 +1,390 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		09FD6851F801AA6A30970381 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462365EEC14A5685B688C064 /* ResultsView.swift */; };
+		10B5E9649DBCBCE12CF16D3D /* HoleTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13FC670494524C095F69C14 /* HoleTrackerView.swift */; };
+		11D5360FBC2D10603A9BFC8B /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA0FFE06DF69F68FC561CD4 /* GameEngine.swift */; };
+		122C67BDA7497449298A6A12 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23E12921D7C262C521DB2A82 /* GameModels.swift */; };
+		14F1193635949771CFDA8231 /* AppModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E50913E4729A53252162F6C0 /* AppModels.swift */; };
+		2A13729E8AFED7FFEF05BC58 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3A879F640EB85AE6821EA9 /* ProfileView.swift */; };
+		2D4344CD6C1E38A8DACF89D7 /* SnapsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22C244AEC10EB7379EB2AD4C /* SnapsApp.swift */; };
+		36A0A48BDF9E99F0A6E6C426 /* LobbyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7C7966117A42B97FDDC64804 /* LobbyView.swift */; };
+		41649F355DED5A7677711976 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C92B6F1AB2A0047A5FAB289 /* AppState.swift */; };
+		4B92DD9653F263E0CBFE3326 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA5782914B47D9626184DE39 /* SetupView.swift */; };
+		56C5B096A1E95A8EFC6DC921 /* PlayersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D006CC07E9E751428A9ED4F9 /* PlayersView.swift */; };
+		58B0DE1E6EF50EE3B5BDA66B /* ScorecardGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B2D413861EC5B6F401C607C /* ScorecardGridView.swift */; };
+		5A5C48FD6EF5AD7CA963FBB2 /* MockRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C69C7EF74046DC7E95D429 /* MockRepository.swift */; };
+		91651F7C34A1159AE98543F0 /* SnapsRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 812928FFE7F3848E0D3E807C /* SnapsRepository.swift */; };
+		CAB782201B200D05B7F340B7 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C06D7EF00D8EA5256647C6E /* HistoryView.swift */; };
+		D126752D3789962A2AEBEE14 /* LeaderboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A465E8322F490F1D6EB2314 /* LeaderboardView.swift */; };
+		E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 621F221A3521D8F46A968B52 /* VoiceScoreEntry.swift */; };
+		E4E6D9A77F06FE2EE1D8FB04 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7D9C07C821DE159954E1C6 /* HomeView.swift */; };
+		E73820C79A010B93699552C5 /* ScoreCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5E032759936CA3C160003C /* ScoreCardView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		0C7D9C07C821DE159954E1C6 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		0D5E032759936CA3C160003C /* ScoreCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreCardView.swift; sourceTree = "<group>"; };
+		22C244AEC10EB7379EB2AD4C /* SnapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapsApp.swift; sourceTree = "<group>"; };
+		23E12921D7C262C521DB2A82 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
+		2CA663E57B65A265E55BCDB0 /* SnapsNative.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SnapsNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		462365EEC14A5685B688C064 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		5A465E8322F490F1D6EB2314 /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
+		5C92B6F1AB2A0047A5FAB289 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		621F221A3521D8F46A968B52 /* VoiceScoreEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceScoreEntry.swift; sourceTree = "<group>"; };
+		6B2D413861EC5B6F401C607C /* ScorecardGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScorecardGridView.swift; sourceTree = "<group>"; };
+		6C06D7EF00D8EA5256647C6E /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		7C7966117A42B97FDDC64804 /* LobbyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LobbyView.swift; sourceTree = "<group>"; };
+		812928FFE7F3848E0D3E807C /* SnapsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapsRepository.swift; sourceTree = "<group>"; };
+		8AA0FFE06DF69F68FC561CD4 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
+		96C69C7EF74046DC7E95D429 /* MockRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRepository.swift; sourceTree = "<group>"; };
+		BB3A879F640EB85AE6821EA9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		CA5782914B47D9626184DE39 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
+		D006CC07E9E751428A9ED4F9 /* PlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersView.swift; sourceTree = "<group>"; };
+		D13FC670494524C095F69C14 /* HoleTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoleTrackerView.swift; sourceTree = "<group>"; };
+		D54C0A461F0F8B3070E02A68 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E50913E4729A53252162F6C0 /* AppModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModels.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		0F3AF08DA3A9F987DD8F57E9 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				5C92B6F1AB2A0047A5FAB289 /* AppState.swift */,
+				96C69C7EF74046DC7E95D429 /* MockRepository.swift */,
+				812928FFE7F3848E0D3E807C /* SnapsRepository.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		236902534EF1381EB69F437B /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				6C06D7EF00D8EA5256647C6E /* HistoryView.swift */,
+				D13FC670494524C095F69C14 /* HoleTrackerView.swift */,
+				0C7D9C07C821DE159954E1C6 /* HomeView.swift */,
+				5A465E8322F490F1D6EB2314 /* LeaderboardView.swift */,
+				7C7966117A42B97FDDC64804 /* LobbyView.swift */,
+				D006CC07E9E751428A9ED4F9 /* PlayersView.swift */,
+				BB3A879F640EB85AE6821EA9 /* ProfileView.swift */,
+				462365EEC14A5685B688C064 /* ResultsView.swift */,
+				6B2D413861EC5B6F401C607C /* ScorecardGridView.swift */,
+				0D5E032759936CA3C160003C /* ScoreCardView.swift */,
+				CA5782914B47D9626184DE39 /* SetupView.swift */,
+				621F221A3521D8F46A968B52 /* VoiceScoreEntry.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		315D9C3351D2B61F17A93BD9 = {
+			isa = PBXGroup;
+			children = (
+				4B9743F4E2B317794CF2F0FD /* SnapsNative */,
+				84376E7BF388D2ADF8EA9CCC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4B9743F4E2B317794CF2F0FD /* SnapsNative */ = {
+			isa = PBXGroup;
+			children = (
+				D54C0A461F0F8B3070E02A68 /* Info.plist */,
+				22C244AEC10EB7379EB2AD4C /* SnapsApp.swift */,
+				71F6F75F8AA89FC42B4AAB11 /* Models */,
+				0F3AF08DA3A9F987DD8F57E9 /* Services */,
+				236902534EF1381EB69F437B /* Views */,
+			);
+			name = SnapsNative;
+			path = Sources/SnapsNative;
+			sourceTree = "<group>";
+		};
+		71F6F75F8AA89FC42B4AAB11 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				E50913E4729A53252162F6C0 /* AppModels.swift */,
+				8AA0FFE06DF69F68FC561CD4 /* GameEngine.swift */,
+				23E12921D7C262C521DB2A82 /* GameModels.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		84376E7BF388D2ADF8EA9CCC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				2CA663E57B65A265E55BCDB0 /* SnapsNative.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FE4F65D90927304D47CED699 /* SnapsNative */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "SnapsNative" */;
+			buildPhases = (
+				3C02118898587591BD2C692C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SnapsNative;
+			packageProductDependencies = (
+			);
+			productName = SnapsNative;
+			productReference = 2CA663E57B65A265E55BCDB0 /* SnapsNative.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1E49313004ABB0C71F42D76E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					FE4F65D90927304D47CED699 = {
+						DevelopmentTeam = "";
+					};
+				};
+			};
+			buildConfigurationList = 541D507777A4B3377DED1912 /* Build configuration list for PBXProject "SnapsNative" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 315D9C3351D2B61F17A93BD9;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				FE4F65D90927304D47CED699 /* SnapsNative */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		3C02118898587591BD2C692C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				14F1193635949771CFDA8231 /* AppModels.swift in Sources */,
+				41649F355DED5A7677711976 /* AppState.swift in Sources */,
+				11D5360FBC2D10603A9BFC8B /* GameEngine.swift in Sources */,
+				122C67BDA7497449298A6A12 /* GameModels.swift in Sources */,
+				CAB782201B200D05B7F340B7 /* HistoryView.swift in Sources */,
+				10B5E9649DBCBCE12CF16D3D /* HoleTrackerView.swift in Sources */,
+				E4E6D9A77F06FE2EE1D8FB04 /* HomeView.swift in Sources */,
+				D126752D3789962A2AEBEE14 /* LeaderboardView.swift in Sources */,
+				36A0A48BDF9E99F0A6E6C426 /* LobbyView.swift in Sources */,
+				5A5C48FD6EF5AD7CA963FBB2 /* MockRepository.swift in Sources */,
+				56C5B096A1E95A8EFC6DC921 /* PlayersView.swift in Sources */,
+				2A13729E8AFED7FFEF05BC58 /* ProfileView.swift in Sources */,
+				09FD6851F801AA6A30970381 /* ResultsView.swift in Sources */,
+				E73820C79A010B93699552C5 /* ScoreCardView.swift in Sources */,
+				58B0DE1E6EF50EE3B5BDA66B /* ScorecardGridView.swift in Sources */,
+				4B92DD9653F263E0CBFE3326 /* SetupView.swift in Sources */,
+				2D4344CD6C1E38A8DACF89D7 /* SnapsApp.swift in Sources */,
+				91651F7C34A1159AE98543F0 /* SnapsRepository.swift in Sources */,
+				E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		9308B137A5AEE75C9E36E4AF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Sources/SnapsNative/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.qchay.snaps;
+				PRODUCT_NAME = Snaps;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9DE0FBFA6CBD3286D3E3E2EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		AA7D3F7127136C503AE46D56 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		CE95A99038563A33348E3882 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				INFOPLIST_FILE = Sources/SnapsNative/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.qchay.snaps;
+				PRODUCT_NAME = Snaps;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		541D507777A4B3377DED1912 /* Build configuration list for PBXProject "SnapsNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AA7D3F7127136C503AE46D56 /* Debug */,
+				9DE0FBFA6CBD3286D3E3E2EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "SnapsNative" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CE95A99038563A33348E3882 /* Debug */,
+				9308B137A5AEE75C9E36E4AF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1E49313004ABB0C71F42D76E /* Project object */;
+}
