@@ -1327,15 +1327,26 @@ export function calcAcesDeuces(
     // If everyone ties: push
     if (minScore === maxScore) continue;
 
-    const aces   = holeScores.filter(h => h.score === minScore).map(h => h.player);
-    const deuces = holeScores.filter(h => h.score === maxScore).map(h => h.player);
+    const aces    = holeScores.filter(h => h.score === minScore).map(h => h.player);
+    const deuces  = holeScores.filter(h => h.score === maxScore).map(h => h.player);
+    const middles = holeScores.filter(h => h.score !== minScore && h.score !== maxScore).map(h => h.player);
 
-    // Each ace collects betPerHole from each deuce
+    // Standard Acey Ducey: Ace collects betPerHole from EVERY other player;
+    // Deuce pays betPerHole to EVERY other player.
+    // Middle players pay the Ace and collect from the Deuce (net = $0 when single bet value).
+    const others = [...deuces, ...middles];
     for (const ace of aces) {
-      for (const deuce of deuces) {
-        payouts.push({ from: deuce.name, to: ace.name, amount: config.betPerHole, game: 'aces-deuces' });
-        net[deuce.name] -= config.betPerHole;
+      for (const other of others) {
+        payouts.push({ from: other.name, to: ace.name, amount: config.betPerHole, game: 'aces-deuces' });
+        net[other.name] -= config.betPerHole;
         net[ace.name]   += config.betPerHole;
+      }
+    }
+    for (const deuce of deuces) {
+      for (const other of [...aces, ...middles]) {
+        payouts.push({ from: deuce.name, to: other.name, amount: config.betPerHole, game: 'aces-deuces' });
+        net[deuce.name] -= config.betPerHole;
+        net[other.name] += config.betPerHole;
       }
     }
   }
