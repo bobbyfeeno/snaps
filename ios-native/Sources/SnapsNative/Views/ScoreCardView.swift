@@ -160,6 +160,10 @@ struct ScoreCardView: View {
             }
         }
         .navigationBarHidden(true)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // Clears the floating tab bar so footer buttons are never hidden behind it
+            Color.clear.frame(height: 80)
+        }
         .sheet(isPresented: $showGrid) {
             ScorecardGridView(game: game, setup: setup)
         }
