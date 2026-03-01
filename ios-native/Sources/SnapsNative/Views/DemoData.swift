@@ -179,15 +179,88 @@ enum DemoData {
             PlayerResult(id: player.id, name: player.name, netAmount: net,
                         venmoHandle: "", cashappHandle: "")
         }
+        
+        // Generate fairway tracking data for demo
+        let fairwayDirs = generateFairwayDirs(players: players, pars: pars)
+        let greenDirs = generateGreenDirs(players: players, pars: pars)
+        let putts = generatePuttData(players: players, scores: scores, pars: pars)
+        
         let record = RoundRecord(
             players: players,
             pars: pars,
             games: games,
             results: playerResults,
-            scores: scores
+            scores: scores,
+            fairwayDirs: fairwayDirs,
+            greenDirs: greenDirs,
+            putts: putts
         )
         // Backdate the round
         record.date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
+        
         return record
+    }
+    
+    // Generate realistic fairway directions (hit/left/right) for par 4/5s
+    private static func generateFairwayDirs(players: [PlayerSnapshot], pars: [Int]) -> [String: [String?]] {
+        var result: [String: [String?]] = [:]
+        for player in players {
+            var dirs: [String?] = []
+            for par in pars {
+                if par >= 4 {
+                    // Realistic distribution: 65% hit, 12% left, 12% right, 4% ob_left, 4% ob_right, 3% short
+                    let roll = Int.random(in: 0...99)
+                    if roll < 65 { dirs.append("hit") }
+                    else if roll < 77 { dirs.append("left") }
+                    else if roll < 89 { dirs.append("right") }
+                    else if roll < 93 { dirs.append("ob_left") }
+                    else if roll < 97 { dirs.append("ob_right") }
+                    else { dirs.append("short") }
+                } else {
+                    dirs.append(nil) // Par 3s don't have fairways
+                }
+            }
+            result[player.id] = dirs
+        }
+        return result
+    }
+    
+    // Generate realistic GIR directions (hit/short/long/left/right)
+    private static func generateGreenDirs(players: [PlayerSnapshot], pars: [Int]) -> [String: [String?]] {
+        var result: [String: [String?]] = [:]
+        for player in players {
+            var dirs: [String?] = []
+            for _ in pars {
+                // 50% hit, 20% short, 10% long, 10% left, 10% right
+                let roll = Int.random(in: 0...99)
+                if roll < 50 { dirs.append("hit") }
+                else if roll < 70 { dirs.append("short") }
+                else if roll < 80 { dirs.append("long") }
+                else if roll < 90 { dirs.append("left") }
+                else { dirs.append("right") }
+            }
+            result[player.id] = dirs
+        }
+        return result
+    }
+    
+    // Generate realistic putt counts based on scores vs par
+    private static func generatePuttData(players: [PlayerSnapshot], scores: [String: [Int?]], pars: [Int]) -> [String: [Int?]] {
+        var result: [String: [Int?]] = [:]
+        for player in players {
+            guard let playerScores = scores[player.id] else { continue }
+            var putts: [Int?] = []
+            for (i, scoreOpt) in playerScores.enumerated() {
+                guard let score = scoreOpt, i < pars.count else { putts.append(nil); continue }
+                let rel = score - pars[i]
+                // Lower scores = fewer putts, higher = more
+                let basePutts = max(1, 2 + rel)
+                // Add some variance
+                let puttCount = max(1, min(4, basePutts + Int.random(in: -1...1)))
+                putts.append(puttCount)
+            }
+            result[player.id] = putts
+        }
+        return result
     }
 }

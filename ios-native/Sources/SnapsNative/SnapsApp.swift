@@ -1,6 +1,10 @@
 import SwiftUI
 import SwiftData
 
+extension Notification.Name {
+    static let switchToYouTab = Notification.Name("switchToYouTab")
+}
+
 @main
 struct SnapsApp: App {
     var sharedModelContainer: ModelContainer = {
@@ -81,6 +85,11 @@ struct RootView: View {
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea()
+            .onReceive(NotificationCenter.default.publisher(for: .switchToYouTab)) { _ in
+                withAnimation(.spring(response: 0.3)) {
+                    selectedTab = 1
+                }
+            }
 
             // Custom tab bar
             customTabBar

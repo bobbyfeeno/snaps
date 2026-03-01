@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		FWYHIT00AABBCCDDEEFF1122 /* FairwaysHitCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FWYHIT001122334455667788 /* FairwaysHitCard.swift */; };
 		09FD6851F801AA6A30970381 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462365EEC14A5685B688C064 /* ResultsView.swift */; };
 		A1B2C3D4E5F6A7B8C9D0E1F2 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* DesignSystem.swift */; };
 		C3D4E5F6A7B8C9D0E1F2A3B4 /* RulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* RulesView.swift */; };
@@ -34,7 +35,6 @@
 		EE77FF88AA99BB00CC11DD22 /* YouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF88AA99BB00CC11DD22EE77 /* YouView.swift */; settings = {}; };
 		RDVW001122334455667788AA /* RoundDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RDVW00AABBCCDDEEFF001122 /* RoundDetailView.swift */; settings = {}; };
 		CC44DD55EE66FF77AA88BB99 /* TourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD55EE66FF77AA88BB99CC44 /* TourView.swift */; settings = {}; };
-		EE55FF66AA77BB88CC99DD00 /* TourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66AA77BB88CC99DD00EE55; settings = {}; };
 		DD11EE22FF33AA44BB55CC66 /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF33AA44BB55CC66DD11 /* DemoData.swift */; settings = {}; };
 		FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */; settings = {}; };
 		SUPA00FFEE99887766554433 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = SUPA00AABBCCDDEEFF0011 /* Supabase */; };
@@ -73,6 +73,7 @@
 		DD55EE66FF77AA88BB99CC44 /* TourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourView.swift; sourceTree = "<group>"; };
 		FF66AA77BB88CC99DD00EE55 /* TourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourView.swift; sourceTree = "<group>"; };
 		EE22FF33AA44BB55CC66DD11 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
+		FWYHIT001122334455667788 /* FairwaysHitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairwaysHitCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -111,6 +112,7 @@
 				DD55EE66FF77AA88BB99CC44 /* TourView.swift */,
 				FF66AA77BB88CC99DD00EE55 /* TourView.swift */,
 				EE22FF33AA44BB55CC66DD11 /* DemoData.swift */,
+				FWYHIT001122334455667788 /* FairwaysHitCard.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -283,12 +285,12 @@
 				EE77FF88AA99BB00CC11DD22 /* YouView.swift in Sources */,
 				RDVW001122334455667788AA /* RoundDetailView.swift in Sources */,
 				CC44DD55EE66FF77AA88BB99 /* TourView.swift in Sources */,
-				EE55FF66AA77BB88CC99DD00 /* TourView.swift in Sources */,
 				DD11EE22FF33AA44BB55CC66 /* DemoData.swift in Sources */,
 				2D4344CD6C1E38A8DACF89D7 /* SnapsApp.swift in Sources */,
 				91651F7C34A1159AE98543F0 /* SnapsRepository.swift in Sources */,
 				FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */,
 				E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */,
+				FWYHIT00AABBCCDDEEFF1122 /* FairwaysHitCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

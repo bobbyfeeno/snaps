@@ -140,7 +140,12 @@ struct SetupView: View {
     var canProceed: Bool {
         switch step {
         case 0: return !selectedModes.isEmpty
-        case 1: return selectedPlayerIds.count >= 2
+        case 1:
+            // Allow solo play if only Keep Score is selected
+            if selectedModes == [.keepScore] {
+                return selectedPlayerIds.count >= 1
+            }
+            return selectedPlayerIds.count >= 2
         case 2: return true  // config step always valid
         default:
             // Team picker steps
@@ -280,6 +285,9 @@ struct SetupView: View {
         }
         .sheet(isPresented: $showScoreCard) {
             ScoreCardView(game: game)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .switchToYouTab)) { _ in
+            dismiss()
         }
         .fullScreenCover(isPresented: $showRules) {
             RulesView()

@@ -166,6 +166,7 @@ struct ResultsView: View {
                             .buttonStyle(SnapsButtonStyle())
 
                             Button("Done") {
+                                NotificationCenter.default.post(name: .switchToYouTab, object: nil)
                                 dismiss()
                             }
                             .font(.system(size: 16, weight: .semibold))

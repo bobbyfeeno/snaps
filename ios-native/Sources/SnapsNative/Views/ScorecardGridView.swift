@@ -64,14 +64,21 @@ struct ScorecardGridView: View {
             HStack(spacing: 10) {
                 ForEach(setup.players) { player in
                     let net = liveNet[player.name] ?? 0
-                    VStack(spacing: 2) {
-                        Text(player.name)
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(theme.textSecondary)
-                        Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
-                            .font(.system(size: 15, weight: .black, design: .monospaced))
-                            .foregroundStyle(net > 0 ? Color.snapsGreen : net < 0 ? Color.snapsDanger : theme.textSecondary)
-                            .contentTransition(.numericText())
+                    HStack(spacing: 6) {
+                        Image(profileImageName(for: player.name))
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 28, height: 28)
+                            .clipShape(Circle())
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(player.name)
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundStyle(theme.textSecondary)
+                            Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
+                                .font(.system(size: 15, weight: .black, design: .monospaced))
+                                .foregroundStyle(net > 0 ? Color.snapsGreen : net < 0 ? Color.snapsDanger : theme.textSecondary)
+                                .contentTransition(.numericText())
+                        }
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
@@ -211,20 +218,27 @@ struct ScorecardGridView: View {
 
     func playerScoreRow(player: PlayerSnapshot, start: Int, end: Int, label: String) -> some View {
         HStack(spacing: 0) {
-            // Name + mini net
+            // Profile photo + Name + mini net
             let net = liveNet[player.name] ?? 0
-            VStack(alignment: .leading, spacing: 1) {
-                Text(player.name)
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(theme.textPrimary)
-                    .lineLimit(1)
-                Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
-                    .foregroundStyle(net >= 0 ? Color.snapsGreen : Color.snapsDanger)
+            HStack(spacing: 8) {
+                Image(profileImageName(for: player.name))
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 32, height: 32)
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(player.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(theme.textPrimary)
+                        .lineLimit(1)
+                    Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
+                        .font(.system(size: 10, weight: .bold, design: .monospaced))
+                        .foregroundStyle(net >= 0 ? Color.snapsGreen : Color.snapsDanger)
+                }
             }
-            .frame(width: 90, alignment: .leading)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .frame(width: 110, alignment: .leading)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 8)
 
             // Hole scores
             ForEach(start..<end, id: \.self) { hole in
@@ -355,18 +369,25 @@ struct ScorecardGridView: View {
                 ForEach(setup.players) { player in
                     Divider().background(theme.border.opacity(0.5))
                     HStack(spacing: 0) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(player.name)
-                                .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(theme.textPrimary)
-                            let net = liveNet[player.name] ?? 0
-                            Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
-                                .font(.system(size: 11, weight: .black, design: .monospaced))
-                                .foregroundStyle(net >= 0 ? Color.snapsGreen : Color.snapsDanger)
+                        HStack(spacing: 8) {
+                            Image(profileImageName(for: player.name))
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 32, height: 32)
+                                .clipShape(Circle())
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(player.name)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(theme.textPrimary)
+                                let net = liveNet[player.name] ?? 0
+                                Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
+                                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                                    .foregroundStyle(net >= 0 ? Color.snapsGreen : Color.snapsDanger)
+                            }
                         }
-                        .frame(width: 90, alignment: .leading)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 12)
+                        .frame(width: 110, alignment: .leading)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 10)
 
                         let outScores = (0..<9).compactMap { game.getScore(playerId: player.id, hole: $0) }
                         let inScores = (9..<18).compactMap { game.getScore(playerId: player.id, hole: $0) }

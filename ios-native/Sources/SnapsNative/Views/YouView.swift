@@ -206,6 +206,21 @@ struct YouView: View {
         return totalDiff / Double(roundCount)
     }
 
+    // Actual average score (not vs par)
+    private var actualScoreAvg: Double? {
+        guard let player = selectedPlayer else { return nil }
+        var totalScore = 0.0; var roundCount = 0
+        for round in filteredRounds {
+            guard let playerScores = round.scores[round.players.first(where: { $0.name == player })?.id ?? ""] else { continue }
+            let played = playerScores.compactMap { $0 }
+            guard played.count >= 18 else { continue }  // Only count full rounds
+            totalScore += Double(played.reduce(0, +))
+            roundCount += 1
+        }
+        guard roundCount > 0 else { return nil }
+        return totalScore / Double(roundCount)
+    }
+
     private var bestRoundVsPar: Int? {
         guard let player = selectedPlayer else { return nil }
         var best: Int? = nil
@@ -271,11 +286,36 @@ struct YouView: View {
             for val in fwys {
                 guard let v = val, v != "hit" else { continue }
                 total += 1
-                if v == "left" { left += 1 } else if v == "right" { right += 1 }
+                if v == "left" || v == "ob_left" { left += 1 }
+                else if v == "right" || v == "ob_right" { right += 1 }
             }
         }
         guard total > 0 else { return nil }
         return (Double(left) / Double(total) * 100, Double(right) / Double(total) * 100)
+    }
+
+    // MARK: - Fairways Hit Card Data (all 6 zones)
+    private var fairwaysHitData: FairwayStats? {
+        guard let player = selectedPlayer else { return nil }
+        var hit = 0; var left = 0; var right = 0; var obLeft = 0; var obRight = 0; var short = 0; var total = 0
+        for round in filteredRounds {
+            guard let fwys = round.fairwayDirs[round.players.first(where: { $0.name == player })?.id ?? ""] else { continue }
+            for val in fwys {
+                guard let v = val else { continue }
+                total += 1
+                switch v {
+                case "hit": hit += 1
+                case "left": left += 1
+                case "right": right += 1
+                case "ob_left": obLeft += 1
+                case "ob_right": obRight += 1
+                case "short": short += 1
+                default: break
+                }
+            }
+        }
+        guard total > 0 else { return nil }
+        return FairwayStats(hit: hit, left: left, right: right, obLeft: obLeft, obRight: obRight, short: short, total: total)
     }
 
     // MARK: - GIR Miss Direction Breakdown
@@ -363,6 +403,13 @@ struct YouView: View {
 
                         if selectedPlayer != nil {
                             improvementStatsSection.padding(.top, 16)
+                        }
+
+                        // ── FAIRWAYS HIT CARD ────────────────────────────
+                        if let fwData = fairwaysHitData {
+                            FairwaysHitCard(stats: fwData)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 16)
                         }
 
                         // ── BETTING ──────────────────────────────────────
@@ -534,10 +581,12 @@ struct YouView: View {
         let girMiss = girMissBreakdown
         let scoreColor: Color = avgVsPar.map { $0 <= 0 ? Color.snapsGreen : Color.snapsGold } ?? theme.textPrimary
 
+        let actualAvg = actualScoreAvg
+
         return VStack(spacing: 12) {
             // Big score card
             VStack(spacing: 0) {
-                // Score avg — the headline number
+                // Score avg — the headline number (actual score, not vs par)
                 VStack(spacing: 4) {
                     Text("SCORE AVG")
                         .font(.system(size: 11, weight: .bold))
@@ -545,14 +594,16 @@ struct YouView: View {
                         .tracking(3)
                         .padding(.top, 20)
 
-                    Text(avgVsPar.map { v in
-                        let s = String(format: "%.1f", abs(v))
-                        return v <= 0 ? "\(v > -0.05 ? "E" : "-\(s)")" : "+\(s)"
-                    } ?? "—")
+                    Text(actualAvg.map { String(format: "%.1f", $0) } ?? "—")
                         .font(.system(size: 72, weight: .black, design: .rounded))
                         .foregroundStyle(scoreColor)
 
-                    Text(avgVsPar != nil ? "per round vs par" : "no score data yet")
+                    // Show vs par underneath
+                    Text(avgVsPar.map { v in
+                        let s = String(format: "%.1f", abs(v))
+                        let sign = v <= 0 ? (v > -0.05 ? "E" : "-\(s)") : "+\(s)"
+                        return "\(sign) vs par"
+                    } ?? "no score data yet")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(theme.textMuted)
                         .padding(.bottom, 16)
