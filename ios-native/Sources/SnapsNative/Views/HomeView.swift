@@ -136,6 +136,12 @@ struct HomeView: View {
         .sheet(isPresented: $showSetup) {
             SetupView(game: game, isMultiplayer: isMultiplayer)
         }
+        .fullScreenCover(isPresented: Binding(
+            get: { game.setup != nil },
+            set: { if !$0 { game.reset() } }
+        )) {
+            ScoreCardView(game: game)
+        }
         .sheet(isPresented: $showJoinGame) {
             JoinGameView()
         }
