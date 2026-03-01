@@ -160,6 +160,10 @@ struct ScoreCardView: View {
             }
         }
         .navigationBarHidden(true)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            // Clears the floating tab bar so footer buttons are never hidden behind it
+            Color.clear.frame(height: 80)
+        }
         .sheet(isPresented: $showGrid) {
             ScorecardGridView(game: game, setup: setup)
         }
@@ -417,6 +421,14 @@ struct PlayerScoreRow: View {
     let hole: Int
     @State private var bounceScale: CGFloat = 1.0
 
+    // Birdie/Eagle celebration
+    @State private var celebrationEmoji: String = ""
+    @State private var emojiOffset: CGFloat = 0
+    @State private var emojiOpacity: Double = 0
+    @State private var showEmoji: Bool = false
+    @State private var glowBurst: Bool = false
+    @State private var celebrationScale: CGFloat = 1.0
+
     private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
     private var isCurrentUser: Bool {
         guard let me = appState.currentUser else { return false }
@@ -523,6 +535,13 @@ struct PlayerScoreRow: View {
                     .accessibilityHint("Subtract one stroke")
 
                     ZStack {
+                        // Celebration glow ring
+                        Circle()
+                            .stroke(scoreColor, lineWidth: glowBurst ? 3 : 0)
+                            .frame(width: glowBurst ? 68 : 52, height: glowBurst ? 68 : 52)
+                            .opacity(glowBurst ? 0.7 : 0)
+                            .blur(radius: glowBurst ? 4 : 0)
+
                         Circle()
                             .fill(score != nil ? scoreBgColor : .clear)
                             .overlay(Circle().strokeBorder(
@@ -532,15 +551,24 @@ struct PlayerScoreRow: View {
                             Text("\(s)")
                                 .font(.snapsScoreNumber)
                                 .foregroundStyle(scoreColor)
-                                .shadow(color: scoreColor.opacity(0.5),
-                                        radius: (relToPar != nil && relToPar != 0) ? 8 : 0)
+                                .shadow(color: scoreColor.opacity(glowBurst ? 0.9 : 0.5),
+                                        radius: glowBurst ? 16 : ((relToPar != nil && relToPar != 0) ? 8 : 0))
                         } else {
                             Text("—")
                                 .font(.system(size: 20, weight: .medium))
                                 .foregroundStyle(theme.textMuted)
                         }
+
+                        // Floating celebration emoji
+                        if showEmoji {
+                            Text(celebrationEmoji)
+                                .font(.system(size: 32))
+                                .offset(y: emojiOffset)
+                                .opacity(emojiOpacity)
+                                .allowsHitTesting(false)
+                        }
                     }
-                    .scaleEffect(bounceScale)
+                    .scaleEffect(bounceScale * celebrationScale)
 
                     Button {
                         let current = score ?? (game.pars[hole] - 1)
@@ -583,6 +611,55 @@ struct PlayerScoreRow: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
+        .onChange(of: relToPar) { oldVal, newVal in
+            guard let newVal, newVal < 0 else { return }
+            let old = oldVal ?? 0
+            if newVal < old { triggerCelebration(rel: newVal) }
+        }
+    }
+
+    func triggerCelebration(rel: Int) {
+        // Pick emoji + haptic intensity by score
+        let emoji: String
+        switch rel {
+        case ...(-3): emoji = "💥🦅"
+        case -2:      emoji = "🦅"
+        default:      emoji = "🐦"
+        }
+
+        // Haptic
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        if rel <= -2 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+            }
+        }
+
+        // Score circle: spring bounce
+        withAnimation(.spring(response: 0.22, dampingFraction: 0.38)) {
+            celebrationScale = rel <= -2 ? 1.5 : 1.3
+        }
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.55).delay(0.18)) {
+            celebrationScale = 1.0
+        }
+
+        // Glow ring burst
+        withAnimation(.easeOut(duration: 0.2)) { glowBurst = true }
+        withAnimation(.easeInOut(duration: 0.7).delay(0.2)) { glowBurst = false }
+
+        // Floating emoji
+        celebrationEmoji = emoji
+        emojiOffset = 0
+        emojiOpacity = 1.0
+        showEmoji = true
+        withAnimation(.easeOut(duration: rel <= -2 ? 1.1 : 0.9)) {
+            emojiOffset = rel <= -2 ? -100 : -75
+            emojiOpacity = 0
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            showEmoji = false
+            emojiOffset = 0
+        }
     }
 }
 
