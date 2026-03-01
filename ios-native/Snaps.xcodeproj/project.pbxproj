@@ -48,7 +48,7 @@
 		0D5E032759936CA3C160003C /* ScoreCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreCardView.swift; sourceTree = "<group>"; };
 		22C244AEC10EB7379EB2AD4C /* SnapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapsApp.swift; sourceTree = "<group>"; };
 		23E12921D7C262C521DB2A82 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
-		2CA663E57B65A265E55BCDB0 /* SnapsNative.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = SnapsNative.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		2CA663E57B65A265E55BCDB0 /* Snaps.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Snaps.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		462365EEC14A5685B688C064 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
 		5A465E8322F490F1D6EB2314 /* LeaderboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LeaderboardView.swift; sourceTree = "<group>"; };
 		5C92B6F1AB2A0047A5FAB289 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -120,12 +120,12 @@
 		315D9C3351D2B61F17A93BD9 = {
 			isa = PBXGroup;
 			children = (
-				4B9743F4E2B317794CF2F0FD /* SnapsNative */,
+				4B9743F4E2B317794CF2F0FD /* Snaps */,
 				84376E7BF388D2ADF8EA9CCC /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		4B9743F4E2B317794CF2F0FD /* SnapsNative */ = {
+		4B9743F4E2B317794CF2F0FD /* Snaps */ = {
 			isa = PBXGroup;
 			children = (
 				D54C0A461F0F8B3070E02A68 /* Info.plist */,
@@ -135,8 +135,8 @@
 				0F3AF08DA3A9F987DD8F57E9 /* Services */,
 				236902534EF1381EB69F437B /* Views */,
 			);
-			name = SnapsNative;
-			path = Sources/SnapsNative;
+			name = Snaps;
+			path = Sources/Snaps;
 			sourceTree = "<group>";
 		};
 		71F6F75F8AA89FC42B4AAB11 /* Models */ = {
@@ -152,7 +152,7 @@
 		84376E7BF388D2ADF8EA9CCC /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				2CA663E57B65A265E55BCDB0 /* SnapsNative.app */,
+				2CA663E57B65A265E55BCDB0 /* Snaps.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -171,9 +171,9 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXNativeTarget section */
-		FE4F65D90927304D47CED699 /* SnapsNative */ = {
+		FE4F65D90927304D47CED699 /* Snaps */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "SnapsNative" */;
+			buildConfigurationList = CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "Snaps" */;
 			buildPhases = (
 				FRAM001122334455667788 /* Frameworks */,
 				A9B8C7D6E5F4A3B2C1D0E9F8 /* Resources */,
@@ -183,12 +183,12 @@
 			);
 			dependencies = (
 			);
-			name = SnapsNative;
+			name = Snaps;
 			packageProductDependencies = (
 				SUPA00AABBCCDDEEFF0011 /* Supabase */,
 			);
-			productName = SnapsNative;
-			productReference = 2CA663E57B65A265E55BCDB0 /* SnapsNative.app */;
+			productName = Snaps;
+			productReference = 2CA663E57B65A265E55BCDB0 /* Snaps.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -205,7 +205,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 541D507777A4B3377DED1912 /* Build configuration list for PBXProject "SnapsNative" */;
+			buildConfigurationList = 541D507777A4B3377DED1912 /* Build configuration list for PBXProject "Snaps" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -222,7 +222,7 @@
 				SUPA0011223344556677AA /* XCRemoteSwiftPackageReference "supabase-swift" */,
 			);
 			targets = (
-				FE4F65D90927304D47CED699 /* SnapsNative */,
+				FE4F65D90927304D47CED699 /* Snaps */,
 			);
 		};
 /* End PBXProject section */
@@ -302,7 +302,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = Sources/SnapsNative/Info.plist;
+				INFOPLIST_FILE = Sources/Snaps/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -442,7 +442,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				INFOPLIST_FILE = Sources/SnapsNative/Info.plist;
+				INFOPLIST_FILE = Sources/Snaps/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -459,7 +459,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		541D507777A4B3377DED1912 /* Build configuration list for PBXProject "SnapsNative" */ = {
+		541D507777A4B3377DED1912 /* Build configuration list for PBXProject "Snaps" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				AA7D3F7127136C503AE46D56 /* Debug */,
@@ -468,7 +468,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "SnapsNative" */ = {
+		CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "Snaps" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				CE95A99038563A33348E3882 /* Debug */,
