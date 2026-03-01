@@ -1,139 +1,85 @@
-# Snaps 🏌️
+# Snaps ⛳
 
-**The ultimate golf betting companion app.**
+**Golf betting scorecard app — native SwiftUI iOS**
 
-Track bets, settle scores, and play 22 different golf games with your friends — all in one beautifully designed iOS app.
-
-![SwiftUI](https://img.shields.io/badge/SwiftUI-blue?logo=swift&logoColor=white)
-![iOS 17+](https://img.shields.io/badge/iOS-17%2B-black?logo=apple)
-![License](https://img.shields.io/badge/license-MIT-green)
+Track bets, calculate payouts, and settle up after the round. Supports 10 game engines simultaneously with live money tracking per hole.
 
 ---
 
-## Features
+## Getting Started
 
-### 🎮 22 Game Modes
-- **Tax Man** — Set your target, beat it to win
-- **Nassau** — Front 9, Back 9, Overall (stroke or match play)
-- **Skins** — Win holes outright, carryovers stack
-- **Wolf** — Pick partners on the fly, go solo for big money
-- **Vegas** — 2v2 concatenated scores
-- **Best Ball** — Team lowest score wins
-- **Stableford** — Points-based scoring
-- **And 15 more...** including Rabbit, Dots/Junk, Banker, Hammer, and more
+1. Open `SnapsNative.xcodeproj` in **Xcode 16+**
+2. Select any **iOS 17+ simulator** (or physical device)
+3. Hit **Run** — no API keys or backend required (runs fully offline with mock data)
 
-### 📊 Stats & Tracking
-- Per-hole score entry with +/- buttons
-- Fairway direction tracking (hit/left/right)
-- Green in regulation tracking (hit/short/long/left/right)
-- Putts per hole with 3-putt highlighting
-- Live standings as you play
-
-### 🏆 Pro Data
-- Live PGA Tour leaderboards (ESPN)
-- World Rankings (OWGR)
-
-### 🌙 Light & Dark Mode
-Full support for both themes — your eyes will thank you for those early morning rounds.
-
-### 💸 Payment Integration
-- Venmo deep links
-- Cash App deep links
-- Settle up instantly after the round
+For cloud features (auth, multiplayer), configure Supabase credentials in `SupabaseRepository.swift`.
 
 ---
 
-## Screenshots
+## Game Engines
 
-*Coming soon*
+All 10 engines run simultaneously and produce per-hole payouts:
 
----
-
-## Tech Stack
-
-- **SwiftUI** — Native iOS UI
-- **SwiftData** — Local persistence
-- **Supabase** — Cloud backend & auth
-- **ESPN API** — Live leaderboard data
-
----
-
-## Requirements
-
-- iOS 17.0+
-- Xcode 15.0+
+| Game | Description |
+|------|-------------|
+| **TaxMan** | Handicap-adjusted stroke play — low net wins from all others |
+| **Nassau** | Front 9 / Back 9 / Total — optional auto-press |
+| **Wolf** | Rotating wolf picks partner each hole; lone wolf pays double |
+| **Bingo Bango Bongo** | 3 pts/hole — first on green, closest to pin, first to hole out |
+| **Snake** | 3-putt penalty pool — last 3-putter holds the snake |
+| **Vegas** | Team game combining scores into 2-digit numbers; birdie flips |
+| **CTP** | Closest to pin skins on par 3s |
+| **Trouble** | Penalty pool — water, OB, 3-putt, sand, whiff, etc. |
+| **Arnies** | Bonus for making par without touching the fairway |
+| **Banker** | Rotating banker sets the bet per hole; others accept or fold |
 
 ---
 
-## Installation
-
-1. Clone the repo:
-   ```bash
-   git clone https://github.com/bobbyfeeno/snaps.git
-   cd snaps/ios-native
-   ```
-
-2. Open in Xcode:
-   ```bash
-   open SnapsNative.xcodeproj
-   ```
-
-3. Build and run on simulator or device
-
----
-
-## Project Structure
+## Architecture
 
 ```
-ios-native/
-├── Sources/SnapsNative/
-│   ├── Models/          # Game logic, data models
-│   ├── Views/           # SwiftUI views
-│   ├── Services/        # Supabase, repositories
-│   └── Assets.xcassets/ # Images, colors
-├── SnapsNative.xcodeproj
-└── supabase_schema.sql  # Database schema
+Sources/SnapsNative/
+├── Models/
+│   ├── AppModels.swift       # Player, Round, Course data models
+│   ├── GameModels.swift      # GameMode enum, PlayerSnapshot, config types
+│   └── GameEngine.swift      # All 10 game engines (pure functions)
+├── Services/
+│   ├── AppState.swift        # ObservableObject global state
+│   ├── SnapsRepository.swift # Protocol: load/save players, rounds
+│   ├── MockRepository.swift  # In-memory mock — no backend needed
+│   └── SupabaseRepository.swift # Supabase cloud backend
+└── Views/
+    ├── DesignSystem.swift    # Colors, typography, reusable components
+    ├── HomeView.swift
+    ├── SetupView.swift       # Multi-step: players → games → teams → bets
+    ├── ScoreCardView.swift   # Hole-by-hole with per-game tracking panels
+    ├── HoleTrackerView.swift # Wolf partner, BBB, Snake, Banker, CTP, etc.
+    ├── ScorecardGridView.swift # 18-hole grid with color-coded scores
+    ├── ResultsView.swift     # Animated payouts + Venmo/CashApp deep links
+    ├── HistoryView.swift     # Round history + season leaderboard
+    ├── LeaderboardView.swift
+    ├── PlayersView.swift     # Player management
+    ├── YouView.swift         # Profile + stats dashboard
+    ├── StatsView.swift
+    ├── RulesView.swift       # Game rules reference
+    ├── TourView.swift        # PGA Tour leaderboard
+    ├── LoginView.swift       # Supabase auth
+    ├── LobbyView.swift       # Multiplayer join code
+    └── VoiceScoreEntry.swift # Speech-to-text score input
 ```
 
----
-
-## Game Modes
-
-| Game | Players | Description |
-|------|---------|-------------|
-| Keep Score | 1-8 | Standard scorecard |
-| Head to Head | 2+ | Match or stroke play |
-| Tax Man | 2-8 | Beat your target number |
-| Nassau | 2-4 | Three bets in one |
-| Skins | 2-8 | Win holes outright |
-| Wolf | 4 | Pick partners each hole |
-| Vegas | 4 | 2v2 combined scores |
-| Best Ball | 4 | Team low ball |
-| Stableford | 2-8 | Points per hole |
-| Rabbit | 2-8 | Hold the rabbit to win |
-| Dots/Junk | 2-8 | Side bets for great shots |
-| Sixes | 4 | Rotating partners |
-| Nines | 3 | 9 points per hole |
-| Scotch | 4 | 2v2 low ball/total |
-| Banker | 3-4 | Play against the banker |
-| Hammer | 2-4 | Double the bet mid-hole |
-| *...and more* | | |
+**Repository pattern:** swap `MockRepository` for `SupabaseRepository` with no UI changes.
 
 ---
 
-## Contributing
+## Roadmap
 
-This is a personal project, but suggestions welcome! Open an issue or reach out.
-
----
-
-## Author
-
-**Bobby Feeno**  
-[@bobbyfeeno](https://github.com/bobbyfeeno)
-
----
-
-## License
-
-MIT License — see [LICENSE](LICENSE) for details.
+- [ ] Course editor (set par per hole + course name before round)
+- [ ] Save round to history after results screen
+- [ ] App icon + launch screen
+- [ ] Onboarding flow
+- [ ] SwiftData offline persistence with Supabase sync
+- [ ] Live multiplayer via Supabase Realtime
+- [ ] Apple Watch companion
+- [ ] GHIN handicap sync
+- [ ] Apple Pay settlement
