@@ -166,9 +166,6 @@ struct ScoreCardView: View {
         .sheet(isPresented: $showResults) {
             ResultsView(game: game)
         }
-        .onChange(of: game.setup == nil) { _, isNil in
-            if isNil { dismiss() }
-        }
     }
 
     // MARK: - Debug: Fill demo scores
@@ -194,7 +191,7 @@ struct ScoreCardView: View {
     var headerBar: some View {
         HStack {
             Button {
-                dismiss()
+                game.reset()
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .bold))
