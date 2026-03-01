@@ -416,12 +416,32 @@ struct PlayerScoreRow: View {
     let player: PlayerSnapshot
     let hole: Int
     @State private var bounceScale: CGFloat = 1.0
-    @State private var voice = VoiceScoreManager()
 
     private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
     private var isCurrentUser: Bool {
         guard let me = appState.currentUser else { return false }
         return player.name.lowercased() == me.displayName.lowercased()
+    }
+
+    /// Running total relative to par for all scored holes
+    private var totalRelToPar: Int? {
+        let scored = (0..<18).compactMap { game.relToPar(playerId: player.id, hole: $0) }
+        guard !scored.isEmpty else { return nil }
+        return scored.reduce(0, +)
+    }
+
+    private var totalRelToParLabel: String {
+        guard let t = totalRelToPar else { return "—" }
+        if t == 0 { return "E" }
+        return t > 0 ? "+\(t)" : "\(t)"
+    }
+
+    private var totalRelToParColor: Color {
+        guard let t = totalRelToPar else { return theme.textMuted }
+        if t < 0 { return Color.scoreBirdie }
+        if t == 0 { return theme.textSecondary }
+        if t == 1 { return Color.scoreBogey }
+        return Color.scoreDouble
     }
 
     var score: Int? { game.getScore(playerId: player.id, hole: hole) }
@@ -476,9 +496,12 @@ struct PlayerScoreRow: View {
                 Spacer()
 
                 HStack(spacing: 10) {
-                    VoiceScoreButton(par: game.pars[hole]) { s in
-                        game.setScore(playerId: player.id, hole: hole, score: s)
-                    }
+                    // Running score badge (replaces mic)
+                    Text(totalRelToParLabel)
+                        .font(.system(size: 14, weight: .black, design: .monospaced))
+                        .foregroundStyle(totalRelToParColor)
+                        .frame(width: 44, height: 44)
+                        .background(totalRelToParColor.opacity(0.1), in: Circle())
 
                     Button {
                         let current = score ?? game.pars[hole]
