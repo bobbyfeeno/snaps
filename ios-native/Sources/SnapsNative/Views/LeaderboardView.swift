@@ -1,5 +1,6 @@
 import SwiftUI
 
+// MARK: - LeaderboardView
 struct LeaderboardView: View {
     @Environment(AppState.self) private var appState
     @State private var entries: [LeaderboardEntry] = []
@@ -125,6 +126,7 @@ struct LeaderboardEntry: Identifiable {
     let favoriteGame: String?
 }
 
+// MARK: - Leaderboard Row
 struct LeaderboardRow: View {
     let entry: LeaderboardEntry
     let rank: Int
@@ -153,8 +155,8 @@ struct LeaderboardRow: View {
     var rankColor: Color {
         switch rank {
         case 1: return .yellow
-        case 2: return Color(hex: "#C0C0C0")
-        case 3: return Color(hex: "#CD7F32")
+        case 2: return Color.silverMedal
+        case 3: return Color.bronzeMedal
         default: return .gray
         }
     }

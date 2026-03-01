@@ -66,6 +66,20 @@ extension Color {
     static let scorePar    = Color(hex: "#F5F5F5")
     static let scoreBogey  = Color(hex: "#EF4444").opacity(0.7)
     static let scoreDouble = Color(hex: "#EF4444")
+    // Gradient accents
+    static let snapsGreenDark = Color(hex: "#1A7005")  // avatar/gradient end
+    static let snapsGreenMid  = Color(hex: "#16803B")  // button gradient end
+    // Fairway tracking
+    static let grassHit   = Color(hex: "#4CAF50")
+    static let grassDark1 = Color(hex: "#1B2E1B")
+    static let grassDark2 = Color(hex: "#243524")
+    static let grassMid1  = Color(hex: "#3D6B3D")
+    static let grassMid2  = Color(hex: "#4A7C4A")
+    // Alert red (mic, errors) — brighter than snapsDanger
+    static let alertRed    = Color(hex: "#FF4444")
+    // Leaderboard medals
+    static let silverMedal = Color(hex: "#C0C0C0")
+    static let bronzeMedal = Color(hex: "#CD7F32")
 
     init(hex: String) {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
@@ -133,5 +147,23 @@ struct SnapsCard: ViewModifier {
 extension View {
     func snapsCard(accent: Color = .clear) -> some View {
         modifier(SnapsCard(accentColor: accent))
+    }
+}
+
+// MARK: - Shared View Helpers
+
+extension View {
+    /// Payment handle badge (Venmo / Cash App).
+    func paymentBadge(_ prefix: String, handle: String, color: Color) -> some View {
+        HStack(spacing: 4) {
+            Text(prefix)
+                .font(.system(size: 11, weight: .black))
+                .foregroundStyle(.white)
+                .frame(width: 20, height: 20)
+                .background(color, in: Circle())
+            Text(handle)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.gray)
+        }
     }
 }

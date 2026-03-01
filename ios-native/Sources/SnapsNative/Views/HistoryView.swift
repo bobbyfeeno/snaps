@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - HistoryView
 struct HistoryView: View {
     @Query(sort: \RoundRecord.date, order: .reverse) private var rounds: [RoundRecord]
     @Environment(\.dismiss) private var dismiss

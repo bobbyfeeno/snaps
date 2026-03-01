@@ -39,7 +39,7 @@ struct FairwaysHitCard: View {
             // Big percentage
             Text("\(stats.pct(stats.hit))%")
                 .font(.system(size: 48, weight: .bold, design: .rounded))
-                .foregroundStyle(Color(hex: "#4CAF50"))
+                .foregroundStyle(Color.grassHit)
             
             // Fairway visualization with stats
             ZStack {
@@ -48,8 +48,8 @@ struct FairwaysHitCard: View {
                     .fill(
                         LinearGradient(
                             colors: isDark
-                                ? [Color(hex: "#1B2E1B"), Color(hex: "#243524")]
-                                : [Color(hex: "#3D6B3D"), Color(hex: "#4A7C4A")],
+                                ? [Color.grassDark1, Color.grassDark2]
+                                : [Color.grassMid1, Color.grassMid2],
                             startPoint: .top, endPoint: .bottom
                         )
                     )
@@ -99,7 +99,7 @@ struct FairwaysHitCard: View {
                                     Circle()
                                         .fill(.ultraThinMaterial)
                                         .frame(width: 60, height: 60)
-                                        .shadow(color: Color(hex: "#4CAF50").opacity(0.4), radius: 12)
+                                        .shadow(color: Color.grassHit.opacity(0.4), radius: 12)
                                     
                                     Circle()
                                         .fill(Color.white.opacity(0.95))
@@ -180,7 +180,7 @@ struct FairwaysHitCard: View {
 // MARK: - Preview
 #Preview {
     ZStack {
-        Color(hex: "#080808").ignoresSafeArea()
+        Color.snapsBg.ignoresSafeArea()
         FairwaysHitCard(stats: FairwayStats(
             hit: 14, left: 2, right: 1, obLeft: 0, obRight: 1, short: 0, total: 18
         ))

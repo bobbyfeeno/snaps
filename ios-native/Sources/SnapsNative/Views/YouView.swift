@@ -487,10 +487,10 @@ struct YouView: View {
             if !user.venmoHandle.isEmpty || !user.cashappHandle.isEmpty {
                 HStack(spacing: 12) {
                     if !user.venmoHandle.isEmpty {
-                        paymentBadge("V", handle: user.venmoHandle, color: Color(hex: "#3D95CE"))
+                        paymentBadge("V", handle: user.venmoHandle, color: Color.snapsVenmo)
                     }
                     if !user.cashappHandle.isEmpty {
-                        paymentBadge("$", handle: user.cashappHandle, color: Color(hex: "#00D632"))
+                        paymentBadge("$", handle: user.cashappHandle, color: Color.snapsCashApp)
                     }
                 }
             }
@@ -510,15 +510,7 @@ struct YouView: View {
         .padding(.horizontal, 20)
     }
 
-    private func paymentBadge(_ prefix: String, handle: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Text(prefix)
-                .font(.system(size: 11, weight: .black)).foregroundStyle(.white)
-                .frame(width: 20, height: 20).background(color, in: Circle())
-            Text(handle)
-                .font(.system(size: 12, weight: .semibold)).foregroundStyle(.gray)
-        }
-    }
+    
 
     // MARK: - Empty State
 

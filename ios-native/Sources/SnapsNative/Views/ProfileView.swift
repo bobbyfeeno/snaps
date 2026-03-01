@@ -38,7 +38,7 @@ struct ProfileView: View {
             // Avatar
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [Color.snapsGreen, Color(hex: "#1a7005")],
+                    .fill(LinearGradient(colors: [Color.snapsGreen, Color.snapsGreenDark],
                                         startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 88, height: 88)
                     .shadow(color: Color.snapsGreen.opacity(0.4), radius: 16)
@@ -67,10 +67,10 @@ struct ProfileView: View {
             if !user.venmoHandle.isEmpty || !user.cashappHandle.isEmpty {
                 HStack(spacing: 12) {
                     if !user.venmoHandle.isEmpty {
-                        paymentBadge("V", handle: user.venmoHandle, color: Color(hex: "#3D95CE"))
+                        paymentBadge("V", handle: user.venmoHandle, color: Color.snapsVenmo)
                     }
                     if !user.cashappHandle.isEmpty {
-                        paymentBadge("$", handle: user.cashappHandle, color: Color(hex: "#00D632"))
+                        paymentBadge("$", handle: user.cashappHandle, color: Color.snapsCashApp)
                     }
                 }
             }
@@ -158,18 +158,7 @@ struct ProfileView: View {
         }
     }
 
-    func paymentBadge(_ prefix: String, handle: String, color: Color) -> some View {
-        HStack(spacing: 4) {
-            Text(prefix)
-                .font(.system(size: 11, weight: .black))
-                .foregroundStyle(.white)
-                .frame(width: 20, height: 20)
-                .background(color, in: Circle())
-            Text(handle)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.gray)
-        }
-    }
+
 
     func loadData() async {
         loading = true

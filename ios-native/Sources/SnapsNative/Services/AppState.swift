@@ -1,5 +1,6 @@
 import SwiftUI
 
+// MARK: - AppState
 @MainActor
 @Observable
 final class AppState {

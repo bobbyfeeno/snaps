@@ -66,7 +66,7 @@ struct LobbyView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 58)
                                 .background(
-                                    LinearGradient(colors: [Color.snapsGreen, Color(hex: "#16803B")], startPoint: .top, endPoint: .bottom),
+                                    LinearGradient(colors: [Color.snapsGreen, Color.snapsGreenMid], startPoint: .top, endPoint: .bottom),
                                     in: RoundedRectangle(cornerRadius: 16)
                                 )
                                 .shadow(color: Color.snapsGreen.opacity(0.4), radius: 12, y: 4)
@@ -319,7 +319,7 @@ struct JoinGameView: View {
                         .frame(maxWidth: .infinity).frame(height: 56)
                         .background(
                             code.count == 6 ?
-                            LinearGradient(colors: [Color.snapsGreen, Color(hex: "#16803B")], startPoint: .top, endPoint: .bottom) :
+                            LinearGradient(colors: [Color.snapsGreen, Color.snapsGreenMid], startPoint: .top, endPoint: .bottom) :
                             LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.15)], startPoint: .top, endPoint: .bottom),
                             in: RoundedRectangle(cornerRadius: 16)
                         )

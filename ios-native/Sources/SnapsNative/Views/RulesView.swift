@@ -55,6 +55,7 @@ private let allRules: [GameRule] = [
     GameRule(emoji: "🔨", name: "Hammer", rules: "A bet-doubling modifier that stacks on top of other hole-based games.\n\nOn any hole, any player (or team) can call \"Hammer!\" — doubling the value of that hole's bet.\n\nThe opponent must accept or concede:\n• Accept — hole continues at doubled value. The receiving side can immediately re-Hammer back.\n• Concede — hole is over. Hammering side wins at the previous (un-doubled) value.\n\nMultipliers stack: ×1 → ×2 → ×4 → ×8 → ×16\n\nTap the ×N cell in the scorecard on any active hole to call, accept, re-hammer, or concede."),
 ]
 
+// MARK: - RulesView
 struct RulesView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -110,6 +111,7 @@ struct RulesView: View {
     }
 }
 
+// MARK: - Rule Card
 struct RuleCard: View {
     @Environment(\.colorScheme) private var colorScheme
     let index: Int

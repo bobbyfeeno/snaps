@@ -323,7 +323,7 @@ struct TroubleTracker: View {
                                     .font(.system(size: 11, weight: .semibold))
                                     .foregroundStyle(active ? .black : .white)
                                     .padding(.horizontal, 8).padding(.vertical, 5)
-                                    .background(active ? Color(hex: "#ff4444") : Color.white.opacity(0.08),
+                                    .background(active ? Color.alertRed : Color.white.opacity(0.08),
                                                 in: RoundedRectangle(cornerRadius: 6))
                             }
                         }

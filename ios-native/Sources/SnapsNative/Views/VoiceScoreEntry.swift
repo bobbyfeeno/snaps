@@ -151,21 +151,21 @@ struct VoiceScoreButton: View {
             ZStack {
                 Circle()
                     .fill(voice.isListening ?
-                          Color(hex: "#ff4444").opacity(0.2) :
+                          Color.alertRed.opacity(0.2) :
                           Color.white.opacity(0.08))
                     .frame(width: 44, height: 44)
                     .overlay(
                         Circle()
-                            .strokeBorder(voice.isListening ? Color(hex: "#ff4444") : Color.white.opacity(0.15), lineWidth: 1.5)
+                            .strokeBorder(voice.isListening ? Color.alertRed : Color.white.opacity(0.15), lineWidth: 1.5)
                     )
 
                 Image(systemName: voice.isListening ? "mic.fill" : "mic")
                     .font(.system(size: 18))
-                    .foregroundStyle(voice.isListening ? Color(hex: "#ff4444") : .gray)
+                    .foregroundStyle(voice.isListening ? Color.alertRed : .gray)
 
                 if voice.isListening {
                     Circle()
-                        .strokeBorder(Color(hex: "#ff4444").opacity(0.4), lineWidth: 2)
+                        .strokeBorder(Color.alertRed.opacity(0.4), lineWidth: 2)
                         .frame(width: 54, height: 54)
                         .scaleEffect(1.0)
                         .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: voice.isListening)

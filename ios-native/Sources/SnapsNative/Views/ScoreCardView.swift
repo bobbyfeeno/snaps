@@ -575,8 +575,8 @@ struct TeeShotTracker: View {
                     .fill(
                         LinearGradient(
                             colors: isDark
-                                ? [Color(hex: "#1B2E1B"), Color(hex: "#243524")]
-                                : [Color(hex: "#3D6B3D"), Color(hex: "#4A7C4A")],
+                                ? [Color.grassDark1, Color.grassDark2]
+                                : [Color.grassMid1, Color.grassMid2],
                             startPoint: .top, endPoint: .bottom
                         )
                     )
@@ -626,7 +626,7 @@ struct TeeShotTracker: View {
                                     Circle()
                                         .fill(.ultraThinMaterial)
                                         .frame(width: 64, height: 64)
-                                        .shadow(color: dir == "hit" ? Color(hex: "#4CAF50").opacity(0.6) : .black.opacity(0.1), radius: dir == "hit" ? 16 : 6)
+                                        .shadow(color: dir == "hit" ? Color.grassHit.opacity(0.6) : .black.opacity(0.1), radius: dir == "hit" ? 16 : 6)
                                     
                                     Circle()
                                         .fill(Color.white.opacity(dir == "hit" ? 1 : 0.92))
@@ -843,7 +843,7 @@ struct GreenTracker: View {
                                     Circle()
                                         .fill(.ultraThinMaterial)
                                         .frame(width: 56, height: 56)
-                                        .shadow(color: dir == "hit" ? Color(hex: "#4CAF50").opacity(0.5) : .black.opacity(0.1), radius: dir == "hit" ? 14 : 4)
+                                        .shadow(color: dir == "hit" ? Color.grassHit.opacity(0.5) : .black.opacity(0.1), radius: dir == "hit" ? 14 : 4)
                                     
                                     Circle()
                                         .fill(Color.white.opacity(dir == "hit" ? 1 : 0.9))
@@ -1001,7 +1001,7 @@ struct PuttsTracker: View {
     
     private func puttColor(_ num: Int) -> Color {
         switch num {
-        case 1: return Color(hex: "#4CAF50")  // green — great
+        case 1: return Color.grassHit  // green — great
         case 2: return Color(hex: "#66BB6A")  // lighter green — solid
         case 3: return Color.snapsGold         // gold — meh
         default: return Color.snapsDanger      // red — bad
@@ -1021,7 +1021,7 @@ struct PuttsTracker: View {
     private var puttLabelColor: Color {
         guard let c = count else { return theme.textMuted }
         switch c {
-        case 1: return Color(hex: "#4CAF50")
+        case 1: return Color.grassHit
         case 2: return theme.textSecondary
         case 3: return Color.snapsGold
         default: return Color.snapsDanger
@@ -1177,10 +1177,3 @@ struct PuttsStepper: View {
     }
 }
 
-// Legacy stub — replaced by FwyDirPicker / GirDirPicker / PuttsStepper
-struct FwyGirToggle: View {
-    let label: String
-    let state: Bool?
-    let onTap: () -> Void
-    var body: some View { EmptyView() }
-}
