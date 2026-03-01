@@ -19,7 +19,6 @@ struct SetupView: View {
     @State private var vegasTeamA: Set<String> = []
     @State private var vegasTeamB: Set<String> = []
     @State private var step = 0  // 0=games, 1=players, 2=config, 3+=team pickers
-    @State private var showScoreCard = false
     @State private var showAddPlayer = false
     @State private var gameSearch: String = ""
     @State private var showRules = false
@@ -285,9 +284,6 @@ struct SetupView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 40)
             }
-        }
-        .sheet(isPresented: $showScoreCard) {
-            ScoreCardView(game: game)
         }
         .sheet(item: $createdSession) { session in
             LobbyView(session: session)
@@ -1197,7 +1193,7 @@ struct SetupView: View {
             }
         } else {
             game.startGame(setup: setup)
-            showScoreCard = true
+            dismiss()
         }
     }
 }

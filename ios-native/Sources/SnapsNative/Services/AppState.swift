@@ -11,6 +11,7 @@ final class AppState {
     var isAuthenticated: Bool = false
     var activeSession: GameSession?
     var errorMessage: String?
+    var activeGame = ActiveGame()
 
     private init() {}
 

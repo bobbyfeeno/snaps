@@ -3,6 +3,7 @@ import SwiftData
 
 extension Notification.Name {
     static let switchToYouTab = Notification.Name("switchToYouTab")
+    static let switchToLiveRoundTab = Notification.Name("switchToLiveRoundTab")
 }
 
 @main
@@ -32,6 +33,8 @@ struct RootView: View {
     @State private var selectedTab = 0
     @State private var isLoggedIn: Bool = false
     @AppStorage("isDarkMode") private var isDarkMode = true
+
+    private var roundActive: Bool { appState.activeGame.setup != nil }
 
     var body: some View {
         ZStack {
@@ -82,12 +85,24 @@ struct RootView: View {
                     .tag(1)
                 TourView()
                     .tag(2)
+                ScoreCardView(game: appState.activeGame)
+                    .tag(3)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea()
             .onReceive(NotificationCenter.default.publisher(for: .switchToYouTab)) { _ in
                 withAnimation(.spring(response: 0.3)) {
                     selectedTab = 1
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .switchToLiveRoundTab)) { _ in
+                withAnimation(.spring(response: 0.3)) {
+                    selectedTab = 3
+                }
+            }
+            .onChange(of: roundActive) { _, active in
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.75)) {
+                    selectedTab = active ? 3 : 0
                 }
             }
 
@@ -101,6 +116,9 @@ struct RootView: View {
             tabButton(icon: "house.fill", label: "Home", tag: 0)
             tabButton(icon: "person.fill", label: "You", tag: 1)
             tabButton(icon: "chart.xyaxis.line", label: "Pro Data", tag: 2)
+            if roundActive {
+                liveRoundTabButton
+            }
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -109,6 +127,33 @@ struct RootView: View {
         .shadow(color: .black.opacity(0.4), radius: 20, y: 10)
         .padding(.horizontal, 20)
         .padding(.bottom, 8)
+        .animation(.spring(response: 0.4, dampingFraction: 0.75), value: roundActive)
+    }
+
+    @State private var liveGlowPulse = false
+
+    var liveRoundTabButton: some View {
+        Button { selectedTab = 3 } label: {
+            VStack(spacing: 4) {
+                ZStack {
+                    Circle()
+                        .fill(Color.snapsGreen.opacity(liveGlowPulse ? 0.25 : 0.1))
+                        .frame(width: 32, height: 32)
+                    Image(systemName: "flag.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(selectedTab == 3 ? Color.snapsGreen : Color.snapsGreen.opacity(0.85))
+                }
+                Text("Live Round")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundStyle(selectedTab == 3 ? Color.snapsGreen : Color.snapsGreen.opacity(0.85))
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                liveGlowPulse = true
+            }
+        }
     }
 
     func tabButton(icon: String, label: String, tag: Int) -> some View {

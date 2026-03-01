@@ -3,7 +3,7 @@ import SwiftData
 
 struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @State private var game = ActiveGame()
+    @Environment(AppState.self) private var appState
     @State private var showSetup = false
     @State private var showJoinGame = false
     @State private var showModePicker = false
@@ -134,7 +134,7 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showSetup) {
-            SetupView(game: game, isMultiplayer: isMultiplayer)
+            SetupView(game: appState.activeGame, isMultiplayer: isMultiplayer)
         }
         .sheet(isPresented: $showJoinGame) {
             JoinGameView()

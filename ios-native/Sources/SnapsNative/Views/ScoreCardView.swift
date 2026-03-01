@@ -166,9 +166,6 @@ struct ScoreCardView: View {
         .sheet(isPresented: $showResults) {
             ResultsView(game: game)
         }
-        .onChange(of: game.setup == nil) { _, isNil in
-            if isNil { dismiss() }
-        }
     }
 
     // MARK: - Debug: Fill demo scores
@@ -194,7 +191,7 @@ struct ScoreCardView: View {
     var headerBar: some View {
         HStack {
             Button {
-                dismiss()
+                game.reset()
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .bold))
@@ -414,6 +411,7 @@ struct HoleCard: View {
 // MARK: - Player Score Row
 struct PlayerScoreRow: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(AppState.self) private var appState
     @Bindable var game: ActiveGame
     let player: PlayerSnapshot
     let hole: Int
@@ -421,6 +419,10 @@ struct PlayerScoreRow: View {
     @State private var voice = VoiceScoreManager()
 
     private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
+    private var isCurrentUser: Bool {
+        guard let me = appState.currentUser else { return false }
+        return player.name.lowercased() == me.displayName.lowercased()
+    }
 
     var score: Int? { game.getScore(playerId: player.id, hole: hole) }
     var relToPar: Int? { game.relToPar(playerId: player.id, hole: hole) }
@@ -536,22 +538,24 @@ struct PlayerScoreRow: View {
                 }
             }
 
-            // Section 1: Tee Shot Tracker (for par 4/5 holes)
-            // Section 1: Fairway (par 4/5 only)
-            if par >= 4 {
-                TeeShotTracker(dir: fwyDir) { newDir in
-                    game.fairwayDirs[player.id]?[hole] = newDir
+            // Stat trackers — only for the logged-in user
+            if isCurrentUser {
+                // Section 1: Fairway (par 4/5 only)
+                if par >= 4 {
+                    TeeShotTracker(dir: fwyDir) { newDir in
+                        game.fairwayDirs[player.id]?[hole] = newDir
+                    }
                 }
-            }
-            
-            // Section 2: Green (approach shot)
-            GreenTracker(dir: girDir) { newDir in
-                game.greenDirs[player.id]?[hole] = newDir
-            }
-            
-            // Section 3: Putts
-            PuttsTracker(count: puttCount) { newCount in
-                game.putts[player.id]?[hole] = newCount
+
+                // Section 2: Green (approach shot)
+                GreenTracker(dir: girDir) { newDir in
+                    game.greenDirs[player.id]?[hole] = newDir
+                }
+
+                // Section 3: Putts
+                PuttsTracker(count: puttCount) { newCount in
+                    game.putts[player.id]?[hole] = newCount
+                }
             }
         }
         .padding(.horizontal, 8)
