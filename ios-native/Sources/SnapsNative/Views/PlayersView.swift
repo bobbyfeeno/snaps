@@ -21,7 +21,7 @@ struct PlayersView: View {
                     Button { showAddPlayer = true } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 24))
-                            .foregroundStyle(Color(hex: "#39FF14"))
+                            .foregroundStyle(Color.snapsGreen)
                     }
                     Button { dismiss() } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -43,7 +43,7 @@ struct PlayersView: View {
                     List {
                         ForEach(players) { player in
                             PlayerRow(player: player)
-                                .listRowBackground(Color(hex: "#111111"))
+                                .listRowBackground(Color.snapsSurface1)
                                 .onTapGesture { editingPlayer = player }
                         }
                         .onDelete { offsets in
@@ -66,11 +66,11 @@ struct PlayerRow: View {
         HStack(spacing: 14) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: "#39FF14").opacity(0.15))
+                    .fill(Color.snapsGreen.opacity(0.15))
                     .frame(width: 44, height: 44)
                 Text(String(player.name.prefix(2)).uppercased())
                     .font(.system(size: 14, weight: .black))
-                    .foregroundStyle(Color(hex: "#39FF14"))
+                    .foregroundStyle(Color.snapsGreen)
             }
             VStack(alignment: .leading, spacing: 3) {
                 Text(player.name)
@@ -174,7 +174,7 @@ struct PlayerFormView: View {
                     Text(title).font(.system(size: 14, weight: .black)).foregroundStyle(.white).tracking(2)
                     Spacer()
                     Button("Save") { onSave() }
-                        .foregroundStyle(canSave ? Color(hex: "#39FF14") : .gray)
+                        .foregroundStyle(canSave ? Color.snapsGreen : .gray)
                         .disabled(!canSave)
                 }
                 .padding(.horizontal, 20)
@@ -195,5 +195,145 @@ struct PlayerFormView: View {
                 .scrollContentBackground(.hidden)
             }
         }
+    }
+}
+
+// MARK: - Quick Add Player Sheet (used from SetupView)
+
+struct QuickAddPlayerSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let onAdd: (String, Int) -> Void
+
+    @State private var name = ""
+    @State private var handicap = 18
+    @State private var venmo = ""
+    @State private var cashapp = ""
+
+    var body: some View {
+        ZStack {
+            Color.snapsBg.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                // Handle
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.snapsBorder)
+                    .frame(width: 36, height: 4)
+                    .padding(.top, 12)
+
+                // Header
+                HStack {
+                    Text("NEW PLAYER")
+                        .font(.system(size: 18, weight: .black))
+                        .foregroundStyle(.white)
+                    Spacer()
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 24))
+                            .foregroundStyle(.gray)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+
+                ScrollView {
+                    VStack(spacing: 16) {
+
+                        // Name
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("NAME")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.snapsTextMuted)
+                                .tracking(2)
+                            TextField("Player name", text: $name)
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.snapsTextPrimary)
+                                .padding(16)
+                                .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                        }
+
+                        // Handicap
+                        VStack(alignment: .leading, spacing: 10) {
+                            HStack {
+                                Text("HANDICAP")
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundStyle(Color.snapsTextMuted)
+                                    .tracking(2)
+                                Spacer()
+                                Text("\(handicap)")
+                                    .font(.system(size: 22, weight: .black))
+                                    .foregroundStyle(Color.snapsGreen)
+                            }
+                            Slider(
+                                value: Binding(get: { Double(handicap) }, set: { handicap = Int($0) }),
+                                in: 0...54, step: 1
+                            )
+                            .tint(Color.snapsGreen)
+                            HStack {
+                                Text("Scratch")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Color.snapsTextMuted)
+                                Spacer()
+                                Text("54")
+                                    .font(.system(size: 11))
+                                    .foregroundStyle(Color.snapsTextMuted)
+                            }
+                        }
+                        .padding(16)
+                        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+
+                        // Optional: Venmo / CashApp
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("PAYMENT (OPTIONAL)")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(Color.snapsTextMuted)
+                                .tracking(2)
+                            TextField("Venmo @username", text: $venmo)
+                                .font(.system(size: 15))
+                                .foregroundStyle(Color.snapsTextPrimary)
+                                .autocapitalization(.none)
+                                .padding(14)
+                                .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                            TextField("Cash App $cashtag", text: $cashapp)
+                                .font(.system(size: 15))
+                                .foregroundStyle(Color.snapsTextPrimary)
+                                .autocapitalization(.none)
+                                .padding(14)
+                                .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 32)
+                }
+
+                // Add button
+                Button {
+                    guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                    onAdd(name.trimmingCharacters(in: .whitespaces), handicap)
+                    dismiss()
+                } label: {
+                    Text("Add to Round →")
+                        .font(.system(size: 17, weight: .black))
+                        .foregroundStyle(.black)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(
+                            name.trimmingCharacters(in: .whitespaces).isEmpty
+                                ? Color.snapsGreen.opacity(0.4)
+                                : Color.snapsGreen,
+                            in: RoundedRectangle(cornerRadius: 16)
+                        )
+                }
+                .buttonStyle(SnapsButtonStyle())
+                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40)
+            }
+        }
+        .presentationDetents([.large])
+        .presentationDragIndicator(.hidden)
     }
 }

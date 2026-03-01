@@ -172,7 +172,7 @@ struct VoiceScoreButton: View {
                 }
             }
         }
-        .buttonStyle(SpringButtonStyle())
+        .buttonStyle(SnapsButtonStyle())
         .overlay(alignment: .top) {
             if !voice.transcript.isEmpty {
                 Text(voice.transcript)

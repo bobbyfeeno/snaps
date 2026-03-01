@@ -5,9 +5,9 @@ import SwiftUI
 final class AppState {
     static let shared = AppState()
 
-    var repo: any SnapsRepository = MockRepository()
-    var currentUser: UserProfile? = MockData.profiles[0]
-    var isAuthenticated: Bool = true
+    var repo: any SnapsRepository = SupabaseRepository()
+    var currentUser: UserProfile? = nil
+    var isAuthenticated: Bool = false
     var activeSession: GameSession?
     var errorMessage: String?
 

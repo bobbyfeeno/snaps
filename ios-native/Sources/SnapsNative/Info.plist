@@ -38,5 +38,9 @@
         <string>venmo</string>
         <string>cashme</string>
     </array>
+    <key>SUPABASE_URL</key>
+    <string>https://rgehbqlvukwhbtyhvcmx.supabase.co</string>
+    <key>SUPABASE_ANON_KEY</key>
+    <string>sb_publishable_CriSFQoYJo4pM-JAOywFeA_vqFaSehV</string>
 </dict>
 </plist>

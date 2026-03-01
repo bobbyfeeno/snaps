@@ -123,7 +123,7 @@ struct RoundHistoryCard: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("$\(String(format: "%.0f", round.totalPot)) pot")
                             .font(.system(size: 15, weight: .black))
-                            .foregroundStyle(Color(hex: "#39FF14"))
+                            .foregroundStyle(Color.snapsGreen)
 
                         Text("\(round.players.count) players")
                             .font(.system(size: 11))
@@ -150,7 +150,7 @@ struct RoundHistoryCard: View {
                             Spacer()
                             Text(result.netAmount >= 0 ? "+$\(String(format: "%.0f", result.netAmount))" : "-$\(String(format: "%.0f", abs(result.netAmount)))")
                                 .font(.system(size: 14, weight: .bold))
-                                .foregroundStyle(result.netAmount >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
+                                .foregroundStyle(result.netAmount >= 0 ? Color.snapsGreen : Color.snapsDanger)
                         }
                         .padding(.horizontal, 16)
                     }
@@ -158,7 +158,7 @@ struct RoundHistoryCard: View {
                 .padding(.vertical, 12)
             }
         }
-        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 16))
+        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)

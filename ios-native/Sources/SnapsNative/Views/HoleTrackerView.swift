@@ -11,7 +11,7 @@ struct HoleTrackerView: View {
         setup.games.map { $0.mode }.filter { manualModes.contains($0) }
     }
 
-    let manualModes: Set<GameMode> = [.wolf, .bingoBangoBongo, .snake, .ctp, .trouble, .arnies, .banker]
+    let manualModes: Set<GameMode> = [.wolf, .bingoBangoBongo, .snake, .ctp, .trouble, .arnies, .banker, .dots]
 
     var body: some View {
         if activeModes.isEmpty { EmptyView() }
@@ -33,7 +33,7 @@ struct HoleTrackerView: View {
                 }
             }
             .padding(16)
-            .background(Color(hex: "#0e0e0e"), in: RoundedRectangle(cornerRadius: 16))
+            .background(Color.snapsBg, in: RoundedRectangle(cornerRadius: 16))
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
@@ -94,9 +94,22 @@ struct GameTrackerRow: View {
             return "No Arnies"
         case .banker:
             if let s = game.bankerHoles[hole], let id = s.bankerId {
-                return "🏦 " + (setup.players.first(where: { $0.id == id })?.name ?? "?")
+                let name = setup.players.first(where: { $0.id == id })?.name ?? "?"
+                if let amt = s.betAmount {
+                    return "🏦 \(name) · $\(Int(amt))"
+                }
+                return "🏦 " + name
             }
             return "Set Banker"
+        case .dots:
+            let state = game.dotsHoles[hole]
+            var parts: [String] = []
+            if let g = state?.greeniePlayerId, let name = setup.players.first(where: { $0.id == g })?.name {
+                parts.append("🌿 \(name)")
+            }
+            let sandies = state?.sandyPlayerIds.compactMap { id in setup.players.first(where: { $0.id == id })?.name } ?? []
+            if !sandies.isEmpty { parts.append("🏖️ \(sandies.joined(separator: ", "))") }
+            return parts.isEmpty ? "Mark dots" : parts.joined(separator: " · ")
         default:
             return ""
         }
@@ -141,6 +154,7 @@ struct GameTrackerRow: View {
         case .trouble: TroubleTracker(game: game, hole: hole, setup: setup)
         case .arnies:  ArniesTracker(game: game, hole: hole, setup: setup)
         case .banker:  BankerTracker(game: game, hole: hole, setup: setup)
+        case .dots:  DotsTracker(game: game, hole: hole, setup: setup, pars: game.pars)
         default: EmptyView()
         }
     }
@@ -180,10 +194,10 @@ struct WolfTracker: View {
                     } label: {
                         Text("Lone Wolf 🐺")
                             .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(isLoneWolf ? Color(hex: "#39FF14") : .white)
+                            .foregroundStyle(isLoneWolf ? Color.snapsGreen : .white)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            .background(isLoneWolf ? Color(hex: "#39FF14").opacity(0.15) : Color.white.opacity(0.06),
+                            .background(isLoneWolf ? Color.snapsGreen.opacity(0.15) : Color.white.opacity(0.06),
                                         in: RoundedRectangle(cornerRadius: 8))
                     }
                     // Partner from other players
@@ -349,14 +363,87 @@ struct BankerTracker: View {
     let hole: Int
     let setup: GameSetup
 
+    let quickAmounts: [Double] = [1, 2, 5, 10, 20, 50, 100]
+
+    var currentBankerId: String? { game.bankerHoles[hole]?.bankerId }
+    var currentAmount: Double? { game.bankerHoles[hole]?.betAmount }
+
+    func setHole(bankerId: String?, amount: Double?) {
+        if bankerId == nil && amount == nil {
+            game.bankerHoles[hole] = nil
+        } else {
+            game.bankerHoles[hole] = BankerHoleState(bankerId: bankerId, betAmount: amount)
+        }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("Banker this hole").font(.system(size: 12, weight: .bold)).foregroundStyle(.gray)
-            PlayerButtonGrid(players: setup.players, selectedId: game.bankerHoles[hole]?.bankerId) { id in
-                let current = game.bankerHoles[hole]?.bankerId
-                game.bankerHoles[hole] = BankerHoleState(bankerId: id == current ? nil : id)
+        VStack(alignment: .leading, spacing: 12) {
+            // Banker selector
+            VStack(alignment: .leading, spacing: 6) {
+                Text("BANKER THIS HOLE")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.gray)
+                    .tracking(1.5)
+                PlayerButtonGrid(players: setup.players, selectedId: currentBankerId) { id in
+                    let newId = id == currentBankerId ? nil : id
+                    setHole(bankerId: newId, amount: currentAmount)
+                }
+            }
+
+            // Bet amount for this hole
+            if currentBankerId != nil {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("BET THIS HOLE")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(.gray)
+                            .tracking(1.5)
+                        Spacer()
+                        if let amt = currentAmount {
+                            Text("$\(Int(amt))")
+                                .font(.system(size: 14, weight: .black, design: .monospaced))
+                                .foregroundStyle(Color.snapsGreen)
+                        } else {
+                            Text("default")
+                                .font(.system(size: 12))
+                                .foregroundStyle(.gray)
+                        }
+                    }
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            // "Default" pill
+                            Button {
+                                setHole(bankerId: currentBankerId, amount: nil)
+                            } label: {
+                                Text("Default")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(currentAmount == nil ? .black : .white)
+                                    .padding(.horizontal, 14).padding(.vertical, 8)
+                                    .background(currentAmount == nil ? Color.snapsGreen : Color.white.opacity(0.08),
+                                                in: RoundedRectangle(cornerRadius: 8))
+                            }
+
+                            ForEach(quickAmounts, id: \.self) { amt in
+                                Button {
+                                    setHole(bankerId: currentBankerId, amount: amt)
+                                } label: {
+                                    Text("$\(Int(amt))")
+                                        .font(.system(size: 13, weight: .semibold))
+                                        .foregroundStyle(currentAmount == amt ? .black : .white)
+                                        .padding(.horizontal, 14).padding(.vertical, 8)
+                                        .background(currentAmount == amt ? Color.snapsGreen : Color.white.opacity(0.08),
+                                                    in: RoundedRectangle(cornerRadius: 8))
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 2)
+                    }
+                }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+        .animation(.spring(duration: 0.25), value: currentBankerId)
     }
 }
 
@@ -391,8 +478,67 @@ struct PlayerButtonGrid: View {
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(isSelected(player.id) ? .black : .white)
                         .padding(.horizontal, 12).padding(.vertical, 7)
-                        .background(isSelected(player.id) ? Color(hex: "#39FF14") : Color.white.opacity(0.08),
+                        .background(isSelected(player.id) ? Color.snapsGreen : Color.white.opacity(0.08),
                                     in: RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Dots Tracker
+
+struct DotsTracker: View {
+    @Bindable var game: ActiveGame
+    let hole: Int
+    let setup: GameSetup
+    let pars: [Int]
+
+    var par: Int { pars[hole] }
+    var isParThree: Bool { par == 3 }
+    var state: DotsHoleState { game.dotsHoles[hole] ?? DotsHoleState(sandyPlayerIds: [], greeniePlayerId: nil) }
+
+    func updateState(_ new: DotsHoleState) {
+        game.dotsHoles[hole] = new
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Sandy — any hole
+            VStack(alignment: .leading, spacing: 6) {
+                Text("🏖️ SANDY")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(.gray)
+                    .tracking(1.5)
+                Text("Up-and-down from bunker + par or better")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Color.snapsTextMuted)
+                PlayerButtonGrid(players: setup.players, selectedIds: Set(state.sandyPlayerIds)) { id in
+                    var s = state
+                    if s.sandyPlayerIds.contains(id) {
+                        s.sandyPlayerIds.removeAll { $0 == id }
+                    } else {
+                        s.sandyPlayerIds.append(id)
+                    }
+                    updateState(s)
+                }
+            }
+
+            // Greenie — par 3s only
+            if isParThree {
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("🌿 GREENIE")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(.gray)
+                        .tracking(1.5)
+                    Text("Tee shot on green · closest to pin · makes par or better")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.snapsTextMuted)
+                    PlayerButtonGrid(players: setup.players, selectedId: state.greeniePlayerId) { id in
+                        var s = state
+                        s.greeniePlayerId = s.greeniePlayerId == id ? nil : id
+                        updateState(s)
+                    }
                 }
             }
         }

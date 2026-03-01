@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		09FD6851F801AA6A30970381 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 462365EEC14A5685B688C064 /* ResultsView.swift */; };
+		A1B2C3D4E5F6A7B8C9D0E1F2 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6A7B8C9D0E1F2A3 /* DesignSystem.swift */; };
+		C3D4E5F6A7B8C9D0E1F2A3B4 /* RulesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* RulesView.swift */; };
+		E5F6A7B8C9D0E1F2A3B4C5D6 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6A7B8C9D0E1F2A3B4C5D6E7 /* LoginView.swift */; };
 		10B5E9649DBCBCE12CF16D3D /* HoleTrackerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D13FC670494524C095F69C14 /* HoleTrackerView.swift */; };
 		11D5360FBC2D10603A9BFC8B /* GameEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8AA0FFE06DF69F68FC561CD4 /* GameEngine.swift */; };
 		122C67BDA7497449298A6A12 /* GameModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23E12921D7C262C521DB2A82 /* GameModels.swift */; };
@@ -26,10 +29,22 @@
 		E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 621F221A3521D8F46A968B52 /* VoiceScoreEntry.swift */; };
 		E4E6D9A77F06FE2EE1D8FB04 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C7D9C07C821DE159954E1C6 /* HomeView.swift */; };
 		E73820C79A010B93699552C5 /* ScoreCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D5E032759936CA3C160003C /* ScoreCardView.swift */; };
+		F1A2B3C4D5E6F7A8B9C0D1E2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F2A3B4C5D6E7F8A9B0C1D2E3 /* Assets.xcassets */; };
+		AA01BB22CC33DD44EE55FF66 /* StatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB22CC33DD44EE55FF66AA01 /* StatsView.swift */; settings = {}; };
+		EE77FF88AA99BB00CC11DD22 /* YouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF88AA99BB00CC11DD22EE77 /* YouView.swift */; settings = {}; };
+		RDVW001122334455667788AA /* RoundDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = RDVW00AABBCCDDEEFF001122 /* RoundDetailView.swift */; settings = {}; };
+		CC44DD55EE66FF77AA88BB99 /* TourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD55EE66FF77AA88BB99CC44 /* TourView.swift */; settings = {}; };
+		EE55FF66AA77BB88CC99DD00 /* TourView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF66AA77BB88CC99DD00EE55; settings = {}; };
+		DD11EE22FF33AA44BB55CC66 /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF33AA44BB55CC66DD11 /* DemoData.swift */; settings = {}; };
+		FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */; settings = {}; };
+		SUPA00FFEE99887766554433 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = SUPA00AABBCCDDEEFF0011 /* Supabase */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0C7D9C07C821DE159954E1C6 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		B2C3D4E5F6A7B8C9D0E1F2A3 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
+		D4E5F6A7B8C9D0E1F2A3B4C5 /* RulesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesView.swift; sourceTree = "<group>"; };
+		F6A7B8C9D0E1F2A3B4C5D6E7 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		0D5E032759936CA3C160003C /* ScoreCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreCardView.swift; sourceTree = "<group>"; };
 		22C244AEC10EB7379EB2AD4C /* SnapsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapsApp.swift; sourceTree = "<group>"; };
 		23E12921D7C262C521DB2A82 /* GameModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModels.swift; sourceTree = "<group>"; };
@@ -44,12 +59,20 @@
 		812928FFE7F3848E0D3E807C /* SnapsRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapsRepository.swift; sourceTree = "<group>"; };
 		8AA0FFE06DF69F68FC561CD4 /* GameEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameEngine.swift; sourceTree = "<group>"; };
 		96C69C7EF74046DC7E95D429 /* MockRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockRepository.swift; sourceTree = "<group>"; };
+		AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseRepository.swift; sourceTree = "<group>"; };
 		BB3A879F640EB85AE6821EA9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		CA5782914B47D9626184DE39 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		D006CC07E9E751428A9ED4F9 /* PlayersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayersView.swift; sourceTree = "<group>"; };
 		D13FC670494524C095F69C14 /* HoleTrackerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoleTrackerView.swift; sourceTree = "<group>"; };
 		D54C0A461F0F8B3070E02A68 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		F2A3B4C5D6E7F8A9B0C1D2E3 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E50913E4729A53252162F6C0 /* AppModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppModels.swift; sourceTree = "<group>"; };
+		BB22CC33DD44EE55FF66AA01 /* StatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsView.swift; sourceTree = "<group>"; };
+		FF88AA99BB00CC11DD22EE77 /* YouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YouView.swift; sourceTree = "<group>"; };
+		RDVW00AABBCCDDEEFF001122 /* RoundDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundDetailView.swift; sourceTree = "<group>"; };
+		DD55EE66FF77AA88BB99CC44 /* TourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourView.swift; sourceTree = "<group>"; };
+		FF66AA77BB88CC99DD00EE55 /* TourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourView.swift; sourceTree = "<group>"; };
+		EE22FF33AA44BB55CC66DD11 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -59,6 +82,7 @@
 				5C92B6F1AB2A0047A5FAB289 /* AppState.swift */,
 				96C69C7EF74046DC7E95D429 /* MockRepository.swift */,
 				812928FFE7F3848E0D3E807C /* SnapsRepository.swift */,
+				AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -66,6 +90,9 @@
 		236902534EF1381EB69F437B /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				B2C3D4E5F6A7B8C9D0E1F2A3 /* DesignSystem.swift */,
+				D4E5F6A7B8C9D0E1F2A3B4C5 /* RulesView.swift */,
+				F6A7B8C9D0E1F2A3B4C5D6E7 /* LoginView.swift */,
 				6C06D7EF00D8EA5256647C6E /* HistoryView.swift */,
 				D13FC670494524C095F69C14 /* HoleTrackerView.swift */,
 				0C7D9C07C821DE159954E1C6 /* HomeView.swift */,
@@ -78,6 +105,12 @@
 				0D5E032759936CA3C160003C /* ScoreCardView.swift */,
 				CA5782914B47D9626184DE39 /* SetupView.swift */,
 				621F221A3521D8F46A968B52 /* VoiceScoreEntry.swift */,
+				BB22CC33DD44EE55FF66AA01 /* StatsView.swift */,
+				FF88AA99BB00CC11DD22EE77 /* YouView.swift */,
+				RDVW00AABBCCDDEEFF001122 /* RoundDetailView.swift */,
+				DD55EE66FF77AA88BB99CC44 /* TourView.swift */,
+				FF66AA77BB88CC99DD00EE55 /* TourView.swift */,
+				EE22FF33AA44BB55CC66DD11 /* DemoData.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -94,6 +127,7 @@
 			isa = PBXGroup;
 			children = (
 				D54C0A461F0F8B3070E02A68 /* Info.plist */,
+				F2A3B4C5D6E7F8A9B0C1D2E3 /* Assets.xcassets */,
 				22C244AEC10EB7379EB2AD4C /* SnapsApp.swift */,
 				71F6F75F8AA89FC42B4AAB11 /* Models */,
 				0F3AF08DA3A9F987DD8F57E9 /* Services */,
@@ -123,11 +157,24 @@
 		};
 /* End PBXGroup section */
 
+/* Begin PBXFrameworksBuildPhase section */
+		FRAM001122334455667788 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				SUPA00FFEE99887766554433 /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
 /* Begin PBXNativeTarget section */
 		FE4F65D90927304D47CED699 /* SnapsNative */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = CCC87951B39C47B79FA46C9A /* Build configuration list for PBXNativeTarget "SnapsNative" */;
 			buildPhases = (
+				FRAM001122334455667788 /* Frameworks */,
+				A9B8C7D6E5F4A3B2C1D0E9F8 /* Resources */,
 				3C02118898587591BD2C692C /* Sources */,
 			);
 			buildRules = (
@@ -136,6 +183,7 @@
 			);
 			name = SnapsNative;
 			packageProductDependencies = (
+				SUPA00AABBCCDDEEFF0011 /* Supabase */,
 			);
 			productName = SnapsNative;
 			productReference = 2CA663E57B65A265E55BCDB0 /* SnapsNative.app */;
@@ -168,17 +216,53 @@
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
+			packageReferences = (
+				SUPA0011223344556677AA /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
 			targets = (
 				FE4F65D90927304D47CED699 /* SnapsNative */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		SUPA0011223344556677AA /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = "2.0.0";
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		SUPA00AABBCCDDEEFF0011 /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = SUPA0011223344556677AA /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
+
+/* Begin PBXResourcesBuildPhase section */
+		A9B8C7D6E5F4A3B2C1D0E9F8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F1A2B3C4D5E6F7A8B9C0D1E2 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
 		3C02118898587591BD2C692C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D4E5F6A7B8C9D0E1F2 /* DesignSystem.swift in Sources */,
+				C3D4E5F6A7B8C9D0E1F2A3B4 /* RulesView.swift in Sources */,
+				E5F6A7B8C9D0E1F2A3B4C5D6 /* LoginView.swift in Sources */,
 				14F1193635949771CFDA8231 /* AppModels.swift in Sources */,
 				41649F355DED5A7677711976 /* AppState.swift in Sources */,
 				11D5360FBC2D10603A9BFC8B /* GameEngine.swift in Sources */,
@@ -195,8 +279,15 @@
 				E73820C79A010B93699552C5 /* ScoreCardView.swift in Sources */,
 				58B0DE1E6EF50EE3B5BDA66B /* ScorecardGridView.swift in Sources */,
 				4B92DD9653F263E0CBFE3326 /* SetupView.swift in Sources */,
+				AA01BB22CC33DD44EE55FF66 /* StatsView.swift in Sources */,
+				EE77FF88AA99BB00CC11DD22 /* YouView.swift in Sources */,
+				RDVW001122334455667788AA /* RoundDetailView.swift in Sources */,
+				CC44DD55EE66FF77AA88BB99 /* TourView.swift in Sources */,
+				EE55FF66AA77BB88CC99DD00 /* TourView.swift in Sources */,
+				DD11EE22FF33AA44BB55CC66 /* DemoData.swift in Sources */,
 				2D4344CD6C1E38A8DACF89D7 /* SnapsApp.swift in Sources */,
 				91651F7C34A1159AE98543F0 /* SnapsRepository.swift in Sources */,
+				FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */,
 				E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -215,7 +306,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.qchay.snaps;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bobbyfeeno.snaps;
 				PRODUCT_NAME = Snaps;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -355,7 +446,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.qchay.snaps;
+				PRODUCT_BUNDLE_IDENTIFIER = com.bobbyfeeno.snaps;
 				PRODUCT_NAME = Snaps;
 				SDKROOT = iphoneos;
 				SWIFT_EMIT_LOC_STRINGS = YES;

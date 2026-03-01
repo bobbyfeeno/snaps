@@ -38,10 +38,10 @@ struct ProfileView: View {
             // Avatar
             ZStack {
                 Circle()
-                    .fill(LinearGradient(colors: [Color(hex: "#39FF14"), Color(hex: "#1a7005")],
+                    .fill(LinearGradient(colors: [Color.snapsGreen, Color(hex: "#1a7005")],
                                         startPoint: .topLeading, endPoint: .bottomTrailing))
                     .frame(width: 88, height: 88)
-                    .shadow(color: Color(hex: "#39FF14").opacity(0.4), radius: 16)
+                    .shadow(color: Color.snapsGreen.opacity(0.4), radius: 16)
                 Text(String(user.displayName.prefix(2)).uppercased())
                     .font(.system(size: 32, weight: .black))
                     .foregroundStyle(.black)
@@ -57,9 +57,9 @@ struct ProfileView: View {
                 if user.handicap > 0 {
                     Text("HCP \(user.handicap)")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(Color(hex: "#39FF14"))
+                        .foregroundStyle(Color.snapsGreen)
                         .padding(.horizontal, 10).padding(.vertical, 4)
-                        .background(Color(hex: "#39FF14").opacity(0.12), in: Capsule())
+                        .background(Color.snapsGreen.opacity(0.12), in: Capsule())
                 }
             }
 
@@ -87,7 +87,7 @@ struct ProfileView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 20))
+        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 20))
         .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
         .padding(.horizontal, 20)
         .padding(.top, 16)
@@ -101,7 +101,7 @@ struct ProfileView: View {
                 statCard("Rounds", value: "\(stats.roundsPlayed)", icon: "flag.fill", color: .white)
                 statCard("Winnings", value: stats.totalWinnings >= 0 ? "+$\(Int(stats.totalWinnings))" : "-$\(Int(abs(stats.totalWinnings)))",
                          icon: "dollarsign.circle.fill",
-                         color: stats.totalWinnings >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
+                         color: stats.totalWinnings >= 0 ? Color.snapsGreen : Color.snapsDanger)
                 statCard("Win Rate", value: "\(Int(stats.winRate * 100))%", icon: "trophy.fill", color: .yellow)
                 statCard("Best Score", value: stats.bestScore.map { "\($0)" } ?? "—", icon: "star.fill", color: .orange)
                 statCard("Avg Score", value: stats.roundsPlayed > 0 ? "\(Int(stats.averageScore))" : "—",
@@ -125,7 +125,7 @@ struct ProfileView: View {
         }
         .frame(width: 90)
         .padding(.vertical, 16)
-        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
     }
 
@@ -141,7 +141,7 @@ struct ProfileView: View {
 
             if loading {
                 ProgressView()
-                    .tint(Color(hex: "#39FF14"))
+                    .tint(Color.snapsGreen)
                     .frame(maxWidth: .infinity)
                     .padding()
             } else if history.isEmpty {
@@ -187,7 +187,7 @@ struct RoundHistoryRow: View {
         HStack(spacing: 14) {
             // Win/loss indicator
             RoundedRectangle(cornerRadius: 4)
-                .fill(round.netWinnings >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
+                .fill(round.netWinnings >= 0 ? Color.snapsGreen : Color.snapsDanger)
                 .frame(width: 4)
                 .frame(height: 52)
 
@@ -205,14 +205,14 @@ struct RoundHistoryRow: View {
             VStack(alignment: .trailing, spacing: 3) {
                 Text(round.netWinnings >= 0 ? "+$\(Int(round.netWinnings))" : "-$\(Int(abs(round.netWinnings)))")
                     .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(round.netWinnings >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
+                    .foregroundStyle(round.netWinnings >= 0 ? Color.snapsGreen : Color.snapsDanger)
                 Text("Score: \(round.totalScore)")
                     .font(.system(size: 11))
                     .foregroundStyle(.gray)
             }
         }
         .padding(.horizontal, 16).padding(.vertical, 10)
-        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 14))
+        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 14))
         .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(Color.white.opacity(0.05), lineWidth: 1))
         .padding(.horizontal, 20)
     }
@@ -241,8 +241,8 @@ struct EditProfileView: View {
                     Button {
                         Task { await save() }
                     } label: {
-                        if saving { ProgressView().tint(Color(hex: "#39FF14")) }
-                        else { Text("Save").foregroundStyle(Color(hex: "#39FF14")) }
+                        if saving { ProgressView().tint(Color.snapsGreen) }
+                        else { Text("Save").foregroundStyle(Color.snapsGreen) }
                     }
                     .disabled(saving)
                 }

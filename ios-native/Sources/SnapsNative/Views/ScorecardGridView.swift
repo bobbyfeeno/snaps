@@ -7,6 +7,9 @@ struct ScorecardGridView: View {
     @Bindable var game: ActiveGame
     let setup: GameSetup
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
 
     // Live money calc
     var liveNet: [String: Double] {
@@ -18,7 +21,7 @@ struct ScorecardGridView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            theme.bg.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header bar
@@ -26,16 +29,16 @@ struct ScorecardGridView: View {
                     Button { dismiss() } label: {
                         Image(systemName: "chevron.left")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(theme.textPrimary)
                             .frame(width: 44, height: 44)
-                            .background(Color.white.opacity(0.08), in: Circle())
+                            .background(theme.surface2, in: Circle())
                     }
 
                     Spacer()
 
                     Text("SCORECARD")
                         .font(.system(size: 16, weight: .black))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(theme.textPrimary)
                         .tracking(2)
 
                     Spacer()
@@ -64,19 +67,28 @@ struct ScorecardGridView: View {
                     VStack(spacing: 2) {
                         Text(player.name)
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(.gray)
+                            .foregroundStyle(theme.textSecondary)
                         Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
-                            .font(.system(size: 15, weight: .black))
-                            .foregroundStyle(net > 0 ? Color(hex: "#39FF14") : net < 0 ? Color(hex: "#ff4444") : .gray)
+                            .font(.system(size: 15, weight: .black, design: .monospaced))
+                            .foregroundStyle(net > 0 ? Color.snapsGreen : net < 0 ? Color.snapsDanger : theme.textSecondary)
                             .contentTransition(.numericText())
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 10)
-                            .fill(net > 0 ? Color(hex: "#39FF14").opacity(0.08) : net < 0 ? Color(hex: "#ff4444").opacity(0.08) : Color.white.opacity(0.05))
-                            .overlay(RoundedRectangle(cornerRadius: 10)
-                                .strokeBorder(net > 0 ? Color(hex: "#39FF14").opacity(0.3) : net < 0 ? Color(hex: "#ff4444").opacity(0.3) : Color.white.opacity(0.06), lineWidth: 1))
+                            .fill(net > 0 ? Color.snapsGreen.opacity(0.08) :
+                                  net < 0 ? Color.snapsDanger.opacity(0.08) :
+                                  theme.surface2)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .strokeBorder(
+                                        net > 0 ? Color.snapsGreen.opacity(0.3) :
+                                        net < 0 ? Color.snapsDanger.opacity(0.3) :
+                                        theme.border,
+                                        lineWidth: 1
+                                    )
+                            )
                     )
                 }
             }
@@ -106,13 +118,13 @@ struct ScorecardGridView: View {
             HStack {
                 Text(label == "OUT" ? "FRONT 9" : "BACK 9")
                     .font(.system(size: 11, weight: .black))
-                    .foregroundStyle(Color(hex: "#39FF14"))
+                    .foregroundStyle(Color.snapsGreen)
                     .tracking(2)
                 Spacer()
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color(hex: "#0a0a0a"))
+            .background(theme.bg)
 
             // Scrollable hole columns
             ScrollView(.horizontal, showsIndicators: false) {
@@ -123,33 +135,31 @@ struct ScorecardGridView: View {
                     // Par row
                     parRow(start: start, end: end, label: label)
 
-                    Divider().background(Color(hex: "#39FF14").opacity(0.3))
+                    Divider().background(Color.snapsGreen.opacity(0.3))
 
                     // Player score rows
                     ForEach(Array(setup.players.enumerated()), id: \.element.id) { idx, player in
                         playerScoreRow(player: player, start: start, end: end, label: label)
                         if idx < setup.players.count - 1 {
-                            Divider().background(Color.white.opacity(0.04))
+                            Divider().background(theme.border.opacity(0.5))
                         }
                     }
                 }
             }
         }
-        .background(Color(hex: "#0d0d0d"))
+        .background(theme.surface1)
         .overlay(
-            RoundedRectangle(cornerRadius: 0)
-                .strokeBorder(Color.white.opacity(0.06), lineWidth: 1)
+            Rectangle()
+                .strokeBorder(theme.border, lineWidth: 1)
         )
-        .padding(.horizontal, 0)
         .padding(.bottom, 2)
     }
 
     func holeHeaderRow(start: Int, end: Int, label: String) -> some View {
         HStack(spacing: 0) {
-            // Player name column header
             Text("PLAYER")
                 .font(.system(size: 10, weight: .bold))
-                .foregroundStyle(.gray)
+                .foregroundStyle(theme.textMuted)
                 .tracking(1)
                 .frame(width: 90, alignment: .leading)
                 .padding(.horizontal, 12)
@@ -157,46 +167,46 @@ struct ScorecardGridView: View {
 
             ForEach(start..<end, id: \.self) { hole in
                 Text("\(hole + 1)")
-                    .font(.system(size: 12, weight: .black))
-                    .foregroundStyle(.gray)
+                    .font(.system(size: 12, weight: .black, design: .monospaced))
+                    .foregroundStyle(theme.textSecondary)
                     .frame(width: 44)
                     .padding(.vertical, 10)
             }
 
             Text(label)
                 .font(.system(size: 11, weight: .black))
-                .foregroundStyle(.gray)
+                .foregroundStyle(theme.textSecondary)
                 .frame(width: 44)
                 .padding(.vertical, 10)
         }
-        .background(Color(hex: "#111111"))
+        .background(theme.surface2)
     }
 
     func parRow(start: Int, end: Int, label: String) -> some View {
         HStack(spacing: 0) {
             Text("PAR")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(Color(hex: "#39FF14"))
+                .foregroundStyle(Color.snapsGreen)
                 .frame(width: 90, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
 
             ForEach(start..<end, id: \.self) { hole in
                 Text("\(game.pars[hole])")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color(hex: "#39FF14"))
+                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .foregroundStyle(Color.snapsGreen)
                     .frame(width: 44)
                     .padding(.vertical, 8)
             }
 
             let nineTotal = game.pars[start..<end].reduce(0, +)
             Text("\(nineTotal)")
-                .font(.system(size: 13, weight: .black))
-                .foregroundStyle(Color(hex: "#39FF14"))
+                .font(.system(size: 13, weight: .black, design: .monospaced))
+                .foregroundStyle(Color.snapsGreen)
                 .frame(width: 44)
                 .padding(.vertical, 8)
         }
-        .background(Color(hex: "#0d0d0d"))
+        .background(theme.surface1)
     }
 
     func playerScoreRow(player: PlayerSnapshot, start: Int, end: Int, label: String) -> some View {
@@ -206,11 +216,11 @@ struct ScorecardGridView: View {
             VStack(alignment: .leading, spacing: 1) {
                 Text(player.name)
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(theme.textPrimary)
                     .lineLimit(1)
                 Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(net >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
+                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .foregroundStyle(net >= 0 ? Color.snapsGreen : Color.snapsDanger)
             }
             .frame(width: 90, alignment: .leading)
             .padding(.horizontal, 12)
@@ -230,12 +240,12 @@ struct ScorecardGridView: View {
                 if let t = nineTotal {
                     let diff = t - ninePar
                     Text("\(t)")
-                        .font(.system(size: 13, weight: .black))
-                        .foregroundStyle(diff < 0 ? Color(hex: "#39FF14") : diff == 0 ? .white : Color(hex: "#ff4444"))
+                        .font(.system(size: 13, weight: .black, design: .monospaced))
+                        .foregroundStyle(diff < 0 ? Color.snapsGreen : diff == 0 ? theme.textPrimary : Color.snapsDanger)
                 } else {
                     Text("—")
                         .font(.system(size: 13))
-                        .foregroundStyle(.gray.opacity(0.4))
+                        .foregroundStyle(theme.textMuted)
                 }
             }
             .frame(width: 44)
@@ -254,13 +264,13 @@ struct ScorecardGridView: View {
                     // Background shape based on score
                     scoreBadge(rel: r)
                     Text("\(s)")
-                        .font(.system(size: 13, weight: .bold))
+                        .font(.system(size: 13, weight: .bold, design: .monospaced))
                         .foregroundStyle(scoreTextColor(rel: r))
                 }
             } else {
                 Text("·")
                     .font(.system(size: 18))
-                    .foregroundStyle(.gray.opacity(0.3))
+                    .foregroundStyle(theme.textMuted)
             }
         }
         .frame(width: 44, height: 40)
@@ -272,50 +282,50 @@ struct ScorecardGridView: View {
             // Eagle or better: double circle (gold)
             ZStack {
                 Circle()
-                    .strokeBorder(Color.yellow.opacity(0.8), lineWidth: 1.5)
+                    .strokeBorder(Color.scoreEagle.opacity(0.8), lineWidth: 1.5)
                     .frame(width: 28, height: 28)
                 Circle()
-                    .strokeBorder(Color.yellow.opacity(0.4), lineWidth: 1)
+                    .strokeBorder(Color.scoreEagle.opacity(0.4), lineWidth: 1)
                     .frame(width: 22, height: 22)
                 Circle()
-                    .fill(Color.yellow.opacity(0.15))
+                    .fill(Color.scoreEagle.opacity(0.15))
                     .frame(width: 22, height: 22)
             }
         } else if rel == -1 {
             // Birdie: circle (green)
             Circle()
-                .strokeBorder(Color(hex: "#39FF14").opacity(0.8), lineWidth: 1.5)
-                .background(Circle().fill(Color(hex: "#39FF14").opacity(0.12)))
+                .strokeBorder(Color.scoreBirdie.opacity(0.8), lineWidth: 1.5)
+                .background(Circle().fill(Color.scoreBirdie.opacity(0.12)))
                 .frame(width: 28, height: 28)
         } else if rel == 0 {
-            // Par: no decoration, just text
+            // Par: no decoration
             Color.clear.frame(width: 28, height: 28)
         } else if rel == 1 {
             // Bogey: square (light red)
             RoundedRectangle(cornerRadius: 3)
-                .strokeBorder(Color(hex: "#ff6666").opacity(0.7), lineWidth: 1.5)
-                .background(RoundedRectangle(cornerRadius: 3).fill(Color(hex: "#ff4444").opacity(0.08)))
+                .strokeBorder(Color.snapsDanger.opacity(0.6), lineWidth: 1.5)
+                .background(RoundedRectangle(cornerRadius: 3).fill(Color.snapsDanger.opacity(0.08)))
                 .frame(width: 28, height: 28)
         } else {
             // Double bogey+: double square (red)
             ZStack {
                 RoundedRectangle(cornerRadius: 3)
-                    .strokeBorder(Color(hex: "#ff4444").opacity(0.8), lineWidth: 1.5)
+                    .strokeBorder(Color.scoreDouble.opacity(0.85), lineWidth: 1.5)
                     .frame(width: 28, height: 28)
                 RoundedRectangle(cornerRadius: 2)
-                    .strokeBorder(Color(hex: "#ff4444").opacity(0.4), lineWidth: 1)
-                    .background(RoundedRectangle(cornerRadius: 2).fill(Color(hex: "#ff4444").opacity(0.1)))
+                    .strokeBorder(Color.scoreDouble.opacity(0.4), lineWidth: 1)
+                    .background(RoundedRectangle(cornerRadius: 2).fill(Color.scoreDouble.opacity(0.12)))
                     .frame(width: 22, height: 22)
             }
         }
     }
 
     func scoreTextColor(rel: Int) -> Color {
-        if rel <= -2 { return .yellow }
-        if rel == -1 { return Color(hex: "#39FF14") }
-        if rel == 0  { return .white }
-        if rel == 1  { return Color(hex: "#ff6666") }
-        return Color(hex: "#ff4444")
+        if rel <= -2 { return Color.scoreEagle }
+        if rel == -1 { return Color.scoreBirdie }
+        if rel == 0  { return Color.scorePar }
+        if rel == 1  { return Color.scoreBogey }
+        return Color.scoreDouble
     }
 
     // MARK: - Totals Row
@@ -323,19 +333,18 @@ struct ScorecardGridView: View {
     var totalsRow: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             VStack(spacing: 0) {
-                Divider().background(Color(hex: "#39FF14").opacity(0.4))
+                Divider().background(Color.snapsGreen.opacity(0.4))
 
                 HStack(spacing: 0) {
                     Text("TOTAL")
                         .font(.system(size: 11, weight: .black))
-                        .foregroundStyle(Color(hex: "#39FF14"))
+                        .foregroundStyle(Color.snapsGreen)
                         .tracking(1)
                         .frame(width: 90, alignment: .leading)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 12)
 
-                    // Spacer for holes (18 * 44)
-                    ForEach(0..<18, id: \.self) { hole in
+                    ForEach(0..<18, id: \.self) { _ in
                         Color.clear.frame(width: 44)
                     }
 
@@ -344,16 +353,16 @@ struct ScorecardGridView: View {
                 }
 
                 ForEach(setup.players) { player in
-                    Divider().background(Color.white.opacity(0.04))
+                    Divider().background(theme.border.opacity(0.5))
                     HStack(spacing: 0) {
                         VStack(alignment: .leading, spacing: 2) {
                             Text(player.name)
                                 .font(.system(size: 13, weight: .semibold))
-                                .foregroundStyle(.white)
+                                .foregroundStyle(theme.textPrimary)
                             let net = liveNet[player.name] ?? 0
                             Text(net >= 0 ? "+$\(Int(net))" : "-$\(Int(abs(net)))")
-                                .font(.system(size: 11, weight: .black))
-                                .foregroundStyle(net >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
+                                .font(.system(size: 11, weight: .black, design: .monospaced))
+                                .foregroundStyle(net >= 0 ? Color.snapsGreen : Color.snapsDanger)
                         }
                         .frame(width: 90, alignment: .leading)
                         .padding(.horizontal, 12)
@@ -375,7 +384,7 @@ struct ScorecardGridView: View {
                 }
             }
         }
-        .background(Color(hex: "#111111"))
+        .background(theme.surface1)
     }
 
     func totalCell(scores: [Int], pars: [Int], isGrand: Bool = false) -> some View {
@@ -387,12 +396,12 @@ struct ScorecardGridView: View {
         return Group {
             if hasData {
                 Text("\(total)")
-                    .font(.system(size: 14, weight: isGrand ? .black : .bold))
-                    .foregroundStyle(diff < 0 ? Color(hex: "#39FF14") : diff == 0 ? .white : Color(hex: "#ff6666"))
+                    .font(.system(size: 14, weight: isGrand ? .black : .bold, design: .monospaced))
+                    .foregroundStyle(diff < 0 ? Color.snapsGreen : diff == 0 ? theme.textPrimary : Color.snapsDanger)
             } else {
                 Text("—")
                     .font(.system(size: 13))
-                    .foregroundStyle(.gray.opacity(0.3))
+                    .foregroundStyle(theme.textMuted)
             }
         }
         .frame(width: 44)

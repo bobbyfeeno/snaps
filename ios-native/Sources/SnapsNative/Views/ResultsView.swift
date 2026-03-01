@@ -4,8 +4,22 @@ struct ResultsView: View {
     let game: ActiveGame
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @State private var revealedCount = 0
+    @Environment(\.colorScheme) private var colorScheme
+
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
+
+    // Round save state
+    @State private var roundSaved = false
+
+    // Reveal sequencing
+    @State private var showWinnerName = false
+    @State private var showWinnerCard = false
+    @State private var winnerAmountDisplay: Double = 0
+    @State private var showLoserCards = false
+    @State private var showPayments = false
+    @State private var showActionButtons = false
     @State private var showConfetti = false
+    @State private var neonGlowBurst = false
 
     var results: [PlayerResult] {
         guard let setup = game.setup else { return [] }
@@ -17,8 +31,10 @@ struct ResultsView: View {
         extras.trouble = game.troubleHoles
         extras.arnies = game.arniesHoles
         extras.banker = game.bankerHoles
+        extras.dots = game.dotsHoles
         extras.vegasTeamA = setup.vegasTeamA
         extras.vegasTeamB = setup.vegasTeamB
+        extras.pressMatches = game.pressMatches
         let engineResult = calcAllGames(
             players: setup.players, games: setup.games, scores: game.scores, extras: extras)
         return setup.players.map { player in
@@ -29,10 +45,11 @@ struct ResultsView: View {
     }
 
     var winner: PlayerResult? { results.first }
+    var losers: [PlayerResult] { Array(results.dropFirst()) }
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            theme.bg.ignoresSafeArea()
 
             if showConfetti {
                 ConfettiView()
@@ -41,94 +58,221 @@ struct ResultsView: View {
             }
 
             ScrollView {
-                VStack(spacing: 24) {
-                    // Title
-                    VStack(spacing: 4) {
-                        Text("RESULTS")
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundStyle(.gray)
-                            .tracking(4)
-                            .padding(.top, 24)
+                VStack(spacing: 28) {
 
-                        if let w = winner, revealedCount == results.count {
-                            Text("🏆 \(w.name) Wins!")
-                                .font(.system(size: 28, weight: .black))
-                                .foregroundStyle(Color(hex: "#39FF14"))
-                                .shadow(color: Color(hex: "#39FF14").opacity(0.5), radius: 10)
-                                .transition(.scale.combined(with: .opacity))
+                    // Header label
+                    Text("RESULTS")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundStyle(theme.textSecondary)
+                        .tracking(4)
+                        .padding(.top, 28)
+                        .opacity(showWinnerName ? 1 : 0)
+
+                    // Winner reveal block
+                    if let w = winner {
+                        VStack(spacing: 20) {
+
+                            // Winner name slides up
+                            if showWinnerName {
+                                VStack(spacing: 4) {
+                                    Text("🏆")
+                                        .font(.system(size: 40))
+                                    Text(w.name)
+                                        .font(.system(size: 34, weight: .black))
+                                        .foregroundStyle(theme.textPrimary)
+                                }
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                            }
+
+                            // Winner card with count-up amount
+                            if showWinnerCard {
+                                HStack {
+                                    // Rank
+                                    Text("#1")
+                                        .font(.system(size: 18, weight: .black, design: .monospaced))
+                                        .foregroundStyle(Color.snapsNeon)
+                                        .frame(width: 40)
+
+                                    // Name + label
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(w.name)
+                                            .font(.system(size: 18, weight: .bold))
+                                            .foregroundStyle(theme.textPrimary)
+                                        Text("Champion")
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundStyle(Color.snapsNeon)
+                                    }
+
+                                    Spacer()
+
+                                    // Count-up amount
+                                    Text("+$\(String(format: "%.0f", winnerAmountDisplay))")
+                                        .font(.system(size: 26, weight: .black, design: .monospaced))
+                                        .foregroundStyle(Color.snapsNeon)
+                                        .shadow(color: Color.snapsNeon.opacity(neonGlowBurst ? 0.9 : 0.4),
+                                                radius: neonGlowBurst ? 24 : 8)
+                                        .contentTransition(.numericText())
+                                }
+                                .padding(20)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(Color.snapsNeon.opacity(0.06))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 16)
+                                                .strokeBorder(Color.snapsNeon.opacity(0.25), lineWidth: 1)
+                                        )
+                                )
+                                .shadow(color: Color.snapsNeon.opacity(neonGlowBurst ? 0.25 : 0.08), radius: 20)
+                                .transition(.move(edge: .bottom).combined(with: .opacity))
+                            }
                         }
                     }
 
-                    // Result cards
-                    ForEach(Array(results.enumerated()), id: \.element.id) { index, result in
-                        if index < revealedCount {
-                            ResultCard(result: result, rank: index + 1, isWinner: index == 0)
+                    // Loser cards
+                    if showLoserCards {
+                        VStack(spacing: 12) {
+                            ForEach(Array(losers.enumerated()), id: \.element.id) { index, result in
+                                LoserResultCard(result: result, rank: index + 2)
+                                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                            }
+                        }
+                    }
+
+                    // Payment section — bounces in last
+                    if showPayments {
+                        let payers = results.filter { $0.netAmount < 0 }
+                        if !payers.isEmpty {
+                            paymentSection(payers: payers)
                                 .transition(.move(edge: .bottom).combined(with: .opacity))
                         }
                     }
 
-                    // Payment section
-                    if revealedCount == results.count {
-                        let payers = results.filter { $0.netAmount < 0 }
-                        if !payers.isEmpty {
-                            paymentSection(payers: payers)
-                                .transition(.opacity)
-                        }
-
-                        // Share button
-                        Button {
-                            shareResults()
-                        } label: {
-                            HStack {
-                                Image(systemName: "square.and.arrow.up")
-                                Text("Share Summary")
+                    // Action buttons
+                    if showActionButtons {
+                        VStack(spacing: 12) {
+                            Button {
+                                shareResults()
+                            } label: {
+                                HStack {
+                                    Image(systemName: "square.and.arrow.up")
+                                    Text("Share Summary")
+                                }
+                                .font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(theme.textPrimary)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 52)
+                                .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
                             }
-                            .font(.system(size: 16, weight: .bold))
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 52)
-                            .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 14))
+                            .buttonStyle(SnapsButtonStyle())
+
+                            Button("Done") {
+                                dismiss()
+                            }
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(theme.textSecondary)
+                            .padding(.bottom, 32)
                         }
                         .padding(.horizontal, 20)
-                        .transition(.opacity)
-
-                        Button("Done") {
-                            game.reset()
-                            dismiss()
-                        }
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.gray)
-                        .padding(.bottom, 32)
                         .transition(.opacity)
                     }
                 }
                 .padding(.horizontal, 20)
             }
         }
-        .onAppear { revealNext() }
+        .onAppear {
+            startRevealSequence()
+            saveRound()
+        }
+        .onDisappear {
+            game.reset()
+        }
     }
 
-    func revealNext() {
-        guard revealedCount < results.count else {
-            withAnimation(.spring(duration: 0.5)) {
-                showConfetti = revealedCount > 0
+    // MARK: - Save Round
+
+    func saveRound() {
+        guard !roundSaved, let setup = game.setup else { return }
+        roundSaved = true
+
+        let record = RoundRecord(
+            players: setup.players,
+            pars: game.pars,
+            games: setup.games,
+            results: results,
+            scores: game.scores,
+            fairwayDirs: game.fairwayDirs,
+            greenDirs: game.greenDirs,
+            putts: game.putts
+        )
+        modelContext.insert(record)
+        try? modelContext.save()
+    }
+
+    // MARK: - Reveal Sequence
+
+    func startRevealSequence() {
+        // Step 1: After 300ms — winner name slides up
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
+                showWinnerName = true
             }
-            return
         }
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        withAnimation(.spring(duration: 0.5)) {
-            revealedCount += 1
+
+        // Step 2: After 750ms — winner card appears
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.75) {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.7)) {
+                showWinnerCard = true
+            }
+
+            // Haptic at reveal
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+
+            // Neon glow burst
+            withAnimation(.easeOut(duration: 0.3)) {
+                neonGlowBurst = true
+            }
+            withAnimation(.easeInOut(duration: 0.8).delay(0.3)) {
+                neonGlowBurst = false
+            }
+
+            // Count-up amount animation
+            if let w = winner {
+                withAnimation(.easeInOut(duration: 1.2)) {
+                    winnerAmountDisplay = max(0, w.netAmount)
+                }
+            }
+
+            // Confetti
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(.spring(duration: 0.4)) {
+                    showConfetti = true
+                }
+            }
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-            revealNext()
+
+        // Step 3: After 1.6s — loser cards
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) {
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.75)) {
+                showLoserCards = true
+            }
+        }
+
+        // Step 4: After 2.2s — payment section bounces in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7)) {
+                showPayments = true
+                showActionButtons = true
+            }
         }
     }
+
+    // MARK: - Payment Section
 
     func paymentSection(payers: [PlayerResult]) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("COLLECT PAYMENTS")
                 .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(.gray)
+                .foregroundStyle(theme.textSecondary)
                 .tracking(3)
                 .padding(.horizontal, 20)
 
@@ -137,6 +281,8 @@ struct ResultsView: View {
             }
         }
     }
+
+    // MARK: - Share
 
     func shareResults() {
         let dateStr = Date().formatted(date: .abbreviated, time: .omitted)
@@ -153,95 +299,97 @@ struct ResultsView: View {
     }
 }
 
-// MARK: - Result Card
-struct ResultCard: View {
+// MARK: - Loser Result Card
+struct LoserResultCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let result: PlayerResult
     let rank: Int
-    let isWinner: Bool
     @State private var appear = false
+
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
 
     var body: some View {
         HStack {
             // Rank
             Text("#\(rank)")
-                .font(.system(size: 18, weight: .black))
-                .foregroundStyle(isWinner ? Color(hex: "#39FF14") : .gray)
+                .font(.system(size: 18, weight: .black, design: .monospaced))
+                .foregroundStyle(theme.textSecondary)
                 .frame(width: 40)
 
             // Name
             VStack(alignment: .leading, spacing: 2) {
                 Text(result.name)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundStyle(.white)
-                if isWinner {
-                    Text("Champion")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(Color(hex: "#39FF14"))
-                }
+                    .foregroundStyle(theme.textPrimary)
             }
 
             Spacer()
 
-            // Amount
-            Text(result.netAmount >= 0 ? "+$\(String(format: "%.0f", result.netAmount))" : "-$\(String(format: "%.0f", abs(result.netAmount)))")
-                .font(.system(size: 26, weight: .black))
-                .foregroundStyle(result.netAmount >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444"))
-                .shadow(color: result.netAmount >= 0 ? Color(hex: "#39FF14").opacity(0.4) : Color(hex: "#ff4444").opacity(0.3), radius: 8)
+            // Amount — red for losers
+            Text("-$\(String(format: "%.0f", abs(result.netAmount)))")
+                .font(.system(size: 26, weight: .black, design: .monospaced))
+                .foregroundStyle(Color.snapsDanger)
+                .shadow(color: Color.snapsDanger.opacity(0.3), radius: 6)
                 .contentTransition(.numericText())
         }
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(isWinner ? Color(hex: "#39FF14").opacity(0.08) : Color(hex: "#111111"))
+                .fill(theme.surface1)
                 .overlay(
                     RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(isWinner ? Color(hex: "#39FF14").opacity(0.3) : Color.white.opacity(0.06), lineWidth: 1)
+                        .strokeBorder(theme.border, lineWidth: 1)
                 )
         )
-        .shadow(color: isWinner ? Color(hex: "#39FF14").opacity(0.1) : .clear, radius: 12)
+        .shadow(color: .black.opacity(0.4), radius: 10, y: 3)
         .scaleEffect(appear ? 1.0 : 0.95)
-        .onAppear { withAnimation(.spring(duration: 0.4)) { appear = true } }
+        .onAppear {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) { appear = true }
+        }
     }
 }
 
 // MARK: - Payment Row
 struct PaymentRow: View {
+    @Environment(\.colorScheme) private var colorScheme
     let payer: PlayerResult
     let receivers: [PlayerResult]
+
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("\(payer.name) owes")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.gray)
+                    .foregroundStyle(theme.textSecondary)
                 Text("$\(String(format: "%.0f", abs(payer.netAmount)))")
                     .font(.system(size: 14, weight: .black))
-                    .foregroundStyle(Color(hex: "#ff4444"))
+                    .foregroundStyle(Color.snapsDanger)
             }
             .padding(.horizontal, 20)
 
             HStack(spacing: 10) {
                 if !payer.venmoHandle.isEmpty {
-                    payButton(label: "Pay via Venmo", color: Color(hex: "#3D95CE")) {
+                    payButton(label: "Pay via Venmo", color: Color.snapsVenmo) {
                         openVenmo(handle: payer.venmoHandle, amount: abs(payer.netAmount))
                     }
                 }
                 if !payer.cashappHandle.isEmpty {
-                    payButton(label: "Pay via Cash App", color: Color(hex: "#00D632")) {
+                    payButton(label: "Pay via Cash App", color: Color.snapsCashApp) {
                         openCashApp(tag: payer.cashappHandle, amount: abs(payer.netAmount))
                     }
                 }
                 if payer.venmoHandle.isEmpty && payer.cashappHandle.isEmpty {
                     Text("No payment handles saved")
                         .font(.system(size: 12))
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(theme.textSecondary)
                 }
             }
             .padding(.horizontal, 20)
         }
         .padding(.vertical, 8)
-        .background(Color(hex: "#0f0f0f"), in: RoundedRectangle(cornerRadius: 12))
+        .background(theme.surface1, in: RoundedRectangle(cornerRadius: 12))
     }
 
     func payButton(label: String, color: Color, action: @escaping () -> Void) -> some View {
@@ -253,6 +401,7 @@ struct PaymentRow: View {
                 .padding(.vertical, 10)
                 .background(color, in: RoundedRectangle(cornerRadius: 10))
         }
+        .buttonStyle(SnapsButtonStyle())
     }
 
     func openVenmo(handle: String, amount: Double) {
@@ -289,8 +438,7 @@ struct ConfettiView: View {
         }
         .onAppear {
             for _ in 0..<80 {
-                let p = ConfettiParticle()
-                particles.append(p)
+                particles.append(ConfettiParticle())
             }
             withAnimation(.linear(duration: 2.5)) {
                 for i in particles.indices {
@@ -306,7 +454,8 @@ struct ConfettiView: View {
 struct ConfettiParticle: Identifiable {
     let id = UUID()
     var position = CGPoint(x: CGFloat.random(in: 0...400), y: CGFloat.random(in: -50...100))
-    var color = [Color(hex: "#39FF14"), Color.yellow, Color.white, Color.cyan, Color.orange].randomElement()!
+    // Keep colorful confetti — intentionally multi-color including neon
+    var color = [Color.snapsNeon, Color.yellow, Color.white, Color.cyan, Color.orange].randomElement()!
     var size = CGFloat.random(in: 4...10)
     var opacity = 1.0
 }

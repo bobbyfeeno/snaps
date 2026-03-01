@@ -24,19 +24,59 @@ struct SnapsApp: App {
 
 struct RootView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.modelContext) private var modelContext
     @State private var selectedTab = 0
-    @State private var showCreateGame = false
-    @State private var showJoinGame = false
-    @State private var createdSession: GameSession?
+    @State private var isLoggedIn: Bool = false
+    @AppStorage("isDarkMode") private var isDarkMode = true
 
     var body: some View {
+        ZStack {
+            if isLoggedIn {
+                mainTabView
+                    .transition(.opacity)
+            } else {
+                LoginView(isLoggedIn: $isLoggedIn)
+                    .transition(.opacity)
+            }
+        }
+        .preferredColorScheme(isDarkMode ? .dark : .light)
+        .animation(.easeInOut(duration: 0.3), value: isLoggedIn)
+        .onAppear {
+            DemoData.seedIfNeeded(context: modelContext)
+            Task {
+                if let repo = appState.repo as? SupabaseRepository {
+                    // 1. Try to restore existing session
+                    await repo.restoreSession()
+
+                    if repo.currentUser() != nil {
+                        appState.currentUser = repo.currentUser()
+                        withAnimation { isLoggedIn = true }
+                    } else {
+                        // 2. Beta: auto-login with test account
+                        do {
+                            let profile = try await repo.signIn(
+                                email: "neocognita@gmail.com",
+                                password: "Flaming0andKoval"
+                            )
+                            appState.currentUser = profile
+                            withAnimation { isLoggedIn = true }
+                        } catch {
+                            // Auto-login failed — show login screen normally
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    var mainTabView: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
                 HomeView()
                     .tag(0)
-                LeaderboardView()
+                YouView()
                     .tag(1)
-                ProfileView()
+                TourView()
                     .tag(2)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
@@ -45,42 +85,13 @@ struct RootView: View {
             // Custom tab bar
             customTabBar
         }
-        .preferredColorScheme(.dark)
-        .sheet(isPresented: $showJoinGame) { JoinGameView() }
-        .sheet(item: $createdSession) { session in LobbyView(session: session) }
     }
 
     var customTabBar: some View {
         HStack(spacing: 0) {
             tabButton(icon: "house.fill", label: "Home", tag: 0)
-            tabButton(icon: "trophy.fill", label: "Leaders", tag: 1)
-            
-            // Create Game button (center)
-            Button {
-                showCreateGame = true
-            } label: {
-                VStack(spacing: 3) {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(colors: [Color(hex: "#52FF20"), Color(hex: "#1a7005")],
-                                                startPoint: .top, endPoint: .bottom))
-                            .frame(width: 52, height: 52)
-                            .shadow(color: Color(hex: "#39FF14").opacity(0.5), radius: 10, y: 3)
-                        Image(systemName: "plus")
-                            .font(.system(size: 22, weight: .black))
-                            .foregroundStyle(.black)
-                    }
-                    Text("New Game").font(.system(size: 10, weight: .bold)).foregroundStyle(Color(hex: "#39FF14"))
-                }
-            }
-            .buttonStyle(SpringButtonStyle())
-            .sheet(isPresented: $showCreateGame) {
-                CreateGameView { session in
-                    createdSession = session
-                }
-            }
-            
-            tabButton(icon: "person.fill", label: "Profile", tag: 2)
+            tabButton(icon: "person.fill", label: "You", tag: 1)
+            tabButton(icon: "chart.xyaxis.line", label: "Pro Data", tag: 2)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -96,10 +107,10 @@ struct RootView: View {
             VStack(spacing: 4) {
                 Image(systemName: icon)
                     .font(.system(size: 22))
-                    .foregroundStyle(selectedTab == tag ? Color(hex: "#39FF14") : .gray)
+                    .foregroundStyle(selectedTab == tag ? Color.snapsGreen : .gray)
                 Text(label)
                     .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(selectedTab == tag ? Color(hex: "#39FF14") : .gray)
+                    .foregroundStyle(selectedTab == tag ? Color.snapsGreen : .gray)
             }
             .frame(maxWidth: .infinity)
         }
@@ -136,7 +147,7 @@ struct CreateGameView: View {
                     Spacer()
                     HStack(spacing: 6) {
                         ForEach(0..<totalSteps, id: \.self) { i in
-                            Circle().fill(i == step ? Color(hex: "#39FF14") : Color.gray.opacity(0.3))
+                            Circle().fill(i == step ? Color.snapsGreen : Color.gray.opacity(0.3))
                                 .frame(width: 8, height: 8)
                         }
                     }
@@ -158,17 +169,17 @@ struct CreateGameView: View {
                                         Spacer()
                                         Image(systemName: sel ? "checkmark.circle.fill" : "circle")
                                             .font(.system(size: 22))
-                                            .foregroundStyle(sel ? Color(hex: "#39FF14") : .gray.opacity(0.4))
+                                            .foregroundStyle(sel ? Color.snapsGreen : .gray.opacity(0.4))
                                     }
                                     .padding(16)
                                     .background(
                                         RoundedRectangle(cornerRadius: 14)
-                                            .fill(sel ? Color(hex: "#39FF14").opacity(0.08) : Color(hex: "#111111"))
+                                            .fill(sel ? Color.snapsGreen.opacity(0.08) : Color.snapsSurface1)
                                             .overlay(RoundedRectangle(cornerRadius: 14)
-                                                .strokeBorder(sel ? Color(hex: "#39FF14").opacity(0.4) : Color.white.opacity(0.06), lineWidth: 1))
+                                                .strokeBorder(sel ? Color.snapsGreen.opacity(0.4) : Color.white.opacity(0.06), lineWidth: 1))
                                     )
                                 }
-                                .buttonStyle(SpringButtonStyle())
+                                .buttonStyle(SnapsButtonStyle())
                             }
                         }
                         .padding(.horizontal, 20).padding(.top, 8)
@@ -187,10 +198,10 @@ struct CreateGameView: View {
                             .font(.system(size: 17, weight: .black)).foregroundStyle(.black) }
                     }
                     .frame(maxWidth: .infinity).frame(height: 56)
-                    .background(LinearGradient(colors: [Color(hex: "#52FF20"), Color(hex: "#1fa005")], startPoint: .top, endPoint: .bottom),
+                    .background(LinearGradient(colors: [Color.snapsGreen, Color(hex: "#16803B")], startPoint: .top, endPoint: .bottom),
                                 in: RoundedRectangle(cornerRadius: 16))
                 }
-                .buttonStyle(SpringButtonStyle())
+                .buttonStyle(SnapsButtonStyle())
                 .padding(.horizontal, 20).padding(.bottom, 40)
             }
         }

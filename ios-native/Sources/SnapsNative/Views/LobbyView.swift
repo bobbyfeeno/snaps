@@ -64,18 +64,18 @@ struct LobbyView: View {
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 58)
                                 .background(
-                                    LinearGradient(colors: [Color(hex: "#52FF20"), Color(hex: "#1fa005")], startPoint: .top, endPoint: .bottom),
+                                    LinearGradient(colors: [Color.snapsGreen, Color(hex: "#16803B")], startPoint: .top, endPoint: .bottom),
                                     in: RoundedRectangle(cornerRadius: 16)
                                 )
-                                .shadow(color: Color(hex: "#39FF14").opacity(0.4), radius: 12, y: 4)
+                                .shadow(color: Color.snapsGreen.opacity(0.4), radius: 12, y: 4)
                             }
-                            .buttonStyle(SpringButtonStyle())
+                            .buttonStyle(SnapsButtonStyle())
                             .padding(.horizontal, 20)
                             .disabled(currentSession.players.count < 2)
                         } else {
                             // Waiting for host
                             HStack(spacing: 10) {
-                                ProgressView().tint(Color(hex: "#39FF14"))
+                                ProgressView().tint(Color.snapsGreen)
                                 Text("Waiting for host to start...")
                                     .font(.system(size: 14)).foregroundStyle(.gray)
                             }
@@ -101,8 +101,8 @@ struct LobbyView: View {
 
             Text(currentSession.joinCode)
                 .font(.system(size: 48, weight: .black, design: .monospaced))
-                .foregroundStyle(Color(hex: "#39FF14"))
-                .shadow(color: Color(hex: "#39FF14").opacity(0.5), radius: 12)
+                .foregroundStyle(Color.snapsGreen)
+                .shadow(color: Color.snapsGreen.opacity(0.5), radius: 12)
 
             Button {
                 UIPasteboard.general.string = currentSession.joinCode
@@ -119,8 +119,8 @@ struct LobbyView: View {
         }
         .padding(24)
         .frame(maxWidth: .infinity)
-        .background(Color(hex: "#39FF14").opacity(0.06), in: RoundedRectangle(cornerRadius: 20))
-        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color(hex: "#39FF14").opacity(0.2), lineWidth: 1))
+        .background(Color.snapsGreen.opacity(0.06), in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(Color.snapsGreen.opacity(0.2), lineWidth: 1))
         .padding(.horizontal, 20)
     }
 
@@ -137,7 +137,7 @@ struct LobbyView: View {
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 16))
+        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
         .padding(.horizontal, 20)
     }
@@ -148,7 +148,7 @@ struct LobbyView: View {
                 Text("PLAYERS").font(.system(size: 11, weight: .bold)).foregroundStyle(.gray).tracking(2)
                 Spacer()
                 Text("\(currentSession.players.count) joined")
-                    .font(.system(size: 12)).foregroundStyle(Color(hex: "#39FF14"))
+                    .font(.system(size: 12)).foregroundStyle(Color.snapsGreen)
             }
 
             ForEach(currentSession.players) { player in
@@ -156,12 +156,12 @@ struct LobbyView: View {
                     ZStack {
                         Circle()
                             .fill(player.userId == currentSession.hostId ?
-                                  Color(hex: "#39FF14").opacity(0.2) : Color.white.opacity(0.08))
+                                  Color.snapsGreen.opacity(0.2) : Color.white.opacity(0.08))
                             .frame(width: 40, height: 40)
                         Text(String(player.displayName.prefix(2)).uppercased())
                             .font(.system(size: 13, weight: .black))
                             .foregroundStyle(player.userId == currentSession.hostId ?
-                                             Color(hex: "#39FF14") : .white)
+                                             Color.snapsGreen : .white)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
@@ -170,9 +170,9 @@ struct LobbyView: View {
                             if player.userId == currentSession.hostId {
                                 Text("HOST")
                                     .font(.system(size: 10, weight: .black))
-                                    .foregroundStyle(Color(hex: "#39FF14"))
+                                    .foregroundStyle(Color.snapsGreen)
                                     .padding(.horizontal, 6).padding(.vertical, 2)
-                                    .background(Color(hex: "#39FF14").opacity(0.15), in: Capsule())
+                                    .background(Color.snapsGreen.opacity(0.15), in: Capsule())
                             }
                         }
                         Text("TM \(player.taxman)")
@@ -181,14 +181,14 @@ struct LobbyView: View {
                     Spacer()
                     // Online indicator
                     Circle()
-                        .fill(Color(hex: "#39FF14"))
+                        .fill(Color.snapsGreen)
                         .frame(width: 8, height: 8)
-                        .shadow(color: Color(hex: "#39FF14"), radius: 4)
+                        .shadow(color: Color.snapsGreen, radius: 4)
                 }
             }
         }
         .padding(16)
-        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 16))
+        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
         .padding(.horizontal, 20)
     }
@@ -282,20 +282,20 @@ struct JoinGameView: View {
                     // Code input
                     TextField("SNAP01", text: $code)
                         .font(.system(size: 36, weight: .black, design: .monospaced))
-                        .foregroundStyle(Color(hex: "#39FF14"))
+                        .foregroundStyle(Color.snapsGreen)
                         .multilineTextAlignment(.center)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
                         .keyboardType(.asciiCapable)
                         .onChange(of: code) { _, v in code = String(v.prefix(6)).uppercased() }
                         .padding(20)
-                        .background(Color(hex: "#111111"), in: RoundedRectangle(cornerRadius: 16))
+                        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
                         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(
-                            code.count == 6 ? Color(hex: "#39FF14").opacity(0.5) : Color.white.opacity(0.08), lineWidth: 1))
+                            code.count == 6 ? Color.snapsGreen.opacity(0.5) : Color.white.opacity(0.08), lineWidth: 1))
 
                     if let err = error {
                         Text(err)
-                            .font(.system(size: 13)).foregroundStyle(Color(hex: "#ff4444"))
+                            .font(.system(size: 13)).foregroundStyle(Color.snapsDanger)
                             .multilineTextAlignment(.center)
                     }
 
@@ -313,13 +313,13 @@ struct JoinGameView: View {
                         .frame(maxWidth: .infinity).frame(height: 56)
                         .background(
                             code.count == 6 ?
-                            LinearGradient(colors: [Color(hex: "#52FF20"), Color(hex: "#1fa005")], startPoint: .top, endPoint: .bottom) :
+                            LinearGradient(colors: [Color.snapsGreen, Color(hex: "#16803B")], startPoint: .top, endPoint: .bottom) :
                             LinearGradient(colors: [Color.gray.opacity(0.2), Color.gray.opacity(0.15)], startPoint: .top, endPoint: .bottom),
                             in: RoundedRectangle(cornerRadius: 16)
                         )
                     }
                     .disabled(code.count != 6 || loading)
-                    .buttonStyle(SpringButtonStyle())
+                    .buttonStyle(SnapsButtonStyle())
                 }
                 .padding(.horizontal, 32)
 

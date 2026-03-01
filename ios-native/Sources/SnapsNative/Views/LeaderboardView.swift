@@ -27,7 +27,7 @@ struct LeaderboardView: View {
                     Spacer()
                     Text("2026")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(Color(hex: "#39FF14"))
+                        .foregroundStyle(Color.snapsGreen)
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 16)
@@ -46,7 +46,7 @@ struct LeaderboardView: View {
                                     .padding(.horizontal, 14).padding(.vertical, 8)
                                     .background(
                                         selectedStat == stat ?
-                                        Color(hex: "#39FF14") : Color.white.opacity(0.08),
+                                        Color.snapsGreen : Color.white.opacity(0.08),
                                         in: Capsule()
                                     )
                             }
@@ -58,7 +58,7 @@ struct LeaderboardView: View {
 
                 if loading {
                     Spacer()
-                    ProgressView().tint(Color(hex: "#39FF14"))
+                    ProgressView().tint(Color.snapsGreen)
                     Spacer()
                 } else {
                     ScrollView {
@@ -144,8 +144,8 @@ struct LeaderboardRow: View {
 
     var valueColor: Color {
         switch statType {
-        case .winnings: return entry.totalWinnings >= 0 ? Color(hex: "#39FF14") : Color(hex: "#ff4444")
-        case .winRate:  return entry.winRate > 0.5 ? Color(hex: "#39FF14") : .white
+        case .winnings: return entry.totalWinnings >= 0 ? Color.snapsGreen : Color.snapsDanger
+        case .winRate:  return entry.winRate > 0.5 ? Color.snapsGreen : .white
         default: return .white
         }
     }
@@ -177,11 +177,11 @@ struct LeaderboardRow: View {
             // Avatar + name
             ZStack {
                 Circle()
-                    .fill(isCurrentUser ? Color(hex: "#39FF14").opacity(0.2) : Color.white.opacity(0.08))
+                    .fill(isCurrentUser ? Color.snapsGreen.opacity(0.2) : Color.white.opacity(0.08))
                     .frame(width: 40, height: 40)
                 Text(String(entry.displayName.prefix(2)).uppercased())
                     .font(.system(size: 13, weight: .black))
-                    .foregroundStyle(isCurrentUser ? Color(hex: "#39FF14") : .white)
+                    .foregroundStyle(isCurrentUser ? Color.snapsGreen : .white)
             }
 
             VStack(alignment: .leading, spacing: 2) {
@@ -192,9 +192,9 @@ struct LeaderboardRow: View {
                     if isCurrentUser {
                         Text("YOU")
                             .font(.system(size: 9, weight: .black))
-                            .foregroundStyle(Color(hex: "#39FF14"))
+                            .foregroundStyle(Color.snapsGreen)
                             .padding(.horizontal, 5).padding(.vertical, 2)
-                            .background(Color(hex: "#39FF14").opacity(0.15), in: Capsule())
+                            .background(Color.snapsGreen.opacity(0.15), in: Capsule())
                     }
                 }
                 Text("\(entry.roundsPlayed) rounds")
@@ -212,9 +212,9 @@ struct LeaderboardRow: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(isCurrentUser ? Color(hex: "#39FF14").opacity(0.06) : Color(hex: "#111111"))
+                .fill(isCurrentUser ? Color.snapsGreen.opacity(0.06) : Color.snapsSurface1)
                 .overlay(RoundedRectangle(cornerRadius: 16)
-                    .strokeBorder(isCurrentUser ? Color(hex: "#39FF14").opacity(0.25) : Color.white.opacity(0.05), lineWidth: 1))
+                    .strokeBorder(isCurrentUser ? Color.snapsGreen.opacity(0.25) : Color.white.opacity(0.05), lineWidth: 1))
         )
         .shadow(color: rank == 1 ? .yellow.opacity(0.1) : .clear, radius: 8)
     }

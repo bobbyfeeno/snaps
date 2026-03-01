@@ -2,79 +2,66 @@ import SwiftUI
 import SwiftData
 
 struct HomeView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: \RoundRecord.date, order: .reverse) private var rounds: [RoundRecord]
+    @Environment(\.colorScheme) private var colorScheme
     @State private var game = ActiveGame()
     @State private var showSetup = false
-    @State private var showHistory = false
-    @State private var showPlayers = false
     @State private var glowPulse = false
     @State private var logoScale: CGFloat = 0.85
     @State private var buttonsOffset: CGFloat = 40
     @State private var buttonsOpacity: Double = 0
+    @AppStorage("isDarkMode") private var isDarkMode = true
+
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
 
     var body: some View {
         ZStack {
             // Background
-            Color.black.ignoresSafeArea()
+            theme.bg.ignoresSafeArea()
 
-            // Radial glow behind logo
+            // Subtle green glow at top center — very faint texture
             RadialGradient(
-                colors: [Color(hex: "#39FF14").opacity(0.08), .clear],
+                colors: [Color.snapsGreen.opacity(0.04), .clear],
                 center: .top,
                 startRadius: 0,
-                endRadius: 400
+                endRadius: 420
             )
             .ignoresSafeArea()
+            .allowsHitTesting(false)
 
             VStack(spacing: 0) {
                 Spacer()
 
                 // Logo / Title
                 VStack(spacing: 8) {
-                    Text("SNAPS")
-                        .font(.system(size: 72, weight: .black, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [Color(hex: "#60FF28"), Color(hex: "#1a7005")],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .shadow(color: Color(hex: "#39FF14").opacity(glowPulse ? 0.9 : 0.3), radius: 20)
+                    Image("logo")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 260, height: 160)
+                        .shadow(color: Color.snapsGreen.opacity(glowPulse ? 0.45 : 0.15), radius: 24)
                         .scaleEffect(logoScale)
 
-                    Text("Golf Betting Scorecard")
+                    Text("bet that.")
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.gray)
+                        .foregroundStyle(theme.textSecondary)
                         .opacity(buttonsOpacity)
                 }
                 .padding(.bottom, 48)
-
-                // Recent round summary
-                if let lastRound = rounds.first {
-                    recentRoundChip(round: lastRound)
-                        .opacity(buttonsOpacity)
-                        .padding(.bottom, 24)
-                }
 
                 // Buttons
                 VStack(spacing: 14) {
                     // Start Round
                     Button {
+                        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         showSetup = true
                     } label: {
                         ZStack {
-                            LinearGradient(
-                                colors: [Color(hex: "#60FF28"), Color(hex: "#28a808"), Color(hex: "#1a7005")],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            // Flat green fill
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.snapsGreen)
 
-                            // Specular
+                            // Subtle top highlight
                             LinearGradient(
-                                colors: [.white.opacity(0.4), .clear],
+                                colors: [.white.opacity(0.18), .clear],
                                 startPoint: .top,
                                 endPoint: .center
                             )
@@ -85,25 +72,44 @@ struct HomeView: View {
                                 .foregroundStyle(.black)
                         }
                         .frame(height: 60)
-                        .shadow(color: Color(hex: "#39FF14").opacity(glowPulse ? 0.7 : 0.3), radius: 20, y: 8)
+                        .shadow(color: Color.snapsGreen.opacity(glowPulse ? 0.45 : 0.20), radius: 18, y: 6)
                     }
-                    .buttonStyle(SpringButtonStyle())
+                    .buttonStyle(SnapsButtonStyle())
+                    .accessibilityLabel("Start a new golf round")
+                    .accessibilityHint("Opens game setup")
 
-                    // Secondary buttons
-                    HStack(spacing: 12) {
-                        secondaryButton("Past Rounds", icon: "clock.arrow.trianglehead.counterclockwise.rotate.90") {
-                            showHistory = true
-                        }
-                        secondaryButton("Players", icon: "person.2.fill") {
-                            showPlayers = true
-                        }
-                    }
                 }
                 .padding(.horizontal, 32)
                 .offset(y: buttonsOffset)
                 .opacity(buttonsOpacity)
 
                 Spacer()
+                Spacer()
+            }
+            
+            // Dark/Light mode toggle — top right (must be last in ZStack for tap priority)
+            VStack {
+                HStack {
+                    Spacer()
+                    Button {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            isDarkMode.toggle()
+                        }
+                    } label: {
+                        Image(systemName: isDarkMode ? "moon.fill" : "sun.max.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(isDarkMode ? theme.textSecondary : theme.gold)
+                            .frame(width: 44, height: 44)
+                            .background(theme.surface2, in: Circle())
+                            .overlay(Circle().strokeBorder(theme.border, lineWidth: 1))
+                            .contentShape(Circle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isDarkMode ? "Switch to light mode" : "Switch to dark mode")
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 12)
                 Spacer()
             }
         }
@@ -115,47 +121,13 @@ struct HomeView: View {
                 buttonsOffset = 0
                 buttonsOpacity = 1
             }
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            withAnimation(.easeInOut(duration: 1.4).repeatForever(autoreverses: true)) {
                 glowPulse = true
             }
         }
         .sheet(isPresented: $showSetup) {
             SetupView(game: game)
         }
-        .sheet(isPresented: $showHistory) {
-            HistoryView()
-        }
-        .sheet(isPresented: $showPlayers) {
-            PlayersView()
-        }
-    }
-
-    func recentRoundChip(round: RoundRecord) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "trophy.fill")
-                .foregroundStyle(Color(hex: "#39FF14"))
-                .font(.system(size: 14))
-
-            if let winner = round.winner {
-                Text("\(winner.name) won $\(String(format: "%.0f", winner.netAmount))")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
-            }
-
-            Spacer()
-
-            Text(round.date, style: .relative)
-                .font(.system(size: 11))
-                .foregroundStyle(.gray)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .strokeBorder(Color(hex: "#39FF14").opacity(0.2), lineWidth: 1)
-        )
-        .padding(.horizontal, 32)
     }
 
     func secondaryButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
@@ -166,42 +138,18 @@ struct HomeView: View {
                 Text(title)
                     .font(.system(size: 15, weight: .bold))
             }
-            .foregroundStyle(Color(hex: "#c0c0c0"))
+            .foregroundStyle(theme.textSecondary)
             .frame(maxWidth: .infinity)
             .frame(height: 52)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(hex: "#1a1a1a"))
+                    .fill(theme.surface2)
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .strokeBorder(Color.white.opacity(0.07), lineWidth: 1)
+                            .strokeBorder(theme.border, lineWidth: 1)
                     )
             )
         }
-        .buttonStyle(SpringButtonStyle())
-    }
-}
-
-// MARK: - Spring Button Style
-struct SpringButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
-            .animation(.spring(duration: 0.2), value: configuration.isPressed)
-    }
-}
-
-// MARK: - Color Hex Extension
-extension Color {
-    init(hex: String) {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 6: (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        default: (a, r, g, b) = (255, 0, 0, 0)
-        }
-        self.init(.sRGB, red: Double(r)/255, green: Double(g)/255, blue: Double(b)/255, opacity: Double(a)/255)
+        .buttonStyle(SnapsButtonStyle())
     }
 }

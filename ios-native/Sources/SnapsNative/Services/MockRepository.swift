@@ -196,8 +196,8 @@ enum MockError: Error, LocalizedError {
 
 struct MockData {
     static let profiles: [UserProfile] = [
-        UserProfile(id: "user-qchay", username: "qchay", displayName: "Q",
-                    venmoHandle: "qchay", cashappHandle: "$qchay", handicap: 12, createdAt: .distantPast),
+        UserProfile(id: "user-bobby", username: "bobbyfeeno", displayName: "Bobby",
+                    venmoHandle: "bobbyfeeno", cashappHandle: "$bobbyfeeno", handicap: 12, createdAt: .distantPast),
         UserProfile(id: "user-bobby", username: "bobby", displayName: "Bobby",
                     venmoHandle: "bobbygolf", cashappHandle: "$bobbygolf", handicap: 8, createdAt: .distantPast),
         UserProfile(id: "user-tyler", username: "tyler", displayName: "Tyler",
@@ -210,7 +210,7 @@ struct MockData {
         GameSession(
             id: "session-demo",
             joinCode: "SNAPS1",
-            hostId: "user-qchay",
+            hostId: "user-bobby",
             courseName: "Shadow Hawk Golf Club",
             pars: [4,4,3,5,4,4,3,5,4, 4,3,5,4,4,3,5,4,4],
             gameModes: [
@@ -220,7 +220,7 @@ struct MockData {
             status: .active,
             vegasTeamA: [], vegasTeamB: [],
             players: [
-                SessionPlayer(id: "sp1", userId: "user-qchay", displayName: "Q", taxman: 90, venmoHandle: "qchay", cashappHandle: "$qchay"),
+                SessionPlayer(id: "sp1", userId: "user-bobby", displayName: "Bobby", taxman: 90, venmoHandle: "bobbyfeeno", cashappHandle: "$bobbyfeeno"),
                 SessionPlayer(id: "sp2", userId: "user-bobby", displayName: "Bobby", taxman: 88, venmoHandle: "bobbygolf", cashappHandle: "$bobbygolf"),
                 SessionPlayer(id: "sp3", userId: "user-tyler", displayName: "Tyler", taxman: 92, venmoHandle: "tyler99", cashappHandle: "$tyler99"),
             ],
@@ -233,7 +233,7 @@ struct MockData {
         LiveScores(
             sessionId: sessionId,
             scoresByPlayer: [
-                "user-qchay": [4,5,3,5,4,nil,nil,nil,nil, nil,nil,nil,nil,nil,nil,nil,nil,nil],
+                "user-bobby": [4,5,3,5,4,nil,nil,nil,nil, nil,nil,nil,nil,nil,nil,nil,nil,nil],
                 "user-bobby": [4,4,4,5,3,nil,nil,nil,nil, nil,nil,nil,nil,nil,nil,nil,nil,nil],
                 "user-tyler": [5,4,3,6,4,nil,nil,nil,nil, nil,nil,nil,nil,nil,nil,nil,nil,nil],
             ],
