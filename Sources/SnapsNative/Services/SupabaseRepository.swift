@@ -242,6 +242,21 @@ final class SupabaseRepository: SnapsRepository {
             .execute()
     }
 
+    func submitTrackingData(sessionId: String, fairwayDirs: [String?], greenDirs: [String?], putts: [Int?]) async throws {
+        guard let user = _currentUser else { throw SnapsError.notAuthenticated }
+        let upsert = TrackingDataUpsert(
+            sessionId: sessionId,
+            playerId: user.id,
+            fairwayDirs: fairwayDirs.map { $0 ?? "" },
+            greenDirs: greenDirs.map { $0 ?? "" },
+            putts: putts.map { $0 ?? -1 }
+        )
+        try await client
+            .from("live_tracking")
+            .upsert(upsert, onConflict: "session_id,player_id")
+            .execute()
+    }
+
     func submitHoleState(sessionId: String, hole: Int, state: HoleStateData) async throws {
         let encoded = try JSONEncoder().encode(state)
         let jsonStr = String(data: encoded, encoding: .utf8) ?? "{}"
@@ -557,6 +572,21 @@ private struct SessionPlayerInsert: Encodable {
         case taxman
         case venmoHandle   = "venmo_handle"
         case cashappHandle = "cashapp_handle"
+    }
+}
+
+private struct TrackingDataUpsert: Encodable {
+    let sessionId: String
+    let playerId: String
+    let fairwayDirs: [String]
+    let greenDirs: [String]
+    let putts: [Int]
+    enum CodingKeys: String, CodingKey {
+        case sessionId   = "session_id"
+        case playerId    = "player_id"
+        case fairwayDirs = "fairway_dirs"
+        case greenDirs   = "green_dirs"
+        case putts
     }
 }
 

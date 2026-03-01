@@ -4,6 +4,8 @@ import SwiftUI
 
 struct LobbyView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
     let session: GameSession
     @State private var currentSession: GameSession
     @State private var polling = false
@@ -20,7 +22,7 @@ struct LobbyView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            theme.bg.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Header
@@ -28,11 +30,11 @@ struct LobbyView: View {
                     Button {
                         Task { try? await appState.repo.leaveSession(sessionId: currentSession.id); dismiss() }
                     } label: {
-                        Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundStyle(.gray)
+                        Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundStyle(theme.textMuted)
                     }
                     Spacer()
                     Text("LOBBY")
-                        .font(.system(size: 16, weight: .black)).foregroundStyle(.white).tracking(2)
+                        .font(.system(size: 16, weight: .black)).foregroundStyle(theme.textPrimary).tracking(2)
                     Spacer()
                     // Placeholder for alignment
                     Image(systemName: "xmark.circle.fill").font(.system(size: 24)).opacity(0)
@@ -77,7 +79,7 @@ struct LobbyView: View {
                             HStack(spacing: 10) {
                                 ProgressView().tint(Color.snapsGreen)
                                 Text("Waiting for host to start...")
-                                    .font(.system(size: 14)).foregroundStyle(.gray)
+                                    .font(.system(size: 14)).foregroundStyle(theme.textMuted)
                             }
                             .padding()
                         }
@@ -97,7 +99,7 @@ struct LobbyView: View {
     var joinCodeCard: some View {
         VStack(spacing: 8) {
             Text("INVITE CODE")
-                .font(.system(size: 11, weight: .bold)).foregroundStyle(.gray).tracking(3)
+                .font(.system(size: 11, weight: .bold)).foregroundStyle(theme.textMuted).tracking(3)
 
             Text(currentSession.joinCode)
                 .font(.system(size: 48, weight: .black, design: .monospaced))
@@ -109,13 +111,13 @@ struct LobbyView: View {
             } label: {
                 Label("Copy Code", systemImage: "doc.on.doc")
                     .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(theme.textPrimary)
                     .padding(.horizontal, 16).padding(.vertical, 8)
                     .background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
             }
 
             Text("Friends open Snaps → Join Game → enter this code")
-                .font(.system(size: 11)).foregroundStyle(.gray).multilineTextAlignment(.center)
+                .font(.system(size: 11)).foregroundStyle(theme.textMuted).multilineTextAlignment(.center)
         }
         .padding(24)
         .frame(maxWidth: .infinity)
@@ -126,26 +128,26 @@ struct LobbyView: View {
 
     var gameInfoCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("GAME INFO").font(.system(size: 11, weight: .bold)).foregroundStyle(.gray).tracking(2)
+            Text("GAME INFO").font(.system(size: 11, weight: .bold)).foregroundStyle(theme.textMuted).tracking(2)
 
             if let course = currentSession.courseName {
                 infoRow("⛳", label: "Course", value: course)
             }
-            infoRow("🎮", label: "Games", value: currentSession.gameModes.map {
+            infoRow("⛳", label: "Games", value: currentSession.gameModes.map {
                 $0.mode.capitalized.replacingOccurrences(of: "-", with: " ")
             }.joined(separator: ", "))
         }
         .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
+        .background(theme.surface1, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(theme.border, lineWidth: 1))
         .padding(.horizontal, 20)
     }
 
     var playersCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("PLAYERS").font(.system(size: 11, weight: .bold)).foregroundStyle(.gray).tracking(2)
+                Text("PLAYERS").font(.system(size: 11, weight: .bold)).foregroundStyle(theme.textMuted).tracking(2)
                 Spacer()
                 Text("\(currentSession.players.count) joined")
                     .font(.system(size: 12)).foregroundStyle(Color.snapsGreen)
@@ -156,7 +158,7 @@ struct LobbyView: View {
                     ZStack {
                         Circle()
                             .fill(player.userId == currentSession.hostId ?
-                                  Color.snapsGreen.opacity(0.2) : Color.white.opacity(0.08))
+                                  Color.snapsGreen.opacity(0.2) : theme.surface2)
                             .frame(width: 40, height: 40)
                         Text(String(player.displayName.prefix(2)).uppercased())
                             .font(.system(size: 13, weight: .black))
@@ -166,7 +168,7 @@ struct LobbyView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         HStack(spacing: 6) {
                             Text(player.displayName)
-                                .font(.system(size: 15, weight: .semibold)).foregroundStyle(.white)
+                                .font(.system(size: 15, weight: .semibold)).foregroundStyle(theme.textPrimary)
                             if player.userId == currentSession.hostId {
                                 Text("HOST")
                                     .font(.system(size: 10, weight: .black))
@@ -176,7 +178,7 @@ struct LobbyView: View {
                             }
                         }
                         Text("TM \(player.taxman)")
-                            .font(.system(size: 11)).foregroundStyle(.gray)
+                            .font(.system(size: 11)).foregroundStyle(theme.textMuted)
                     }
                     Spacer()
                     // Online indicator
@@ -188,17 +190,17 @@ struct LobbyView: View {
             }
         }
         .padding(16)
-        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
-        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.white.opacity(0.06), lineWidth: 1))
+        .background(theme.surface1, in: RoundedRectangle(cornerRadius: 16))
+        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(theme.border, lineWidth: 1))
         .padding(.horizontal, 20)
     }
 
     func infoRow(_ emoji: String, label: String, value: String) -> some View {
         HStack(spacing: 8) {
             Text(emoji)
-            Text(label).font(.system(size: 13)).foregroundStyle(.gray)
+            Text(label).font(.system(size: 13)).foregroundStyle(theme.textMuted)
             Spacer()
-            Text(value).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white).multilineTextAlignment(.trailing)
+            Text(value).font(.system(size: 13, weight: .semibold)).foregroundStyle(theme.textPrimary).multilineTextAlignment(.trailing)
         }
     }
 
@@ -246,6 +248,8 @@ struct LobbyView: View {
 
 struct JoinGameView: View {
     @Environment(AppState.self) private var appState
+    @Environment(\.colorScheme) private var colorScheme
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
     @Environment(\.dismiss) private var dismiss
     @State private var code = ""
     @State private var loading = false
@@ -254,16 +258,16 @@ struct JoinGameView: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            theme.bg.ignoresSafeArea()
 
             VStack(spacing: 32) {
                 // Header
                 HStack {
                     Button { dismiss() } label: {
-                        Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundStyle(.gray)
+                        Image(systemName: "xmark.circle.fill").font(.system(size: 24)).foregroundStyle(theme.textMuted)
                     }
                     Spacer()
-                    Text("JOIN GAME").font(.system(size: 14, weight: .black)).foregroundStyle(.white).tracking(2)
+                    Text("JOIN GAME").font(.system(size: 14, weight: .black)).foregroundStyle(theme.textPrimary).tracking(2)
                     Spacer()
                     Color.clear.frame(width: 24, height: 24)
                 }
@@ -272,11 +276,13 @@ struct JoinGameView: View {
                 Spacer()
 
                 VStack(spacing: 24) {
-                    Text("🎮").font(.system(size: 56))
+                    Image(systemName: "wifi")
+                        .font(.system(size: 52, weight: .medium))
+                        .foregroundStyle(Color.snapsGreen)
 
                     Text("Enter the 6-digit code\nfrom your friend")
                         .font(.system(size: 18, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(theme.textPrimary)
                         .multilineTextAlignment(.center)
 
                     // Code input
@@ -289,9 +295,9 @@ struct JoinGameView: View {
                         .keyboardType(.asciiCapable)
                         .onChange(of: code) { _, v in code = String(v.prefix(6)).uppercased() }
                         .padding(20)
-                        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 16))
+                        .background(theme.surface1, in: RoundedRectangle(cornerRadius: 16))
                         .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(
-                            code.count == 6 ? Color.snapsGreen.opacity(0.5) : Color.white.opacity(0.08), lineWidth: 1))
+                            code.count == 6 ? Color.snapsGreen.opacity(0.5) : theme.surface2, lineWidth: 1))
 
                     if let err = error {
                         Text(err)
