@@ -27,6 +27,7 @@ protocol SnapsRepository {
 
     // Live scores (real-time in Supabase, polling in mock)
     func submitScores(sessionId: String, scores: [Int?]) async throws
+    func submitTrackingData(sessionId: String, fairwayDirs: [String?], greenDirs: [String?], putts: [Int?]) async throws
     func submitHoleState(sessionId: String, hole: Int, state: HoleStateData) async throws
     func getLiveScores(sessionId: String) async throws -> LiveScores
 

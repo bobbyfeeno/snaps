@@ -430,7 +430,7 @@ struct PlayerScoreRow: View {
         guard let rel = relToPar else { return theme.textPrimary }
         if rel <= -2 { return Color.scoreEagle }
         if rel == -1 { return Color.scoreBirdie }
-        if rel == 0  { return Color.scorePar }
+        if rel == 0  { return theme.scorePar }
         if rel == 1  { return Color.scoreBogey }
         return Color.scoreDouble
     }

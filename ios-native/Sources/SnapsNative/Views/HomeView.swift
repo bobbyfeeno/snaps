@@ -5,6 +5,9 @@ struct HomeView: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var game = ActiveGame()
     @State private var showSetup = false
+    @State private var showJoinGame = false
+    @State private var showModePicker = false
+    @State private var isMultiplayer = false
     @State private var glowPulse = false
     @State private var logoScale: CGFloat = 0.85
     @State private var buttonsOffset: CGFloat = 40
@@ -52,7 +55,7 @@ struct HomeView: View {
                     // Start Round
                     Button {
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-                        showSetup = true
+                        showModePicker = true
                     } label: {
                         ZStack {
                             // Flat green fill
@@ -78,6 +81,11 @@ struct HomeView: View {
                     .accessibilityLabel("Start a new golf round")
                     .accessibilityHint("Opens game setup")
 
+                    // Join Game
+                    secondaryButton("Join Game", icon: "person.2.fill") {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        showJoinGame = true
+                    }
                 }
                 .padding(.horizontal, 32)
                 .offset(y: buttonsOffset)
@@ -126,10 +134,100 @@ struct HomeView: View {
             }
         }
         .sheet(isPresented: $showSetup) {
-            SetupView(game: game)
+            SetupView(game: game, isMultiplayer: isMultiplayer)
+        }
+        .sheet(isPresented: $showJoinGame) {
+            JoinGameView()
+        }
+        .sheet(isPresented: $showModePicker) {
+            RoundModePicker { multiplayer in
+                isMultiplayer = multiplayer
+                showModePicker = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    showSetup = true
+                }
+            }
+            .presentationDetents([.height(280)])
         }
     }
 
+    // MARK: - Removed unused showHostGame / hostedSession
+}
+
+// MARK: - Round Mode Picker (Solo vs Host)
+struct RoundModePicker: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
+    let onSelect: (Bool) -> Void
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            // Handle
+            RoundedRectangle(cornerRadius: 3)
+                .fill(theme.border)
+                .frame(width: 36, height: 4)
+                .padding(.top, 12)
+            
+            Text("How are you playing?")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(theme.textPrimary)
+            
+            HStack(spacing: 14) {
+                // Solo
+                modeCard(
+                    icon: "person.fill",
+                    title: "Solo",
+                    subtitle: "Track your own round",
+                    color: Color.snapsGreen
+                ) {
+                    onSelect(false)
+                }
+                
+                // Host Game
+                modeCard(
+                    icon: "person.3.fill",
+                    title: "Host Game",
+                    subtitle: "Friends join with code",
+                    color: Color(hex: "#4FC3F7")
+                ) {
+                    onSelect(true)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Spacer()
+        }
+        .background(theme.bg)
+    }
+    
+    private func modeCard(icon: String, title: String, subtitle: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+            action()
+        } label: {
+            VStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 28))
+                    .foregroundStyle(color)
+                Text(title)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(theme.textPrimary)
+                Text(subtitle)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(theme.textMuted)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 130)
+            .background(theme.surface1, in: RoundedRectangle(cornerRadius: 16))
+            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(theme.border, lineWidth: 1))
+        }
+        .buttonStyle(SnapsButtonStyle())
+    }
+}
+
+extension HomeView {
     func secondaryButton(_ title: String, icon: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 8) {

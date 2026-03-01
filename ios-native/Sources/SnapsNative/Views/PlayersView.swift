@@ -202,6 +202,7 @@ struct PlayerFormView: View {
 
 struct QuickAddPlayerSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     let onAdd: (String, Int) -> Void
 
     @State private var name = ""
@@ -209,14 +210,16 @@ struct QuickAddPlayerSheet: View {
     @State private var venmo = ""
     @State private var cashapp = ""
 
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
+
     var body: some View {
         ZStack {
-            Color.snapsBg.ignoresSafeArea()
+            theme.bg.ignoresSafeArea()
 
             VStack(spacing: 0) {
                 // Handle
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(Color.snapsBorder)
+                    .fill(theme.border)
                     .frame(width: 36, height: 4)
                     .padding(.top, 12)
 
@@ -224,12 +227,12 @@ struct QuickAddPlayerSheet: View {
                 HStack {
                     Text("NEW PLAYER")
                         .font(.system(size: 18, weight: .black))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(theme.textPrimary)
                     Spacer()
                     Button { dismiss() } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 24))
-                            .foregroundStyle(.gray)
+                            .foregroundStyle(theme.textMuted)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -242,14 +245,14 @@ struct QuickAddPlayerSheet: View {
                         VStack(alignment: .leading, spacing: 6) {
                             Text("NAME")
                                 .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(Color.snapsTextMuted)
+                                .foregroundStyle(theme.textMuted)
                                 .tracking(2)
                             TextField("Player name", text: $name)
                                 .font(.system(size: 16))
-                                .foregroundStyle(Color.snapsTextPrimary)
+                                .foregroundStyle(theme.textPrimary)
                                 .padding(16)
-                                .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                                .background(theme.surface1, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(theme.border, lineWidth: 1))
                         }
 
                         // Handicap
@@ -257,52 +260,52 @@ struct QuickAddPlayerSheet: View {
                             HStack {
                                 Text("HANDICAP")
                                     .font(.system(size: 11, weight: .bold))
-                                    .foregroundStyle(Color.snapsTextMuted)
+                                    .foregroundStyle(theme.textMuted)
                                     .tracking(2)
                                 Spacer()
                                 Text("\(handicap)")
                                     .font(.system(size: 22, weight: .black))
-                                    .foregroundStyle(Color.snapsGreen)
+                                    .foregroundStyle(theme.green)
                             }
                             Slider(
                                 value: Binding(get: { Double(handicap) }, set: { handicap = Int($0) }),
                                 in: 0...54, step: 1
                             )
-                            .tint(Color.snapsGreen)
+                            .tint(theme.green)
                             HStack {
                                 Text("Scratch")
                                     .font(.system(size: 11))
-                                    .foregroundStyle(Color.snapsTextMuted)
+                                    .foregroundStyle(theme.textMuted)
                                 Spacer()
                                 Text("54")
                                     .font(.system(size: 11))
-                                    .foregroundStyle(Color.snapsTextMuted)
+                                    .foregroundStyle(theme.textMuted)
                             }
                         }
                         .padding(16)
-                        .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
-                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                        .background(theme.surface1, in: RoundedRectangle(cornerRadius: 12))
+                        .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(theme.border, lineWidth: 1))
 
                         // Optional: Venmo / CashApp
                         VStack(alignment: .leading, spacing: 6) {
                             Text("PAYMENT (OPTIONAL)")
                                 .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(Color.snapsTextMuted)
+                                .foregroundStyle(theme.textMuted)
                                 .tracking(2)
                             TextField("Venmo @username", text: $venmo)
                                 .font(.system(size: 15))
-                                .foregroundStyle(Color.snapsTextPrimary)
+                                .foregroundStyle(theme.textPrimary)
                                 .autocapitalization(.none)
                                 .padding(14)
-                                .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                                .background(theme.surface1, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(theme.border, lineWidth: 1))
                             TextField("Cash App $cashtag", text: $cashapp)
                                 .font(.system(size: 15))
-                                .foregroundStyle(Color.snapsTextPrimary)
+                                .foregroundStyle(theme.textPrimary)
                                 .autocapitalization(.none)
                                 .padding(14)
-                                .background(Color.snapsSurface1, in: RoundedRectangle(cornerRadius: 12))
-                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.snapsBorder, lineWidth: 1))
+                                .background(theme.surface1, in: RoundedRectangle(cornerRadius: 12))
+                                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(theme.border, lineWidth: 1))
                         }
                     }
                     .padding(.horizontal, 20)

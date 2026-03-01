@@ -3,11 +3,14 @@ import SwiftData
 
 struct SetupView: View {
     @Bindable var game: ActiveGame
+    var isMultiplayer: Bool = false
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Query private var savedPlayers: [Player]
     var appState: AppState = .shared
+    @State private var showLobby = false
+    @State private var createdSession: GameSession?
 
     private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
 
@@ -285,6 +288,9 @@ struct SetupView: View {
         }
         .sheet(isPresented: $showScoreCard) {
             ScoreCardView(game: game)
+        }
+        .sheet(item: $createdSession) { session in
+            LobbyView(session: session)
         }
         .onReceive(NotificationCenter.default.publisher(for: .switchToYouTab)) { _ in
             dismiss()
@@ -1173,7 +1179,25 @@ struct SetupView: View {
         var setup = GameSetup(players: players, games: games)
         setup.vegasTeamA = Array(vegasTeamA)
         setup.vegasTeamB = Array(vegasTeamB)
-        game.startGame(setup: setup)
-        showScoreCard = true
+        if isMultiplayer {
+            // Create multiplayer session and open lobby
+            Task {
+                let sessionGameModes = games.map { entry in
+                    SessionGameMode(mode: entry.mode.rawValue, taxAmount: entry.config.taxAmount, betAmount: entry.config.betAmount)
+                }
+                if let session = try? await appState.repo.createSession(
+                    pars: game.pars,
+                    gameModes: sessionGameModes,
+                    vegasTeamA: Array(vegasTeamA),
+                    vegasTeamB: Array(vegasTeamB)
+                ) {
+                    createdSession = session
+                    showLobby = true
+                }
+            }
+        } else {
+            game.startGame(setup: setup)
+            showScoreCard = true
+        }
     }
 }

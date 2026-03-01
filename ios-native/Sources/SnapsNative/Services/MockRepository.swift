@@ -135,6 +135,10 @@ class MockRepository: SnapsRepository, ObservableObject {
         liveScores[sessionId]?.updatedAt = Date()
     }
 
+    func submitTrackingData(sessionId: String, fairwayDirs: [String?], greenDirs: [String?], putts: [Int?]) async throws {
+        // Mock: no-op, data stays local
+    }
+
     func submitHoleState(sessionId: String, hole: Int, state: HoleStateData) async throws {
         liveScores[sessionId]?.holeStates["hole_\(hole)"] = state
     }
