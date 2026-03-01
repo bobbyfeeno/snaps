@@ -23,3 +23,4 @@ Podfile.lock
 
 # macOS
 .DS_Store
+.expo
