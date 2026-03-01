@@ -203,7 +203,7 @@ struct PlayerFormView: View {
 struct QuickAddPlayerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    let onAdd: (String, Int) -> Void
+    let onAdd: (String, Int, String, String) -> Void
 
     @State private var name = ""
     @State private var handicap = 18
@@ -315,7 +315,7 @@ struct QuickAddPlayerSheet: View {
                 // Add button
                 Button {
                     guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
-                    onAdd(name.trimmingCharacters(in: .whitespaces), handicap)
+                    onAdd(name.trimmingCharacters(in: .whitespaces), handicap, venmo.trimmingCharacters(in: .whitespaces), cashapp.trimmingCharacters(in: .whitespaces))
                     dismiss()
                 } label: {
                     Text("Add to Round →")

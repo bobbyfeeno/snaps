@@ -432,8 +432,8 @@ struct SetupView: View {
             autoSelectCurrentUser()
         }
         .sheet(isPresented: $showAddPlayer) {
-            QuickAddPlayerSheet { name, taxMan in
-                let player = Player(name: name, taxMan: taxMan)
+            QuickAddPlayerSheet { name, taxMan, venmo, cashapp in
+                let player = Player(name: name, taxMan: taxMan, venmoHandle: venmo, cashappHandle: cashapp)
                 modelContext.insert(player)
                 try? modelContext.save()
                 selectedPlayerIds.insert(player.id)
