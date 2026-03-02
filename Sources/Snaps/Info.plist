@@ -29,6 +29,8 @@
     <array>
         <string>UIInterfaceOrientationPortrait</string>
     </array>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Snaps uses your location to find nearby golf courses</string>
     <key>NSSpeechRecognitionUsageDescription</key>
     <string>Snaps uses voice recognition so you can speak your score instead of tapping.</string>
     <key>NSMicrophoneUsageDescription</key>

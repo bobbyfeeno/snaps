@@ -39,6 +39,7 @@
 		FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */; settings = {}; };
 		SUPA00FFEE99887766554433 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = SUPA00AABBCCDDEEFF0011 /* Supabase */; };
 		GCS001AABBCCDDEEFF001122 /* GolfCourseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = GCS000AABBCCDDEEFF001122 /* GolfCourseService.swift */; };
+		LCM001AABBCCDDEEFF001122 /* LocationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LCM000AABBCCDDEEFF001122 /* LocationManager.swift */; };
 		CPV001AABBCCDDEEFF001122 /* CoursePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPV000AABBCCDDEEFF001122 /* CoursePickerView.swift */; };
 /* End PBXBuildFile section */
 
@@ -77,6 +78,7 @@
 		EE22FF33AA44BB55CC66DD11 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 		FWYHIT001122334455667788 /* FairwaysHitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairwaysHitCard.swift; sourceTree = "<group>"; };
 		GCS000AABBCCDDEEFF001122 /* GolfCourseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfCourseService.swift; sourceTree = "<group>"; };
+		LCM000AABBCCDDEEFF001122 /* LocationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationManager.swift; sourceTree = "<group>"; };
 		CPV000AABBCCDDEEFF001122 /* CoursePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursePickerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -89,6 +91,7 @@
 				812928FFE7F3848E0D3E807C /* SnapsRepository.swift */,
 				AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */,
 				GCS000AABBCCDDEEFF001122 /* GolfCourseService.swift */,
+				LCM000AABBCCDDEEFF001122 /* LocationManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -298,6 +301,7 @@
 				E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */,
 				FWYHIT00AABBCCDDEEFF1122 /* FairwaysHitCard.swift in Sources */,
 				GCS001AABBCCDDEEFF001122 /* GolfCourseService.swift in Sources */,
+				LCM001AABBCCDDEEFF001122 /* LocationManager.swift in Sources */,
 				CPV001AABBCCDDEEFF001122 /* CoursePickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

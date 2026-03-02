@@ -1,5 +1,6 @@
 import SwiftUI
 import Combine
+import CoreLocation
 
 // MARK: - CoursePickerView
 
@@ -11,6 +12,8 @@ struct CoursePickerView: View {
 
     var onSelect: (GolfCourse, GolfTeeBox) -> Void
 
+    @StateObject private var locationManager = LocationManager()
+
     @State private var searchText = ""
     @State private var results: [GolfCourse] = []
     @State private var isLoading = false
@@ -18,6 +21,12 @@ struct CoursePickerView: View {
     @State private var selectedCourse: GolfCourse?
     @State private var selectedTeeBox: GolfTeeBox?
     @State private var phase: Phase = .search
+
+    // Nearby courses state
+    @State private var nearbyCourses: [GolfCourse] = []
+    @State private var isLoadingNearby = false
+    @State private var nearbySearchDone = false
+    @State private var nearbyCityName: String?
 
     private let debounceSubject = PassthroughSubject<String, Never>()
     @State private var cancellables = Set<AnyCancellable>()
@@ -80,6 +89,17 @@ struct CoursePickerView: View {
         }
         .onAppear {
             setupDebounce()
+            locationManager.requestLocation()
+        }
+        .onChange(of: locationManager.cityName) { _, cityName in
+            guard let city = cityName, !nearbySearchDone else { return }
+            nearbyCityName = city
+            Task { await loadNearbyCourses(city: city) }
+        }
+        .onChange(of: locationManager.locationError) { _, isError in
+            if isError && !nearbySearchDone {
+                nearbySearchDone = true // mark done so we show fallback
+            }
         }
     }
 
@@ -101,7 +121,7 @@ struct CoursePickerView: View {
                         debounceSubject.send(newVal)
                     }
 
-                if isLoading {
+                if isLoading || isLoadingNearby {
                     ProgressView()
                         .tint(theme.green)
                         .scaleEffect(0.85)
@@ -136,22 +156,74 @@ struct CoursePickerView: View {
             // Results
             ScrollView {
                 LazyVStack(spacing: 8) {
-                    if let error = errorMessage {
-                        errorCard(error)
-                    } else if results.isEmpty && !searchText.isEmpty && !isLoading {
-                        emptyState
-                    } else if results.isEmpty && searchText.isEmpty {
-                        promptCard
+                    if searchText.isEmpty {
+                        nearbySection
                     } else {
-                        sectionLabel("\(results.count) COURSE\(results.count == 1 ? "" : "S") FOUND")
-                        ForEach(results) { course in
-                            courseRow(course)
-                        }
+                        searchResultsSection
                     }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 4)
                 .padding(.bottom, 40)
+            }
+        }
+    }
+
+    // MARK: - Nearby Section (shown when search bar is empty)
+
+    @ViewBuilder
+    var nearbySection: some View {
+        if isLoadingNearby {
+            VStack(spacing: 16) {
+                ProgressView()
+                    .tint(theme.green)
+                    .scaleEffect(1.2)
+                Text("Finding nearby courses…")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(theme.textSecondary)
+            }
+            .padding(.top, 60)
+            .frame(maxWidth: .infinity)
+        } else if !nearbyCourses.isEmpty {
+            // Nearby courses available
+            if let city = nearbyCityName {
+                sectionLabel("NEARBY COURSES — \(city.uppercased())")
+            } else {
+                sectionLabel("NEARBY COURSES")
+            }
+            ForEach(nearbyCourses) { course in
+                courseRow(course, distanceText: distanceText(for: course))
+            }
+        } else if nearbySearchDone || locationManager.locationError {
+            // Location denied or search yielded nothing — show prompt
+            promptCard
+        } else {
+            // Still waiting for location permission / first fix
+            VStack(spacing: 16) {
+                ProgressView()
+                    .tint(theme.green)
+                    .scaleEffect(1.2)
+                Text("Locating you…")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(theme.textSecondary)
+            }
+            .padding(.top, 60)
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    // MARK: - Search Results Section (shown while user is typing)
+
+    @ViewBuilder
+    var searchResultsSection: some View {
+        if let error = errorMessage {
+            errorCard(error)
+        } else if results.isEmpty && !isLoading {
+            emptyState
+        } else if !results.isEmpty {
+            sectionLabel("\(results.count) COURSE\(results.count == 1 ? "" : "S") FOUND")
+            ForEach(results) { course in
+                courseRow(course, distanceText: distanceText(for: course))
             }
         }
     }
@@ -239,7 +311,7 @@ struct CoursePickerView: View {
 
     // MARK: - Sub-views
 
-    func courseRow(_ course: GolfCourse) -> some View {
+    func courseRow(_ course: GolfCourse, distanceText: String? = nil) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             selectedCourse = course
@@ -261,10 +333,22 @@ struct CoursePickerView: View {
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(theme.textPrimary)
                         .multilineTextAlignment(.leading)
-                    if !course.locationString.isEmpty {
-                        Text(course.locationString)
-                            .font(.system(size: 12))
-                            .foregroundStyle(theme.textSecondary)
+                    HStack(spacing: 6) {
+                        if !course.locationString.isEmpty {
+                            Text(course.locationString)
+                                .font(.system(size: 12))
+                                .foregroundStyle(theme.textSecondary)
+                        }
+                        if let dist = distanceText {
+                            if !course.locationString.isEmpty {
+                                Text("·")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(theme.textMuted)
+                            }
+                            Text(dist)
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundStyle(theme.green)
+                        }
                     }
                 }
 
@@ -451,6 +535,54 @@ struct CoursePickerView: View {
             .padding(.bottom, 2)
     }
 
+    // MARK: - Nearby Courses Logic
+
+    @MainActor
+    func loadNearbyCourses(city: String) async {
+        guard !nearbySearchDone else { return }
+        isLoadingNearby = true
+        do {
+            let courses = try await GolfCourseService.shared.searchCourses(query: city)
+            if let userLoc = locationManager.location {
+                nearbyCourses = courses
+                    .filter { $0.location?.latitude != nil && $0.location?.longitude != nil }
+                    .sorted { a, b in
+                        distanceMiles(from: userLoc, to: a) ?? .infinity <
+                        distanceMiles(from: userLoc, to: b) ?? .infinity
+                    }
+                // Append courses without coordinates at the end
+                let withoutCoords = courses.filter { $0.location?.latitude == nil || $0.location?.longitude == nil }
+                nearbyCourses += withoutCoords
+            } else {
+                nearbyCourses = courses
+            }
+        } catch {
+            nearbyCourses = []
+        }
+        isLoadingNearby = false
+        nearbySearchDone = true
+    }
+
+    // MARK: - Distance Helpers
+
+    func distanceMiles(from userLocation: CLLocation, to course: GolfCourse) -> Double? {
+        guard let lat = course.location?.latitude,
+              let lng = course.location?.longitude else { return nil }
+        let courseLoc = CLLocation(latitude: lat, longitude: lng)
+        let meters = userLocation.distance(from: courseLoc)
+        return meters / 1609.344
+    }
+
+    func distanceText(for course: GolfCourse) -> String? {
+        guard let userLoc = locationManager.location else { return nil }
+        guard let miles = distanceMiles(from: userLoc, to: course) else { return nil }
+        if miles < 10 {
+            return String(format: "%.1f mi", miles)
+        } else {
+            return String(format: "%.0f mi", miles)
+        }
+    }
+
     // MARK: - Helpers
 
     func teeColor(_ name: String) -> Color {
@@ -513,7 +645,15 @@ struct CoursePickerView: View {
         errorMessage = nil
         do {
             let courses = try await GolfCourseService.shared.searchCourses(query: query)
-            results = courses
+            // Sort by distance if we have user location
+            if let userLoc = locationManager.location {
+                results = courses.sorted { a, b in
+                    distanceMiles(from: userLoc, to: a) ?? .infinity <
+                    distanceMiles(from: userLoc, to: b) ?? .infinity
+                }
+            } else {
+                results = courses
+            }
         } catch {
             errorMessage = error.localizedDescription
             results = []
