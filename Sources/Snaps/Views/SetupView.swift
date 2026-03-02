@@ -22,6 +22,11 @@ struct SetupView: View {
     @State private var showAddPlayer = false
     @State private var gameSearch: String = ""
     @State private var showRules = false
+    @State private var showCoursePicker = false
+
+    // Course selection (optional)
+    @State private var selectedCourse: GolfCourse? = nil
+    @State private var selectedTeeBox: GolfTeeBox? = nil
 
     // MARK: - Per-Game Config State
 
@@ -293,6 +298,22 @@ struct SetupView: View {
         }
         .fullScreenCover(isPresented: $showRules) {
             RulesView()
+        }
+        .sheet(isPresented: $showCoursePicker) {
+            CoursePickerView { course, tee in
+                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                selectedCourse = course
+                selectedTeeBox = tee
+                // Auto-populate pars from API data
+                let pars = tee.pars
+                if pars.count == 18 {
+                    game.pars = pars
+                } else if !pars.isEmpty {
+                    // Pad/trim to 18
+                    let filled = Array((pars + Array(repeating: 4, count: 18)).prefix(18))
+                    game.pars = filled
+                }
+            }
         }
         .onChange(of: selectedModes) { _, newModes in
             if !newModes.contains(.vegas) {
@@ -582,6 +603,9 @@ struct SetupView: View {
     var configPanels: some View {
         ScrollView {
             LazyVStack(spacing: 14) {
+                // Course selection card
+                courseSelectionCard
+
                 sectionHeader("CONFIGURE BETS")
 
                 ForEach(GameMode.allCases, id: \.self) { mode in
@@ -602,6 +626,138 @@ struct SetupView: View {
             .padding(.top, 8)
             .padding(.bottom, 20)
         }
+    }
+
+    // MARK: - Course Selection Card
+
+    var courseSelectionCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if let course = selectedCourse, let tee = selectedTeeBox {
+                // Selected state
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 10) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.snapsGreen.opacity(0.15))
+                                .frame(width: 40, height: 40)
+                            Text("⛳")
+                                .font(.system(size: 18))
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(course.displayName)
+                                .font(.system(size: 15, weight: .bold))
+                                .foregroundStyle(theme.textPrimary)
+                                .lineLimit(1)
+                            if !course.locationString.isEmpty {
+                                Text(course.locationString)
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(theme.textSecondary)
+                            }
+                        }
+                        Spacer()
+                        // Change / remove
+                        HStack(spacing: 8) {
+                            Button {
+                                showCoursePicker = true
+                            } label: {
+                                Text("Change")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(Color.snapsGreen)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 5)
+                                    .background(Color.snapsGreen.opacity(0.1), in: Capsule())
+                                    .overlay(Capsule().strokeBorder(Color.snapsGreen.opacity(0.3), lineWidth: 1))
+                            }
+                            Button {
+                                withAnimation(.spring()) {
+                                    selectedCourse = nil
+                                    selectedTeeBox = nil
+                                    game.pars = Array(repeating: 4, count: 18)
+                                }
+                            } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundStyle(theme.textMuted)
+                            }
+                        }
+                    }
+
+                    Divider()
+                        .background(theme.border)
+
+                    // Tee box details
+                    HStack(spacing: 0) {
+                        teeStatCell("Tees", value: tee.displayName)
+                        teeStatCell("Par", value: "\(tee.parTotal)")
+                        teeStatCell("Yards", value: "\(tee.totalYards)")
+                        teeStatCell("Rating", value: String(format: "%.1f", tee.courseRating))
+                        teeStatCell("Slope", value: "\(tee.slopeRating)")
+                    }
+
+                    // Pars auto-filled notice
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(Color.snapsGreen)
+                        Text("Pars auto-filled from course data")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.snapsGreen)
+                    }
+                }
+                .padding(16)
+                .background(theme.surface1, in: RoundedRectangle(cornerRadius: 16))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .strokeBorder(Color.snapsGreen.opacity(0.35), lineWidth: 1)
+                )
+                .shadow(color: Color.snapsGreen.opacity(0.1), radius: 8, y: 3)
+
+            } else {
+                // Empty / prompt state
+                Button { showCoursePicker = true } label: {
+                    HStack(spacing: 14) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(theme.surface2)
+                                .frame(width: 44, height: 44)
+                            Text("⛳")
+                                .font(.system(size: 20))
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Select Course")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(theme.textPrimary)
+                            Text("Optional · auto-fills pars & handicap indexes")
+                                .font(.system(size: 12))
+                                .foregroundStyle(theme.textSecondary)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundStyle(theme.textMuted)
+                    }
+                    .padding(16)
+                    .background(theme.surface1, in: RoundedRectangle(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(theme.border, lineWidth: 1))
+                }
+                .buttonStyle(SnapsButtonStyle())
+            }
+        }
+    }
+
+    func teeStatCell(_ label: String, value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(value)
+                .font(.system(size: 13, weight: .black, design: .monospaced))
+                .foregroundStyle(theme.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(label)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(theme.textMuted)
+                .tracking(0.5)
+        }
+        .frame(maxWidth: .infinity)
     }
 
     var shouldShowHammer: Bool {
@@ -1178,6 +1334,15 @@ struct SetupView: View {
         var setup = GameSetup(players: players, games: games)
         setup.vegasTeamA = Array(vegasTeamA)
         setup.vegasTeamB = Array(vegasTeamB)
+        // Apply course selection if provided
+        if let course = selectedCourse, let tee = selectedTeeBox {
+            setup.courseName = course.displayName
+            setup.teeBoxName = tee.displayName
+            setup.courseRating = tee.courseRating
+            setup.slopeRating = Double(tee.slopeRating)
+            let handicaps = tee.holes?.compactMap(\.handicap) ?? []
+            if !handicaps.isEmpty { setup.handicapIndexes = handicaps }
+        }
         if isMultiplayer {
             // Create multiplayer session and open lobby
             Task {

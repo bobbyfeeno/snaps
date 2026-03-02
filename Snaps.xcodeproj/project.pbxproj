@@ -38,6 +38,8 @@
 		DD11EE22FF33AA44BB55CC66 /* DemoData.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE22FF33AA44BB55CC66DD11 /* DemoData.swift */; settings = {}; };
 		FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */; settings = {}; };
 		SUPA00FFEE99887766554433 /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = SUPA00AABBCCDDEEFF0011 /* Supabase */; };
+		GCS001AABBCCDDEEFF001122 /* GolfCourseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = GCS000AABBCCDDEEFF001122 /* GolfCourseService.swift */; };
+		CPV001AABBCCDDEEFF001122 /* CoursePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CPV000AABBCCDDEEFF001122 /* CoursePickerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -74,6 +76,8 @@
 		FF66AA77BB88CC99DD00EE55 /* TourView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourView.swift; sourceTree = "<group>"; };
 		EE22FF33AA44BB55CC66DD11 /* DemoData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoData.swift; sourceTree = "<group>"; };
 		FWYHIT001122334455667788 /* FairwaysHitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FairwaysHitCard.swift; sourceTree = "<group>"; };
+		GCS000AABBCCDDEEFF001122 /* GolfCourseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GolfCourseService.swift; sourceTree = "<group>"; };
+		CPV000AABBCCDDEEFF001122 /* CoursePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoursePickerView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -84,6 +88,7 @@
 				96C69C7EF74046DC7E95D429 /* MockRepository.swift */,
 				812928FFE7F3848E0D3E807C /* SnapsRepository.swift */,
 				AA44BB55CC66DD11EE22FF33 /* SupabaseRepository.swift */,
+				GCS000AABBCCDDEEFF001122 /* GolfCourseService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -113,6 +118,7 @@
 				FF66AA77BB88CC99DD00EE55 /* TourView.swift */,
 				EE22FF33AA44BB55CC66DD11 /* DemoData.swift */,
 				FWYHIT001122334455667788 /* FairwaysHitCard.swift */,
+				CPV000AABBCCDDEEFF001122 /* CoursePickerView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -291,6 +297,8 @@
 				FF33AA44BB55CC66DD11EE22 /* SupabaseRepository.swift in Sources */,
 				E3A1649368F3B443B36AA705 /* VoiceScoreEntry.swift in Sources */,
 				FWYHIT00AABBCCDDEEFF1122 /* FairwaysHitCard.swift in Sources */,
+				GCS001AABBCCDDEEFF001122 /* GolfCourseService.swift in Sources */,
+				CPV001AABBCCDDEEFF001122 /* CoursePickerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

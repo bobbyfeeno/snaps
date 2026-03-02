@@ -166,6 +166,13 @@ struct GameSetup {
     var games: [GameEntry]
     var vegasTeamA: [String] = []
     var vegasTeamB: [String] = []
+
+    // Optional course selection (from GolfCourseAPI)
+    var courseName: String? = nil
+    var teeBoxName: String? = nil
+    var courseRating: Double? = nil
+    var slopeRating: Double? = nil
+    var handicapIndexes: [Int]? = nil   // stroke index per hole (1–18, length 18)
 }
 
 // MARK: - Press Match (for auto-press)
@@ -230,6 +237,13 @@ class ActiveGame {
     var currentHole: Int = 0
     var results: [PlayerResult] = []
 
+    // Course metadata (populated when user selects a course)
+    var courseName: String? = nil
+    var teeBoxName: String? = nil
+    var courseRating: Double? = nil
+    var slopeRating: Double? = nil
+    var handicapIndexes: [Int]? = nil
+
     func startGame(setup: GameSetup) {
         self.setup = setup
         self.scores = Dictionary(uniqueKeysWithValues: setup.players.map {
@@ -244,6 +258,12 @@ class ActiveGame {
         self.putts = Dictionary(uniqueKeysWithValues: setup.players.map {
             ($0.id, Array(repeating: nil, count: 18))
         })
+        // Apply course data if provided
+        self.courseName = setup.courseName
+        self.teeBoxName = setup.teeBoxName
+        self.courseRating = setup.courseRating
+        self.slopeRating = setup.slopeRating
+        self.handicapIndexes = setup.handicapIndexes
     }
 
     func setScore(playerId: String, hole: Int, score: Int?) {
@@ -299,5 +319,10 @@ class ActiveGame {
         fairwayDirs = [:]
         greenDirs = [:]
         putts = [:]
+        courseName = nil
+        teeBoxName = nil
+        courseRating = nil
+        slopeRating = nil
+        handicapIndexes = nil
     }
 }
