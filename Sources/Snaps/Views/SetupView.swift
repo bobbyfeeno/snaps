@@ -1097,6 +1097,7 @@ struct SetupView: View {
                 cfg.matchMode = h2hMode
                 cfg.useHandicaps = h2hUseHandicaps
                 cfg.autoPress = h2hPress
+                cfg.hammerEnabled = hammerEnabled
 
             case .taxman:
                 cfg.taxAmount = taxAmount
@@ -1107,6 +1108,7 @@ struct SetupView: View {
                 cfg.betOverall = nassauOverall
                 cfg.useHandicaps = nassauUseHandicaps
                 cfg.autoPress = nassauPress
+                cfg.hammerEnabled = hammerEnabled
 
             case .skins:
                 cfg.betPerSkin = skinsBet
@@ -1130,6 +1132,7 @@ struct SetupView: View {
                 cfg.matchMode = bestBallMode
                 cfg.teamA = Array(bestBallTeamA)
                 cfg.teamB = Array(bestBallTeamB)
+                cfg.hammerEnabled = hammerEnabled
 
             case .stableford:
                 cfg.betAmount = stablefordBet
