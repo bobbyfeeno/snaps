@@ -269,6 +269,9 @@ class ActiveGame {
     var bankerHoles: [BankerHoleState?] = Array(repeating: nil, count: 18)
     var dotsHoles: [DotsHoleState?] = Array(repeating: nil, count: 18)
 
+    // Hammer modifier — per-hole multipliers (×1 default, doubles each call)
+    var hammerMultipliers: [Int] = Array(repeating: 1, count: 18)
+
     // Auto-press matches
     var pressMatches: [PressMatch] = []
 
@@ -292,6 +295,7 @@ class ActiveGame {
         bankerHoles = Array(repeating: nil, count: 18)
         dotsHoles = Array(repeating: nil, count: 18)
         pressMatches = []
+        hammerMultipliers = Array(repeating: 1, count: 18)
         fairwayDirs = [:]
         greenDirs = [:]
         putts = [:]

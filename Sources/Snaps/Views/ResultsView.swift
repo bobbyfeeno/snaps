@@ -35,6 +35,7 @@ struct ResultsView: View {
         extras.vegasTeamA = setup.vegasTeamA
         extras.vegasTeamB = setup.vegasTeamB
         extras.pressMatches = game.pressMatches
+        extras.hammerMultipliers = game.hammerMultipliers
         let engineResult = calcAllGames(
             players: setup.players, games: setup.games, scores: game.scores, extras: extras)
         return setup.players.map { player in

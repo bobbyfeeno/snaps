@@ -29,6 +29,7 @@ struct ScoreCardView: View {
         extras.vegasTeamA = setup.vegasTeamA
         extras.vegasTeamB = setup.vegasTeamB
         extras.pressMatches = game.pressMatches
+        extras.hammerMultipliers = game.hammerMultipliers
 
         let engineResult = calcAllGames(players: setup.players, games: setup.games, scores: game.scores, extras: extras)
 
@@ -344,6 +345,11 @@ struct HoleCard: View {
                 let manualModes: Set<GameMode> = [.wolf, .bingoBangoBongo, .snake, .ctp, .trouble, .arnies, .banker, .dots]
                 if !modes.intersection(manualModes).isEmpty {
                     HoleTrackerView(game: game, hole: hole, setup: setup)
+                }
+
+                // Hammer modifier UI
+                if setup.games.contains(where: { $0.config.hammerEnabled == true }) {
+                    HammerHoleControl(game: game, hole: hole, isCurrent: hole == game.currentHole)
                 }
             }
             .padding(20)
@@ -1287,4 +1293,96 @@ struct FwyGirToggle: View {
     let state: Bool?
     let onTap: () -> Void
     var body: some View { EmptyView() }
+}
+
+// MARK: - Hammer Hole Control
+struct HammerHoleControl: View {
+    @Environment(\.colorScheme) private var colorScheme
+    @Bindable var game: ActiveGame
+    let hole: Int
+    let isCurrent: Bool
+
+    private var theme: SnapsTheme { SnapsTheme(colorScheme: colorScheme) }
+    private var multiplier: Int { game.hammerMultipliers[hole] }
+    @State private var showConfirm = false
+
+    var body: some View {
+        HStack(spacing: 12) {
+            // Hammer icon + label
+            Image(systemName: "hammer.fill")
+                .font(.system(size: 14, weight: .bold))
+                .foregroundStyle(multiplier > 1 ? .white : theme.textMuted)
+
+            Text(multiplier > 1 ? "×\(multiplier) HAMMERED" : "HAMMER")
+                .font(.system(size: 13, weight: .black))
+                .foregroundStyle(multiplier > 1 ? .white : theme.textSecondary)
+                .tracking(1)
+
+            Spacer()
+
+            if multiplier > 1 {
+                // Reset button for corrections
+                Button("Reset") {
+                    UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                    game.hammerMultipliers[hole] = 1
+                }
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(.white.opacity(0.7))
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(.white.opacity(0.15), in: RoundedRectangle(cornerRadius: 8))
+            }
+
+            // Call/Re-hammer button
+            if isCurrent {
+                Button {
+                    showConfirm = true
+                } label: {
+                    Text(multiplier == 1 ? "🔨 Call Hammer" : "🔨 Re-Hammer (→ ×\(multiplier * 2))")
+                        .font(.system(size: 13, weight: .black))
+                        .foregroundStyle(multiplier > 1 ? Color.snapsNeon : .black)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            multiplier > 1 ? Color.snapsNeon.opacity(0.2) : Color.snapsNeon,
+                            in: RoundedRectangle(cornerRadius: 10)
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .strokeBorder(multiplier > 1 ? Color.snapsNeon.opacity(0.5) : .clear, lineWidth: 1)
+                        )
+                }
+                .buttonStyle(SnapsButtonStyle())
+                .confirmationDialog(
+                    "Hammer! — Hole \(hole + 1)",
+                    isPresented: $showConfirm,
+                    titleVisibility: .visible
+                ) {
+                    Button("🔨 Call Hammer → ×\(multiplier * 2)") {
+                        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+                        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+                        game.hammerMultipliers[hole] = multiplier * 2
+                    }
+                    Button("Cancel", role: .cancel) {}
+                } message: {
+                    Text("Current stake: ×\(multiplier). Calling Hammer doubles it to ×\(multiplier * 2). Opponent must accept or concede.")
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            multiplier > 1
+                ? Color.snapsNeon.opacity(0.12)
+                : theme.surface2,
+            in: RoundedRectangle(cornerRadius: 14)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(
+                    multiplier > 1 ? Color.snapsNeon.opacity(0.35) : theme.border,
+                    lineWidth: 1
+                )
+        )
+    }
 }

@@ -1090,6 +1090,7 @@ struct GameExtras {
     var vegasTeamB: [String] = []
     var dots: [DotsHoleState?] = Array(repeating: nil, count: 18)
     var pressMatches: [PressMatch] = []
+    var hammerMultipliers: [Int] = Array(repeating: 1, count: 18)
 }
 
 func calcAllGames(
