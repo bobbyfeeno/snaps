@@ -404,25 +404,26 @@ struct CoursePickerView: View {
 
                 // Hole pars preview (compact)
                 if let holes = tee.holes, !holes.isEmpty {
+                    let front9 = Array(holes.prefix(9))
+                    let back9 = Array(holes.dropFirst(9).prefix(9))
                     HStack(spacing: 3) {
-                        ForEach(holes.prefix(9).indices, id: \.self) { i in
-                            Text("\(holes[i].par)")
+                        ForEach(0..<front9.count, id: \.self) { i in
+                            Text("\(front9[i].par)")
                                 .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                .foregroundStyle(parColor(holes[i].par))
+                                .foregroundStyle(parColor(front9[i].par))
                                 .frame(width: 22, height: 22)
-                                .background(parColor(holes[i].par).opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
+                                .background(parColor(front9[i].par).opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
                         }
-                        if holes.count > 9 {
+                        if !back9.isEmpty {
                             Text("·")
                                 .foregroundStyle(theme.textMuted)
                                 .font(.system(size: 11))
-                            ForEach(holes.dropFirst(9).indices, id: \.self) { i in
-                                let hole = holes.dropFirst(9)[holes.dropFirst(9).index(holes.dropFirst(9).startIndex, offsetBy: i)]
-                                Text("\(hole.par)")
+                            ForEach(0..<back9.count, id: \.self) { i in
+                                Text("\(back9[i].par)")
                                     .font(.system(size: 11, weight: .bold, design: .monospaced))
-                                    .foregroundStyle(parColor(hole.par))
+                                    .foregroundStyle(parColor(back9[i].par))
                                     .frame(width: 22, height: 22)
-                                    .background(parColor(hole.par).opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
+                                    .background(parColor(back9[i].par).opacity(0.12), in: RoundedRectangle(cornerRadius: 5))
                             }
                         }
                     }
